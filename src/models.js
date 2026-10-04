@@ -5,7 +5,9 @@
 // towards +X, tyres on y = 0.
 
 const CHROME = { color: 0xd4d7db, metalness: 1, roughness: 0.1 };
-const GLASS = { color: 0x0b0f13, metalness: 0, roughness: 0.06, transparent: true, opacity: 0.5, depthWrite: false, envMapIntensity: 1.4 };
+// Glass reflects at full strength over its tint (glass.js); `opacity` is how
+// much of the view through it the tint takes away.
+const GLASS = { glass: true, color: 0x0b0f13, metalness: 0, roughness: 0.02, opacity: 0.5 };
 // GLS-family cabin materials come directly from their GLBs. Keep the authored
 // upholstery, dashboard, wood, steering wheel and ambient-strip colours.
 // Baked-texture interiors came out of the game as half metal; they read as
@@ -17,6 +19,15 @@ const BAKED = { metalness: 0, roughness: 0.6 };
 const LEATHER = { metalness: 0, roughness: 0.66, specularIntensity: 0.45 };
 // The three-pointed star and other badges.
 const BADGE = { color: 0xe4e6ea, metalness: 1, roughness: 0.06 };
+// Satin chrome: a little roughness gathers the bright ceiling into every
+// facet, so a star facing the dark end of the room still reads as silver
+// rather than mirroring the dark.
+const SATIN_CHROME = { color: 0xf1f3f6, metalness: 1, roughness: 0.17 };
+
+// The GLS's two headlamps, just inside their lenses (car space, metres).
+const HEADLAMPS = [1, -1].map(side => ({
+  min: [side > 0 ? .53 : -.91, .84, 1.98], max: [side > 0 ? .91 : -.53, 1.06, 2.445],
+}));
 
 // Where the camera goes for each part of an inspection report, and where its
 // pin sits on the car. Poses: az is degrees around the car (0 = looking at the
@@ -105,7 +116,9 @@ export const models = {
       gls_shild: CHROME,
       mirror: { color: 0xffffff, metalness: 1, roughness: 0 },
       gls_fara: { color: 0xeef0f2, metalness: 1, roughness: 0.04 },
-      gls_svet: { color: 0xa5a9ae, metalness: 1, roughness: 0.18 },
+      // The projector lens: dark optical glass, glossy, softly lit from
+      // within when the lamps are on (vehicle-parts.js: projectorMaterials).
+      gls_svet: { color: 0x07090c, metalness: 0, roughness: 0.03, clearcoat: 1, clearcoatRoughness: 0.02, emissive: 0x9fb2d4, emissiveIntensity: 0 },
       gls_rear: { color: 0x8d9095, metalness: 1, roughness: 0.15 },
       gls_sigl: { color: 0xb9bcc0, metalness: 1, roughness: 0.12 },
       gls_sigr: { color: 0xb9bcc0, metalness: 1, roughness: 0.12 },
@@ -115,9 +128,10 @@ export const models = {
       // cabin reads from outside; the rear door and quarter windows, the
       // tailgate glass and the roof are dark privacy glass (gls_carbonn, all
       // of the model's fixed glass), standard on the GLS.
-      gls_glass_1: { ...GLASS, color: 0x8ea39b, opacity: 0.2, envMapIntensity: 0.9 },
-      gls_carbonn: { ...GLASS, color: 0x0a0d10, opacity: 0.86, roughness: 0.04, envMapIntensity: 1.25 },
-      etk800_glass: { color: 0x6e0710, metalness: 0, roughness: 0.04, transparent: true, opacity: 0.78, clearcoat: 1, depthWrite: false },
+      gls_glass_1: { ...GLASS, color: 0x1d2724, opacity: 0.22 },
+      gls_carbonn: { ...GLASS, color: 0x0a0d10, opacity: 0.86 },
+      // The tail-lamp lenses: red glass over the lamp, gloss on top.
+      etk800_glass: { ...GLASS, color: 0x6e0710, opacity: 0.8 },
       gls_run: { color: 0x96101a, emissive: 0x7a0610, emissiveIntensity: 1.5, roughness: 0.25 },
       gls_stop: { color: 0x96101a, emissive: 0x3c0308, emissiveIntensity: 0, roughness: 0.25 },
       gls_grille: { color: 0x0a0a0b, metalness: 0.6, roughness: 0.22, clearcoat: 1 },
@@ -159,6 +173,29 @@ export const models = {
           min: [side > 0 ? .6 : -.82, 1.2, z0], max: [side > 0 ? .82 : -.6, 1.7, z1] })),
         material: { name: "pillar_black", color: 0x050506, metalness: 0, roughness: .1, clearcoat: 1, clearcoatRoughness: .05 },
       })),
+      // Inside each headlamp, behind the lens: the housing shares the trim's
+      // dark chrome and the reflector cells and bezels the bumper's black
+      // plastic. On the car the housing is dark graphite and the three
+      // MULTIBEAM reflector cells, the projector bezel and the brow's frame
+      // are bright chrome, which is what makes a lamp read through its glass.
+      { node: "gls_screen_L_gls_black_chrome036_0", box: HEADLAMPS,
+        material: { name: "headlamp_housing", color: 0x17191c, metalness: .6, roughness: .4 } },
+      { node: "gls_steer_brown_gls_kaki025_0", box: HEADLAMPS,
+        material: { name: "headlamp_chrome", color: 0xe2e5e9, metalness: 1, roughness: .12 } },
+      // The LED chips in two of the reflector cells, apart from the brow's
+      // light: lit with the headlamps (vehicle-parts.js), softer than the
+      // brow, so they glow behind the lens rather than reading as stickers.
+      { node: "gls_headlight_L_lsiggls001_0", box: [1, -1].map(side => ({
+          min: [side > 0 ? .64 : -.73, .915, 2.28], max: [side > 0 ? .73 : -.64, .96, 2.37] })),
+        material: { name: "headlamp_led", color: 0x14161a, metalness: 0, roughness: .3, emissive: 0xe4ecff, emissiveIntensity: 0 } },
+      // The three-pointed star on the tailgate is chrome on the car; the
+      // model left it in the black trim.
+      { node: "gls_tailgate_gls_kaki025_0", box: { min: [-.065, 1.23, -2.55], max: [.065, 1.34, -2.46] },
+        material: { name: "tailgate_star", ...SATIN_CHROME } },
+      // What the model preparation took for the tailgate badge (the second
+      // `logo_chrome`) is the rear wiper's pivot cap, which is black.
+      { node: "logo_chrome_1", box: { min: [-.1, 1.3, -2.56], max: [.1, 1.45, -2.4] },
+        material: { name: "wiper_cap", color: 0x0b0c0d, metalness: 0, roughness: .45 } },
     ],
   },
 
@@ -210,13 +247,13 @@ export const models = {
       Front_lights_mat_black: { color: 0x0c0d0f, metalness: 0.6, roughness: 0.18 },
       Front_lights_mat_blue: { color: 0x0d2a6b, metalness: 0.6, roughness: 0.14 },
       // A light smoke so the original cabin reads.
-      Windows_glass: { ...GLASS, color: 0x9aa3a6, opacity: 0.22, envMapIntensity: 0.8 },
+      Windows_glass: { ...GLASS, color: 0x1f2426, opacity: 0.22 },
       Panarama_glass: { ...GLASS, color: 0x05070a, opacity: 0.85 },
-      Front_lights_glass: { color: 0xe8eef2, metalness: 0, roughness: 0.02, transparent: true, opacity: 0.16, depthWrite: false, envMapIntensity: 1.6 },
-      light_glass: { color: 0xe8eef2, metalness: 0, roughness: 0.02, transparent: true, opacity: 0.2, depthWrite: false },
+      Front_lights_glass: { ...GLASS, color: 0x202224, roughness: 0.015, opacity: 0.03 },
+      light_glass: { ...GLASS, color: 0x202224, roughness: 0.015, opacity: 0.05 },
       light: { color: 0xeef0f2, metalness: 1, roughness: 0.05 },
       Front_Lights_emissive: { color: 0xffffff, emissive: 0xf4f7ff, emissiveIntensity: 3.5, roughness: 0.2 },
-      Back_lights_emissive: { color: 0x6e0710, emissive: 0x3c0308, emissiveIntensity: 0, metalness: 0, roughness: 0.05, transparent: true, opacity: 0.85, clearcoat: 1, depthWrite: false },
+      Back_lights_emissive: { ...GLASS, color: 0x6e0710, emissive: 0x3c0308, emissiveIntensity: 0, opacity: 0.85 },
       red_emiss: { color: 0x96101a, emissive: 0x7a0610, emissiveIntensity: 1.5, roughness: 0.25 },
       Mirror: { color: 0xffffff, metalness: 1, roughness: 0 },
       Mirror_lights_mat: { color: 0xb9bcc0, metalness: 1, roughness: 0.12 },
@@ -245,6 +282,15 @@ export const models = {
     paint: "defender_paint",
     openings: {},
     ambient: {},
+    pieces: [
+      // The source also carries the Hard Top's body-coloured panels over the
+      // rear quarter windows, a millimetre outside the glass: on this
+      // passenger 110 they showed as white slabs, flickering against the
+      // glass and its black backing. The quarter windows are glass.
+      { node: "Object_56", box: [1, -1].map(side => ({
+          min: [side > 0 ? .66 : -.8, 1.42, -1.56], max: [side > 0 ? .8 : -.66, 1.81, -1.11] })),
+        material: { name: "defender_hard_top_panels", visible: false } },
+    ],
     parts: {
       // Narvik Black: glossy, but the white studio must not wash the roof pale.
       defender_gloss_black: { color: 0x060708, metalness: 0, roughness: 0.3, specularIntensity: 0.5, clearcoat: 0.55, clearcoatRoughness: 0.16 },

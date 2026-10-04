@@ -11,6 +11,7 @@ import { showroomRoom } from './showroom-room.js';
 import { createVehicleLighting } from './vehicle-lighting.js';
 import { createTypePlane } from './type-plane.js';
 import { createRenderDensity } from './render-density.js';
+import { createFloorMaterial, floorLayout, floorShader } from './showroom-floor.js';
 
 // Draw order: the room, then the film's headlines, then the cars. A car that
 // crosses a headline passes in front of it; the room never covers the type.
@@ -36,7 +37,10 @@ if (!THREE.ShaderChunk.fog_fragment.includes('showroomOutside')) {
 export function createShowroom(canvas, onFailure) {
   const mobile = matchMedia('(max-width: 760px)').matches;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true, powerPreference: 'high-performance' });
-  renderer.toneMapping = THREE.ACESFilmicToneMapping;
+  // Khronos PBR Neutral: base colours reproduce 1:1 up to the highlights,
+  // which alone are compressed. ACES darkened and desaturated the
+  // Cavansite Blue towards black and dimmed the whole room.
+  renderer.toneMapping = THREE.NeutralToneMapping;
   renderer.toneMappingExposure = 1.0;
   // A colour background clears on every render call; clear once per frame.
   renderer.autoClear = false; renderer.info.autoReset = false;
@@ -65,43 +69,62 @@ export function createShowroom(canvas, onFailure) {
   // film scroll at full resolution. No area light may stand across a doorway,
   // where a passing car would be lit hard on one side of its plane only.
   const low = showroomRoom.ceiling - .06;
-  area(0xfff6ea, 1.15, 13, 15, [0, low, 0], [0, 0, 0]);
-  const fill = new THREE.HemisphereLight(0xe6e2d9, 0x17191b, .25);
+  area(0xfff6ea, 1.6, 13, 15, [0, low, 0], [0, 0, 0]);
+  const fill = new THREE.HemisphereLight(0xe6e2d9, 0x1d1c1b, .25);
   fill.layers.enableAll();
   scene.add(fill);
 
-  // Polished black stone floor. It continues past the doorways into the
-  // dark. Dithered: the dark floor's light and shadow falloffs span only a
-  // few 8-bit levels and would otherwise band.
-  const polished = new THREE.MeshPhysicalMaterial({ color: 0x111214, metalness: 0, roughness: .27, specularIntensity: .4, dithering: true });
+  // Polished stone floor (showroom-floor.js). It continues past the
+  // doorways into the dark. Dithered: the floor's light and shadow falloffs
+  // span only a few 8-bit levels and would otherwise band.
+  const floorUniforms = { showroomLevel: { value: 1 } };
+  const polished = createFloorMaterial(floorUniforms);
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(120, 120), polished);
   floor.rotation.x = -Math.PI / 2; floor.position.y = -.025;
   scene.add(floor);
 
-  // A low-resolution, softly sampled floor reflection. Portrait devices use
-  // the PBR floor alone. The reflection never replaces the contact shadow.
+  // The floor's reflection, softly sampled. Polished stone reflects little
+  // looking down and much at a glance (Fresnel), and nothing in its joints.
+  // The reflection is drawn small, so it is multisampled and read from its
+  // mipmaps: a tap blur over the full-size image stamped ghost copies of
+  // every thin light, and blew the materials' dithering up into dots.
+  // Portrait devices use the PBR floor alone. The reflection never replaces
+  // the contact shadow.
   let mirror;
   if (!mobile) {
     const shader = {
       uniforms: THREE.UniformsUtils.clone(Reflector.ReflectorShader.uniforms),
-      vertexShader: Reflector.ReflectorShader.vertexShader,
+      vertexShader: `uniform mat4 textureMatrix; varying vec4 vUv; varying vec3 floorWorld;
+        void main() {
+          vUv = textureMatrix * vec4(position, 1.0);
+          floorWorld = (modelMatrix * vec4(position, 1.0)).xyz;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }`,
       fragmentShader: `#include <common>
         #include <dithering_pars_fragment>
-        uniform sampler2D tDiffuse; varying vec4 vUv;
+        uniform sampler2D tDiffuse; varying vec4 vUv; varying vec3 floorWorld;
+        ${floorShader}
         void main() {
-          vec2 uv=vUv.xy/vUv.w; vec2 d=vec2(.005,.008);
-          vec3 c=texture2D(tDiffuse,uv).rgb*.28;
-          c+=texture2D(tDiffuse,uv+d).rgb*.18;
-          c+=texture2D(tDiffuse,uv-d).rgb*.18;
-          c+=texture2D(tDiffuse,uv+vec2(d.x,-d.y)).rgb*.18;
-          c+=texture2D(tDiffuse,uv+vec2(-d.x,d.y)).rgb*.18;
-          gl_FragColor=vec4(c,.16);
+          vec2 uv=vUv.xy/vUv.w; vec2 d=vec2(.003,.0045); const float soft=1.4;
+          vec3 c=texture2D(tDiffuse,uv,soft).rgb*.28;
+          c+=texture2D(tDiffuse,uv+d,soft).rgb*.18;
+          c+=texture2D(tDiffuse,uv-d,soft).rgb*.18;
+          c+=texture2D(tDiffuse,uv+vec2(d.x,-d.y),soft).rgb*.18;
+          c+=texture2D(tDiffuse,uv+vec2(-d.x,d.y),soft).rgb*.18;
+          vec3 view=normalize(cameraPosition-floorWorld);
+          float fresnel=pow(1.0-saturate(view.y),4.0);
+          vec2 tile; float edge=floorJoint(floorWorld.xz,tile);
+          float stage=1.0-smoothstep(${floorLayout.stage.toFixed(2)}-.004,${floorLayout.stage.toFixed(2)}+.004,length(floorWorld.xz));
+          float joint=mix(smoothstep(.001,.001+max(fwidth(edge),1e-4)*1.5,edge),1.0,stage);
+          gl_FragColor=vec4(c,(.08+.36*fresnel+.06*stage)*joint);
           #include <tonemapping_fragment>
           #include <colorspace_fragment>
           #include <dithering_fragment>
         }`,
     };
-    mirror = new Reflector(new THREE.PlaneGeometry(2*showroomRoom.wall.inner, 2*showroomRoom.wall.inner), { textureWidth: 768, textureHeight: 512, multisample: 0, clipBias: .002, shader });
+    mirror = new Reflector(new THREE.PlaneGeometry(2*showroomRoom.wall.inner, 2*showroomRoom.wall.inner), { textureWidth: 768, textureHeight: 512, multisample: 4, clipBias: .002, shader });
+    const reflection = mirror.getRenderTarget().texture;
+    reflection.generateMipmaps = true; reflection.minFilter = THREE.LinearMipmapLinearFilter;
     mirror.rotation.x = -Math.PI / 2;
     mirror.position.y = .002;
     mirror.material.transparent = true;
@@ -256,7 +279,8 @@ export function createShowroom(canvas, onFailure) {
     if (next.type) type.update(next.type);
     if (next.tethers) tethers = next.tethers;
     renderer.toneMappingExposure = cabin ? 1.08 : 1.0;
-    scene.environmentIntensity = .012 + light * .56;
+    scene.environmentIntensity = .012 + light * .62;
+    floorUniforms.showroomLevel.value = light;
     lights.forEach(l => { l.intensity = l.userData.power * light * (cabin ? .45 : 1); });
     fill.intensity = .012 + light * (cabin ? .62 : .5);
     studio?.setLight(light);
@@ -300,7 +324,7 @@ export function createShowroom(canvas, onFailure) {
       const pmrem = new THREE.PMREMGenerator(renderer);
       const bounce = pmrem.fromEquirectangular(env);
       env.dispose(); pmrem.dispose(); report('env', .4);
-      studio = await loadStudio(renderer, scene, bounce.texture, p => report('env', .4+p*.5));
+      studio = await loadStudio(renderer, scene, bounce.texture, polished, p => report('env', .4+p*.5));
       bounce.dispose();
       if (disposed) { studio.target.dispose(); return; }
       scene.environment = studio.target.texture;
