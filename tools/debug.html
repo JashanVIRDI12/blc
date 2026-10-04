@@ -1,0 +1,33 @@
+<!doctype html>
+<html><head><meta charset="utf-8"><style>html,body{margin:0;background:#f7f4ee}canvas{display:block;width:100vw;height:100vh}</style></head>
+<body><canvas id="c"></canvas>
+<script type="module">
+// TEMPORARY raw-model renders (delete when done)
+import * as THREE from "three";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { EXRLoader } from "three/addons/loaders/EXRLoader.js";
+import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
+const q = new URLSearchParams(location.search);
+const num = (k, d) => (q.has(k) ? Number(q.get(k)) : d);
+const renderer = new THREE.WebGLRenderer({ canvas: c, antialias: true });
+renderer.setPixelRatio(1); renderer.setSize(innerWidth, innerHeight, false);
+renderer.toneMapping = THREE.ACESFilmicToneMapping;
+const scene = new THREE.Scene(); scene.background = new THREE.Color(0xf7f4ee);
+const env = await new EXRLoader().loadAsync("/env/studio.exr"); env.mapping = THREE.EquirectangularReflectionMapping;
+scene.environment = env; scene.environmentRotation.y = Math.PI;
+const gltf = await new GLTFLoader().setMeshoptDecoder(MeshoptDecoder).loadAsync(q.get("model"));
+const m = gltf.scene;
+if (q.has("fitlen")) { const b = new THREE.Box3().setFromObject(m), s = new THREE.Vector3(); b.getSize(s); m.scale.setScalar(num("fitlen") / s.z); const b2 = new THREE.Box3().setFromObject(m), c0 = b2.getCenter(new THREE.Vector3()); m.position.set(-c0.x, -b2.min.y, -c0.z); }
+const hl = (q.get("hl") || "").split(",").filter(Boolean);
+const pal = [0xff00ff, 0x00e5ff, 0xffd400, 0x00ff66, 0xff5500, 0x3355ff, 0xff0000, 0x8800ff];
+m.traverse((o) => { if (!o.isMesh) return; const key = (o.parent?.name ?? "") + "/" + o.material.name; const i = hl.findIndex((h) => key.includes(h)); if (i >= 0) o.material = new THREE.MeshBasicMaterial({ color: pal[i % pal.length] }); });
+for (const pair of (q.get("open") || "").split(",").filter(Boolean)) { const [n, d] = pair.split(":"); const node = m.getObjectByName(n); node.rotation[n.startsWith("Door") ? "y" : "x"] = THREE.MathUtils.degToRad(Number(d)); }
+scene.add(m);
+const cam = new THREE.PerspectiveCamera(num("fov", 30), innerWidth / innerHeight, 0.02, 100);
+const t = new THREE.Vector3(num("tx", 0), num("ty", 0.8), num("tz", 0));
+const az = THREE.MathUtils.degToRad(num("az", -32)), el = THREE.MathUtils.degToRad(num("el", 8)), d = num("dist", 11);
+cam.position.set(t.x + d * Math.sin(az) * Math.cos(el), t.y + d * Math.sin(el), t.z + d * Math.cos(az) * Math.cos(el)); cam.lookAt(t);
+renderer.render(scene, cam);
+const b = new THREE.Box3().setFromObject(m); window.__info = { size: b.getSize(new THREE.Vector3()).toArray().map((v) => v.toFixed(3)), min: b.min.toArray().map((v) => v.toFixed(2)) };
+document.title = "ready";
+</script></body></html>

@@ -1,0 +1,65 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <title>Stills</title>
+    <style>
+      html, body { margin: 0; background: transparent; }
+      canvas { display: block; width: 2880px; height: 1620px; }
+    </style>
+  </head>
+  <body>
+    <canvas id="c"></canvas>
+    <script type="module">
+      // Renders the showcase cars on a transparent background for fallbacks.
+      // Driven by tools/render-stills.mjs; not part of the site. `?only=gls,x7`
+      // renders just those.
+      import * as THREE from "three";
+      import { EXRLoader } from "three/addons/loaders/EXRLoader.js";
+      import { loadCar } from "/src/car.js";
+      import { models } from "/src/models.js";
+      import { showcase } from "/src/config.js";
+      import { vehicleParts } from "/src/vehicle-parts.js";
+      const only = new URLSearchParams(location.search).get("only")?.split(",");
+      const entries = showcase.filter(item => !only || only.includes(item.id)).map(item => ({ ...item, model3d: item.id }));
+
+      const renderer = new THREE.WebGLRenderer({ canvas: c, antialias: true, alpha: true, preserveDrawingBuffer: true });
+      renderer.setPixelRatio(1);
+      renderer.setSize(2880, 1620, false);
+      renderer.toneMapping = THREE.ACESFilmicToneMapping;
+      renderer.setClearColor(0x000000, 0);
+      const scene = new THREE.Scene();
+      scene.environmentRotation.y = Math.PI;
+      const env = await new EXRLoader().loadAsync("/env/studio.exr");
+      env.mapping = THREE.EquirectangularReflectionMapping;
+      scene.environment = env;
+
+      // Same angle as the opening shot, framed tighter.
+      const camera = new THREE.PerspectiveCamera(24, 16 / 9, 0.1, 100);
+      const az = THREE.MathUtils.degToRad(-32);
+      const el = THREE.MathUtils.degToRad(7);
+      const d = 13.2;
+      camera.position.set(d * Math.sin(az) * Math.cos(el), 0.78 + d * Math.sin(el), d * Math.cos(az) * Math.cos(el));
+      camera.lookAt(0, 0.78, 0);
+
+      const out = {};
+      for (const entry of entries) {
+        if (out[entry.model3d]) continue;
+        const spec = { ...models[entry.model3d], partMap: vehicleParts[entry.model3d] };
+        const car = await loadCar(spec, entry.paint, { invalidate() {} });
+        const shadow = new THREE.Mesh(
+          new THREE.PlaneGeometry(3.6, 6.8),
+          new THREE.MeshBasicMaterial({ color: 0x2a2116, transparent: true, opacity: 0.62, depthWrite: false, alphaMap: await new THREE.TextureLoader().loadAsync(spec.shadow) }),
+        );
+        shadow.rotation.x = -Math.PI / 2;
+        const holder = new THREE.Group().add(shadow, car.root);
+        scene.add(holder);
+        renderer.render(scene, camera);
+        out[entry.model3d] = renderer.domElement.toDataURL("image/png");
+        scene.remove(holder);
+      }
+      window.__stills = out;
+      document.title = "ready";
+    </script>
+  </body>
+</html>

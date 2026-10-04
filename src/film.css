@@ -1,0 +1,115 @@
+/* The showroom film. Headlines are laid out here in the DOM, then drawn by
+   WebGL between the room and the car (src/type-plane.js), so the X7 passes
+   in front of them. Without WebGL the DOM text shows. */
+.cinema{--film-ink:#efe9de;--film-soft:#b7b1a6;--film-rule:rgba(239,233,222,.18);position:relative;height:100svh;min-height:620px;overflow:hidden;isolation:isolate;background:#090c0d}
+.cinema canvas{position:absolute;inset:0;z-index:0;display:block;width:100%;height:100%}
+.static-poster{display:none;position:absolute;right:-6%;top:30%;width:66%;object-fit:contain}
+/* Shade only the foot of the frame, for the chapter rail. It sits above the
+   canvas, so it would also dim the WebGL headlines, which carry their own
+   soft scrim (type-plane.js). */
+.cinema-shade{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(0deg,rgba(0,0,0,.8),rgba(0,0,0,.26) 15%,transparent 28%)}
+.cinema-copy{position:absolute;inset:0;z-index:3;pointer-events:none}
+
+.cinema .moment{position:absolute;left:var(--gutter);right:auto;top:20%;width:43%;max-width:660px;visibility:hidden;will-change:opacity}
+.cinema .moment.is-visible{visibility:visible}
+.cinema .moment a{pointer-events:auto}
+.cinema .film-title{margin:0;font:300 clamp(40px,4.65vw,82px)/1.08 var(--font-display);letter-spacing:-.018em;color:var(--film-ink)}
+.cinema.has-type .film-title{color:transparent}
+.cinema .moment--hero{top:26%;width:calc(100% - var(--gutter)*2);max-width:none;bottom:19%;display:flex;flex-direction:column}
+.cinema .moment--hero .film-title{font-size:clamp(72px,10.65vw,188px);line-height:1.06;letter-spacing:-.024em;white-space:nowrap}
+.cinema .moment--lead:not(.moment--cabin){top:22%;width:53%;max-width:none}
+.cinema .moment--lead:not(.moment--cabin) .film-title{font-size:clamp(60px,7.8vw,132px);line-height:1.03}
+.cinema .moment--trail{top:20%;left:auto;right:var(--gutter);text-align:right;width:40%}
+.cinema .moment--low{top:auto;bottom:22%}
+.cinema .moment--cabin{top:17%;bottom:19%;width:43%;display:flex;flex-direction:column}
+.cinema .moment--centre{top:27%;left:var(--gutter);right:var(--gutter);width:auto;max-width:none;bottom:19%;display:flex;flex-direction:column;text-align:center}
+.cinema .moment--centre .film-title{font-size:clamp(68px,9.9vw,180px);line-height:1.08;white-space:nowrap}
+.mobile-break{display:none}
+.desktop-space{display:inline-block;width:.22em}
+
+.moment-kicker{display:flex;align-items:center;gap:16px;margin:0 0 28px;font:400 10px/1.3 var(--font-text);letter-spacing:.2em;text-transform:uppercase;color:#e3d9c8;will-change:opacity,transform}
+.moment-kicker,.moment-note{text-shadow:0 1px 5px rgba(0,0,0,.5)}
+.moment-index{color:#d2ab6b}
+.moment-kicker>span+span{display:flex;align-items:center;gap:16px}
+.moment-kicker>span+span:before{content:'';width:34px;height:1px;background:#c7a775;opacity:.6}
+.moment--trail .moment-kicker{justify-content:flex-end}
+.moment--centre .moment-kicker{justify-content:center}
+.moment-body{margin-top:28px;will-change:opacity,transform}
+.moment--hero .moment-body,.moment--centre .moment-body,.moment--cabin .moment-body{margin-top:auto}
+.moment--trail .moment-body{margin-left:auto}
+.moment--centre .moment-body{margin-inline:auto}
+.cinema .moment-note{max-width:34ch;font:400 clamp(13px,1.05vw,16px)/1.8 var(--font-text);color:#d4d0c7;letter-spacing:.01em}
+.moment--trail .moment-note{margin-inline:auto 0}
+.moment--centre .moment-note{max-width:none;margin-inline:auto}
+.moment-detail{display:block;margin-top:18px;font:400 9px/1.5 var(--font-text);letter-spacing:.14em;text-transform:uppercase;color:#a99f8c}
+.film-link{display:inline-flex;align-items:center;gap:42px;margin-top:24px;padding-bottom:10px;font:400 12px/1.2 var(--font-text);letter-spacing:.03em;color:var(--film-ink);border-bottom:1px solid #c7a77580;transition:gap .4s var(--ease),border-color .4s}
+.film-link>span{color:#d2ab6b;font-size:18px;line-height:1;transition:transform .4s var(--ease)}
+.film-link:hover{gap:54px;border-color:#d2ab6b}.film-link:hover>span{transform:translate(2px,-2px)}
+.moment .verified-value{padding-top:16px;font:300 26px var(--font-display);color:var(--film-ink)}
+.verified-value:empty{display:none}
+
+/* Labels tethered to the car: a gold ring on the part, a hairline, a word. */
+.tethers{position:absolute;inset:0;z-index:3;pointer-events:none}
+.tether{position:absolute;left:0;top:0;width:0;height:0;opacity:0;will-change:transform,opacity}
+.tether:before{content:'';position:absolute;left:-5px;top:-5px;width:9px;height:9px;border-radius:50%;border:1px solid var(--gold);box-shadow:0 0 0 4px rgba(196,136,58,.15)}
+.tether:after{content:'';position:absolute;left:4px;top:-4px;width:52px;height:1px;background:var(--gold);transform-origin:0 50%;transform:rotate(-38deg)}
+.tether b{position:absolute;left:44px;top:-50px;padding:8px 12px 9px;font:500 12px/1 var(--font-text);letter-spacing:.02em;white-space:nowrap;color:var(--film-ink);background:rgba(0,0,0,.72);border:1px solid rgba(196,136,58,.35)}
+.tether[data-side=left]:after{left:-4px;transform:rotate(-142deg)}
+.tether[data-side=left] b{left:auto;right:44px}
+
+/* Chapters: the film's own navigation, in place of a scroll prompt. */
+.cinema-footer{position:absolute;left:var(--gutter);right:var(--gutter);bottom:36px;z-index:5;display:flex;align-items:flex-end;justify-content:space-between;gap:24px}
+.film-chapters{display:flex;gap:clamp(14px,1.9vw,30px);pointer-events:auto}
+.film-chapters button{position:relative;padding:10px 0 12px;font:400 13px/1 var(--font-text);letter-spacing:.01em;color:rgba(239,233,222,.5);transition:color .3s}
+.film-chapters button:hover,.film-chapters button[aria-current]{color:var(--film-ink)}
+.film-chapters button:after{content:'';position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--film-rule)}
+.film-chapters button[aria-current]:after{background:linear-gradient(90deg,var(--gold) calc(var(--chapter-fill,0)*100%),var(--film-rule) 0)}
+.film-skip{padding:10px 0 12px;font:500 13px/1 var(--font-text);color:var(--film-ink);background:linear-gradient(var(--gold),var(--gold)) 0 100%/100% 1px no-repeat}
+.cinema .turn-hint{bottom:96px;color:var(--film-ink);background:rgba(0,0,0,.66);border:1px solid rgba(196,136,58,.4)}
+.static-experience .cinema .turn-hint{display:none}
+.cinema .showcase-note{position:absolute;right:var(--gutter);bottom:14px;z-index:5;font:400 11px/1 var(--font-text);letter-spacing:.01em;color:rgba(239,233,222,.4)}
+
+.static-experience .cinema{min-height:720px}
+.static-experience .cinema canvas,.static-experience .film-chapters{display:none}
+.static-experience .static-poster{display:block}
+.static-experience .cinema .moment--hero{visibility:visible}
+.static-experience .moment-body{opacity:1!important;transform:none!important}
+.static-experience .moment-kicker,.static-experience .film-title{opacity:1!important;transform:none!important}
+@media(min-width:761px){.static-experience .cinema .moment--hero{top:24%}}
+
+@media(max-width:760px){
+  .cinema{min-height:640px}
+  .cinema .moment,.cinema .moment--hero,.cinema .moment--lead:not(.moment--cabin),.cinema .moment--trail,.cinema .moment--low,.cinema .moment--cabin,.cinema .moment--centre{left:var(--gutter);right:var(--gutter);top:17%;bottom:calc(108px + env(safe-area-inset-bottom));width:auto;max-width:none;margin:0;text-align:left;display:flex;flex-direction:column}
+  .cinema .moment--hero,.cinema .moment--centre{top:24%;bottom:calc(108px + env(safe-area-inset-bottom));display:flex;flex-direction:column}
+  .cinema .film-title{font-size:clamp(34px,10vw,64px);line-height:1.1;font-weight:350}
+  .cinema .moment--hero .film-title{font-size:clamp(62px,17vw,112px);line-height:1.02;white-space:normal;letter-spacing:-.022em}
+  .cinema .moment--lead:not(.moment--cabin) .film-title{font-size:clamp(48px,13.7vw,88px);line-height:1.04}
+  .cinema .moment--centre .film-title{font-size:clamp(44px,11.5vw,72px);white-space:nowrap;line-height:1.12}
+  .mobile-break{display:block}.desktop-space{display:none}
+  .moment-kicker{font-size:8px;letter-spacing:.14em;gap:10px;margin-bottom:18px}
+  .moment-kicker>span+span{gap:10px}.moment-kicker>span+span:before{width:22px}
+  .moment--trail .moment-kicker,.moment--centre .moment-kicker{justify-content:flex-start}
+  .moment-body{margin-top:auto}
+  .moment--hero .moment-body,.moment--centre .moment-body{margin-top:auto}
+  .moment--trail .moment-body,.moment--centre .moment-body{margin-left:0}
+  .cinema .moment-note{margin:0;font-size:12px;line-height:1.7}
+  .moment--centre .moment-note{max-width:29ch}
+  .moment-detail{font-size:8px;margin-top:12px;letter-spacing:.1em}
+  .film-link{font-size:11px;gap:30px;margin-top:17px;padding-bottom:9px}
+  .tether b{padding:7px 9px 8px;font-size:10px}
+  .cinema-footer{bottom:32px}
+  .cinema .turn-hint{bottom:calc(212px + env(safe-area-inset-bottom));font-size:10px}
+  .film-chapters{gap:0}
+  .film-chapters button:not([aria-current]){display:none}
+  .film-chapters button[aria-current]{min-width:120px;text-align:left}
+  .cinema .showcase-note{left:var(--gutter);right:auto;bottom:12px;font-size:10px}
+  .static-poster{top:42%;right:-9%;width:112%}
+}
+@media(max-height:720px) and (min-width:761px){
+  .cinema .moment--hero{top:24%;bottom:17%}
+  .cinema .moment--hero .film-title{font-size:clamp(72px,9vw,140px)}
+  .cinema .moment--lead:not(.moment--cabin) .film-title{font-size:clamp(52px,6vw,96px)}
+  .moment-kicker{margin-bottom:18px}.moment-body{margin-top:20px}
+  .moment--hero .moment-body,.moment--centre .moment-body{margin-top:auto}
+}
+@media(prefers-reduced-motion:reduce){.film-link,.film-link>span{transition:none}}

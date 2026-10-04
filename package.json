@@ -1,0 +1,29 @@
+{
+  "name": "car-website",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "model": "node tools/prep-model.mjs gls source/mersedes-_benz_gls.glb build/gls-clean.glb public/models/gls.glb && blender -b --python tools/bake-shadow.py -- build/gls-clean.glb public/models/gls-shadow.jpg",
+    "model:x7": "node tools/prep-x7.mjs 2019_bmw_x7_xdrive40i.glb build/x7-clean.glb public/models/x7.glb && blender -b --python tools/bake-shadow.py -- build/x7-clean.glb public/models/x7-shadow.jpg",
+    "model:defender": "node tools/prep-defender.mjs land_rover_defender_-_edition_grasmere_green.glb build/defender-clean.glb public/models/defender.glb && blender -b --python tools/bake-shadow.py -- build/defender-clean.glb public/models/defender-shadow.jpg",
+    "stills": "node tools/render-stills.mjs",
+    "model:studio": "node tools/prep-studio.mjs",
+    "model:showroom": "node tools/prep-showroom.mjs",
+    "env": "blender -b --python tools/pack-hdri.py -- source/studio_small_09_2k.hdr public/env/studio.exr && blender -b --python tools/pack-hdri.py -- source/studio_small_09_2k.hdr public/env/studio-1k.exr 1024",
+    "test": "node --test tools/verify-motion.test.mjs",
+    "audit:models": "node tools/audit-models.mjs",
+    "check:browser": "node tools/browser-check.mjs"
+  },
+  "dependencies": {
+    "gsap": "^3.15.0",
+    "three": "^0.186.1"
+  },
+  "devDependencies": {
+    "@gltf-transform/cli": "^4.5.1",
+    "vite": "^8.3.1"
+  }
+}

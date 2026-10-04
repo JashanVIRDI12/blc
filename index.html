@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="BABA Luxury Cars. A considered approach to premium pre-owned cars. Explore our collection, understand our standards and start your next chapter." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
+  <link rel="preload" href="/fonts/noto-serif-display-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/jost-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <title>Baba Luxury Cars — The art of choosing well.</title>
+</head>
+<body>
+  <a class="skip-link" href="#inventory">Skip to inventory</a>
+  <div class="loader" id="loader" role="status" aria-live="polite">
+    <img class="loader-logo" src="/brand/baba-luxury-car-800.webp" alt="Baba Luxury Car" width="800" height="250" />
+    <div class="loader-bottom"><p>Preparing the showroom <span id="load-percent">0%</span></p><div class="load-track"><i id="load-bar"></i></div></div>
+    <button class="text-link loader-skip" id="skip-loading">Continue to the collection</button>
+  </div>
+  <header class="site-header">
+    <button class="menu-toggle" aria-label="Open navigation" aria-expanded="false" aria-controls="mobile-menu"><i></i><i></i></button>
+    <nav class="desktop-nav" aria-label="Main navigation">
+      <a href="#inventory">Collection</a><a href="#about">About Baba</a><a href="#standard">Our standard</a><a href="#sell">Sell your car</a>
+    </nav>
+    <a class="brand-logo" href="#home"><img src="/brand/baba-luxury-car-800.webp" alt="Baba Luxury Car, back to the top" width="800" height="250" /></a>
+    <div class="header-actions"><button class="enquire-link" data-enquire>Enquire</button></div>
+  </header>
+  <nav id="mobile-menu" class="mobile-menu" aria-label="Mobile navigation" hidden><a href="#inventory">Collection</a><a href="#about">About Baba</a><a href="#standard">Our standard</a><a href="#sell">Sell your car</a><a href="#contact">Contact</a></nav>
+  <div id="smooth-wrapper"><main id="smooth-content">
+    <section class="cinema" id="home" aria-label="The BABA showroom: scroll to explore our selection standards">
+      <canvas aria-label="Scroll through the Baba Luxury Cars showroom film." id="showroom" tabindex="-1"></canvas>
+      <img class="static-poster" src="/stills/gls.webp" alt="Mercedes-Benz GLS 580 in Cavansite Blue" />
+      <div class="cinema-shade" aria-hidden="true"></div>
+      <div class="cinema-copy">
+        <article class="moment moment--hero" data-moment="opening">
+          <p class="moment-kicker"><span class="moment-index">BABA / 01</span><span>The art of</span></p>
+          <h1 class="film-title">Choosing<span class="desktop-space"> </span><br class="mobile-break">well.</h1>
+          <div class="moment-body"><p class="moment-note">Extraordinary cars.<br>A more considered choice.</p><a class="film-link" href="#inventory">Discover the collection <span aria-hidden="true">↗</span></a></div>
+        </article>
+        <article class="moment moment--lead" data-moment="condition" aria-hidden="true">
+          <p class="moment-kicker"><span class="moment-index">01 / 04</span><span>Beyond the surface</span></p>
+          <h2 class="film-title">Beyond<br>beautiful.</h2>
+          <div class="moment-body"><p class="moment-note">The lines draw you in.<br>The condition deserves a closer look.</p><span class="moment-detail">Bodywork · Structure · History</span></div>
+        </article>
+        <article class="moment moment--trail" data-moment="tyres" aria-hidden="true">
+          <p class="moment-kicker"><span class="moment-index">02 / 04</span><span>The finer details</span></p>
+          <h2 class="film-title">Every detail.<br>Considered.</h2>
+          <div class="moment-body"><p class="moment-note">From the tread to the wear.<br>Nothing too small to understand.</p><p class="verified-value" data-verified="tyres"></p></div>
+        </article>
+        <article class="moment moment--low" data-moment="mechanical" aria-hidden="true">
+          <p class="moment-kicker"><span class="moment-index">03 / 04</span><span>At its heart</span></p>
+          <h2 class="film-title">Confidence.<br>From within.</h2>
+          <div class="moment-body"><p class="moment-note">A closer look at what moves you.<br>From the engine to the essentials.</p></div>
+        </article>
+        <article class="moment moment--lead moment--cabin" data-moment="interior" aria-hidden="true">
+          <p class="moment-kicker"><span class="moment-index">04 / 04</span><span>A space of your own</span></p>
+          <h2 class="film-title">Make yourself<br>at home.</h2>
+          <div class="moment-body"><p class="moment-note">The materials. The details.<br>The feeling when you settle in.</p></div>
+        </article>
+        <article class="moment moment--centre" data-moment="departure" aria-hidden="true">
+          <p class="moment-kicker"><span class="moment-index">Your next chapter</span><span>Starts here</span></p>
+          <h2 class="film-title">Yours, to drive.</h2>
+          <div class="moment-body"><p class="moment-note">The details considered. The road ahead, yours.</p><a class="film-link" href="#inventory">Find your next car <span aria-hidden="true">↗</span></a></div>
+        </article>
+      </div>
+      <div class="tethers" aria-hidden="true">
+        <span class="tether" data-tether="bodywork"><b>Bodywork</b></span>
+        <span class="tether" data-tether="structure" data-side="left"><b>Structure</b></span>
+        <span class="tether" data-tether="tread" data-side="left"><b>Tread</b></span>
+        <span class="tether" data-tether="wear"><b>Wear</b></span>
+        <span class="tether" data-tether="engine"><b>Engine</b></span>
+        <span class="tether" data-tether="controls" data-side="left"><b>Controls</b></span>
+        <span class="tether" data-tether="materials"><b>Materials</b></span>
+      </div>
+      <div class="cinema-footer">
+        <nav class="film-chapters" aria-label="Film chapters">
+          <button type="button" data-chapter="opening">Arrival</button>
+          <button type="button" data-chapter="condition">Bodywork</button>
+          <button type="button" data-chapter="tyres">Tyres</button>
+          <button type="button" data-chapter="mechanical">Engine</button>
+          <button type="button" data-chapter="interior">Cabin</button>
+          <button type="button" data-chapter="departure">Departure</button>
+        </nav>
+        <button id="skip-film" class="film-skip" type="button">Skip to collection</button>
+      </div>
+      <p class="turn-hint" aria-hidden="true"><svg viewBox="0 0 28 12"><path d="M5 1 1 6l4 5M23 1l4 5-4 5M1 6h26"/></svg>Drag to look around</p>
+      <p class="showcase-note">Showcase vehicle, not current stock</p>
+    </section>
+
+    <section class="collection section-pad" id="inventory" aria-labelledby="inventory-title">
+      <div class="collection-heading"><h2 id="inventory-title">Featured collection.</h2><p class="intro" id="collection-intro">Distinctive cars. Carefully considered.<br>Enquire for current availability.</p></div>
+      <form class="collection-tools" role="search" id="collection-filters">
+        <label class="search-field"><span class="sr-only">Search the collection</span><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><input id="vehicle-search" type="search" placeholder="Find your next car" autocomplete="off" /></label>
+        <label><span class="sr-only">Filter by make</span><select id="make-filter"><option value="">All makes</option></select></label>
+        <label><span class="sr-only">Sort collection</span><select id="sort-filter"><option value="featured">Featured</option><option value="price-low">Price: low to high</option><option value="newest">Year: newest first</option><option value="mileage">Mileage: low to high</option></select></label>
+      </form>
+      <div class="collection-status"><span id="collection-count" role="status" aria-live="polite"></span><span>Selected with intention.</span></div>
+      <div class="vehicle-grid" id="vehicle-grid"></div>
+      <div class="empty-state" id="no-results" hidden><h3>A little more specific?</h3><p>Try another make or search. We can also help source what you have in mind.</p><button class="text-link" id="reset-filters">Clear filters</button></div>
+      <div class="collection-bottom"><p>Looking for something in particular?</p><button class="outline-button" data-enquire data-subject="Help me find my next car">Let us find it</button></div>
+    </section>
+
+    <section class="brand-intro section-pad" id="about" aria-labelledby="about-title">
+      <div class="brand-copy">
+        <h2 id="about-title"><span class="line"><span>Exceptional cars.</span></span><span class="line"><span>A <em>personal</em></span></span><span class="line"><span>approach.</span></span></h2>
+        <p class="brand-description">The right car begins with you. At Baba Luxury Cars, we bring a considered approach to premium pre-owned vehicles — and a personal touch to finding your next one.</p>
+        <a class="editorial-link" href="#inventory">Explore the collection</a>
+        <p class="brand-signoff">Chosen with care. Driven with confidence.</p>
+      </div>
+      <figure class="brand-visual">
+        <div class="brand-fallback" aria-hidden="true"><img src="/stills/defender.webp" class="brand-defender" alt="" loading="lazy"><img src="/stills/gls.webp" class="brand-gls" alt="" loading="lazy"></div>
+        <canvas id="about-drive" tabindex="0" aria-label="A navy Mercedes-Benz GLS 580 and a Fuji White Land Rover Defender 110 drive into a white studio, stop side by side, then drive away. While they are parked, drag sideways or use the arrow keys to turn them." role="img"></canvas>
+        <p class="turn-hint" aria-hidden="true"><svg viewBox="0 0 28 12"><path d="M5 1 1 6l4 5M23 1l4 5-4 5M1 6h26"/></svg>Drag to turn the cars</p>
+        <figcaption><span>A study in distinction.</span><span>Mercedes-Benz GLS 580 and Land Rover Defender 110</span></figcaption>
+      </figure>
+    </section>
+
+    <section class="standard section-pad" id="standard" aria-labelledby="standard-title">
+      <div class="standard-copy"><p class="eyebrow">The Baba standard</p><h2 id="standard-title">A closer look.<br><em>A clearer choice.</em></h2><p class="intro">A beautiful car is the beginning.<br>Understanding it is what comes next.</p></div>
+      <div class="standard-list">
+        <details open><summary><span><small>01</small> The car, in detail.</span><span class="detail-plus">+</span></summary><div class="detail-body"><p>Look beyond the first impression. Explore the bodywork, mechanical condition, interior and tyres, with time to ask the questions that matter.</p></div></details>
+        <details><summary><span><small>02</small> The story, made clear.</span><span class="detail-plus">+</span></summary><div class="detail-body"><p>Discuss ownership, service records and supporting mileage history. Understand the available documentation before deciding on your next car.</p></div></details>
+        <details><summary><span><small>03</small> The next step, together.</span><span class="detail-plus">+</span></summary><div class="detail-body"><p>From arranging a viewing to discussing an exchange, tell us what you have in mind. We’ll help you explore your options.</p></div></details>
+      </div>
+    </section>
+
+    <section class="sell section-pad" id="sell" aria-labelledby="sell-title">
+      <div class="sell-copy"><p class="eyebrow">Sell or exchange your car</p><h2 id="sell-title">Time for<br> <em>a new chapter?</em></h2><p class="intro">Make room for what comes next.<br>Share a few details about your car, and let’s start a conversation.</p><p class="small-note">Valuations depend on the vehicle, its history and an in-person inspection.</p></div>
+      <form id="valuation-form" class="editorial-form" data-lead-form="valuation">
+        <h3>Start your valuation</h3><p class="form-intro">A few details to get the conversation started.</p>
+        <label>Vehicle<input name="vehicle" required maxlength="100" placeholder="Make, model & year" autocomplete="off" /></label>
+        <div class="form-row"><label>Registration number<input name="registration" maxlength="20" required placeholder="e.g. MH 01 AB 1234" autocomplete="off" /></label><label>Kilometres driven<input name="kilometres" type="number" min="0" max="2000000" step="1" required placeholder="e.g. 45000" inputmode="numeric" /></label></div>
+        <div class="form-row"><label>Your name<input name="name" required maxlength="80" autocomplete="name" placeholder="Full name" /></label><label>Phone number<input name="phone" type="tel" required pattern="[+0-9 ()-]{7,22}" maxlength="22" autocomplete="tel" placeholder="Your contact number" /></label></div>
+        <label class="choice-label"><input type="checkbox" name="exchange" /><span>I’m interested in an exchange</span></label>
+        <p class="form-policy">Your details are used only for this enquiry.</p>
+        <button class="solid-button" type="submit"><span data-submit-label>Prepare valuation enquiry</span></button>
+        <div class="form-result" role="status" tabindex="-1" hidden></div>
+      </form>
+    </section>
+
+    <footer class="site-footer" id="contact">
+      <div class="footer-invitation"><div><p class="eyebrow">Your next chapter starts with a conversation</p><h2>Let’s find <em>your car.</em></h2></div><button class="solid-button footer-enquire" data-enquire>Talk to Baba</button></div>
+      <div class="footer-base"><a class="brand-logo" href="#home"><img src="/brand/baba-luxury-car-800.webp" alt="Baba Luxury Car, back to the top" width="800" height="250" loading="lazy" /></a><p>The art of choosing well.</p><nav aria-label="Footer navigation"><a href="#inventory">Collection</a><a href="#about">About</a><a href="#sell">Sell your car</a></nav></div>
+      <div class="contact-details" id="contact-details"></div>
+      <div class="footer-legal"><span>© <span id="year"></span> Baba Luxury Cars</span><button id="privacy-button">Privacy</button><a href="#home">Back to top</a></div>
+    </footer>
+  </main></div>
+
+  <dialog id="vehicle-dialog" class="vehicle-dialog" aria-labelledby="vehicle-detail-title"><button class="dialog-close" data-close aria-label="Close vehicle details">×</button><div id="vehicle-details"></div></dialog>
+  <dialog id="enquiry-dialog" class="enquiry-dialog" aria-labelledby="enquiry-title"><button class="dialog-close" data-close aria-label="Close enquiry">×</button><p class="eyebrow">A conversation with Baba</p><h2 id="enquiry-title">Let’s find<br> your next car.</h2><form class="editorial-form" data-lead-form="enquiry"><label>I’m interested in<input name="interest" id="enquiry-subject" required maxlength="160" placeholder="A viewing, a particular car, or a question" /></label><div class="form-row"><label>Your name<input name="name" required maxlength="80" autocomplete="name" placeholder="Full name" /></label><label>Phone number<input name="phone" type="tel" required pattern="[+0-9 ()-]{7,22}" maxlength="22" autocomplete="tel" placeholder="Your contact number" /></label></div><label>Your message <span class="optional">(optional)</span><textarea name="message" rows="3" maxlength="1500" placeholder="Tell us what you have in mind"></textarea></label><p class="form-policy">Your details are used only for this enquiry.</p><button class="solid-button" type="submit"><span data-submit-label>Prepare enquiry</span></button><div class="form-result" role="status" tabindex="-1" hidden></div></form></dialog>
+  <dialog id="privacy-dialog" class="privacy-dialog" aria-labelledby="privacy-title"><button class="dialog-close" data-close aria-label="Close privacy information">×</button><p class="eyebrow">Your information</p><h2 id="privacy-title">A private conversation.</h2><p>This site does not use analytics or advertising cookies. Enquiry details are used for your request.</p><p id="privacy-delivery">Until a dealership contact is connected, your enquiry stays in this browser. You can copy or download it. It is not sent or saved automatically.</p><p>Information you choose to share by email or WhatsApp is handled by that service and the dealership receiving it.</p></dialog>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

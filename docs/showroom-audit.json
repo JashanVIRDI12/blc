@@ -1,0 +1,63 @@
+{
+  "source": "car-showroom_2.glb",
+  "output": "public/models/showroom.glb",
+  "sourceBytes": 3005868,
+  "outputBytes": 337520,
+  "sourceBounds": {
+    "min": [
+      -14.310773849487305,
+      -0.03975493122850615,
+      -14.310773849487305
+    ],
+    "max": [
+      14.310773849487305,
+      3.193789778988929,
+      14.310773849487305
+    ]
+  },
+  "preparedBounds": {
+    "min": [
+      -13.342000007629395,
+      -0.04029343711802835,
+      -13.342000007629395
+    ],
+    "max": [
+      13.342000007629395,
+      3.1943282267696604,
+      13.342000007629395
+    ]
+  },
+  "room": {
+    "wall": {
+      "inner": 13.166,
+      "outer": 13.342
+    },
+    "ceiling": 3.066,
+    "doorways": [
+      {
+        "id": "rear",
+        "z": -13.25,
+        "x": [
+          -2.701,
+          2.701
+        ],
+        "height": 2.7
+      },
+      {
+        "id": "front",
+        "z": 13.25,
+        "x": [
+          -2.701,
+          2.701
+        ],
+        "height": 2.7
+      }
+    ]
+  },
+  "changes": [
+    "Rear and front doorways cut at existing panel seams, closed with jambs and lintel soffits",
+    "Source floor plane and hidden floor-level emissive plane removed; the film supplies the floor",
+    "Materials renamed for the film; untextured, so UVs removed"
+  ],
+  "triangles": 43582
+}

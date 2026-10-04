@@ -1,0 +1,29 @@
+# Dependencies and Vite caches
+node_modules/
+.vite/
+
+# Production output and intermediate model builds
+/dist/
+/build/
+
+# Local environment files (keep templates trackable)
+.env
+.env.*
+!.env.example
+!.env.sample
+
+# Logs and test coverage
+*.log
+/coverage/
+
+# Python / Blender helper caches
+__pycache__/
+*.py[cod]
+.venv/
+
+# OS and editor temporary files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~

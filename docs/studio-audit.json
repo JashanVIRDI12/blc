@@ -1,0 +1,41 @@
+{
+  "source": "studio_v1_for_car.glb",
+  "output": "public/models/studio.glb",
+  "sourceBytes": 11791300,
+  "outputBytes": 247420,
+  "sourceBounds": {
+    "min": [
+      -14.138597096087096,
+      -2.7914093714276333e-7,
+      -10.815352236285193
+    ],
+    "max": [
+      14.138597096087096,
+      3.05000166315984,
+      17.46184195588863
+    ]
+  },
+  "preparedBounds": {
+    "min": [
+      -85.27944946289062,
+      -0.03144052836871314,
+      -42.99861276654353
+    ],
+    "max": [
+      91.45301818847656,
+      7.897801488546176,
+      47.495400791445874
+    ]
+  },
+  "clearInterior": {
+    "halfWidth": 20,
+    "halfLength": 40,
+    "ceiling": 7.89
+  },
+  "changes": [
+    "Rear wall opened for vehicle access",
+    "Gallery scaled and floor levelled",
+    "Original three floor textures compressed to 1024px WebP"
+  ],
+  "triangles": 176
+}
