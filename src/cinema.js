@@ -165,7 +165,9 @@ export function createCinema({ onProgress, onFailure }) {
   });
   // Draw while the film is on screen, including while it scrolls away after
   // the pin, so the scrub can settle on the final frame.
-  const visibility = new IntersectionObserver(([entry]) => showroom.setActive(entry.isIntersecting));
+  // One callback can batch several entries for the stage, oldest first: the
+  // last is its current state.
+  const visibility = new IntersectionObserver(entries => showroom.setActive(entries.at(-1).isIntersecting));
   visibility.observe(stage);
   let relayout = 0;
   const onResize = () => {

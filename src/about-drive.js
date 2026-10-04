@@ -58,7 +58,9 @@ export function createAboutDrive(section) {
   softbox('#fff7ea', 2.6, 8, 10, [-2, 7.5, 5]);
   softbox('#e9efff', 1.6, 7, 7, [-8, 4, 6]);
   softbox('#ffffff', 1.4, 9, 4, [5, 3.5, -8]);
-  const camera = new THREE.PerspectiveCamera(24, 1, .1, 200);
+  // The cars stay 10 m or more from the lens: a near plane well out from it
+  // keeps the depth buffer fine enough that trim never flickers on paint.
+  const camera = new THREE.PerspectiveCamera(24, 1, 2, 120);
 
   const ids = Object.values(aboutVehicles);
   const travel = Object.fromEntries(ids.map(id => [id, createVehicleJourney(aboutJourneys[id], vehicleParts[id].wheelbase)]));

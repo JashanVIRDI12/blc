@@ -7,6 +7,7 @@ import { createCabin } from "./cabin.js";
 import { applyTwoTone, prepareTwoTone } from './paint.js';
 import { mountPlates } from './plates.js';
 import { addStarBadges } from './badges.js';
+import { glassFinish } from './glass.js';
 
 const WHEELS = ["Wheel_FL", "Wheel_FR", "Wheel_RL", "Wheel_RR"];
 
@@ -26,9 +27,10 @@ const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
 // pieces that lie wholly inside
 // `box` (car space, metres; or any of several boxes) their own material,
 // leaving the rest as it was. `inherit: true` keeps the original's texture
-// under the new finish.
+// under the new finish. Returns the new material, if any.
 function splitPieces(root, { node: name, box, material: { inherit, ...look } }) {
-  // GLTFLoader removes punctuation from imported node names.
+  // GLTFLoader removes punctuation from imported node names, and numbers
+  // repeated ones (`logo_chrome`, then `logo_chrome_1`).
   const node = root.getObjectByName(name);
   if (!node?.isMesh || !node.geometry.index) return;
   const geometry = node.geometry;
@@ -79,6 +81,7 @@ function splitPieces(root, { node: name, box, material: { inherit, ...look } }) 
   geometry.addGroup(0, rest.length, 0);
   geometry.addGroup(rest.length, piece.length, 1);
   node.material = [node.material, new THREE.MeshPhysicalMaterial({ ...look, ...(inherit ? { map: node.material.map } : {}) })];
+  return node.material[1];
 }
 
 // Loads one car (a spec from models.js) and dresses it in its real-world
@@ -102,9 +105,14 @@ export async function loadCar(spec, paintSpec, { invalidate, onProgress }) {
   const { material: rimOf, ...rimLook } = spec.rim ?? {};
   const rim = spec.rim && new THREE.MeshPhysicalMaterial(rimLook);
   const made = new Map();
-  // Parts with a texture (baked interiors, tyres) keep it.
+  // Parts with a texture (baked interiors, tyres) keep it. `glass` parts
+  // reflect at full strength over their tint (glass.js).
   const material = (name, original) => {
-    if (!made.has(name)) made.set(name, new THREE.MeshPhysicalMaterial({ name, map: original.map ?? null, ...spec.parts[name] }));
+    if (!made.has(name)) {
+      const { glass, ...look } = spec.parts[name];
+      const finish = new THREE.MeshPhysicalMaterial({ name, map: original.map ?? null, ...look });
+      made.set(name, glass ? glassFinish(finish) : finish);
+    }
     return made.get(name);
   };
 
@@ -122,7 +130,10 @@ export async function loadCar(spec, paintSpec, { invalidate, onProgress }) {
     else if (spec.parts[name]) node.material = material(name, node.material);
     if (node.material.transparent) node.renderOrder = 2;
   });
-  for (const piece of spec.pieces ?? []) splitPieces(root, piece);
+  for (const piece of spec.pieces ?? []) {
+    const split = splitPieces(root, piece);
+    if (split) made.set(split.name, split);
+  }
   if (spec.starBadges) addStarBadges(root, spec.starBadges);
   // Dither every surface: black paint and soft reflections fall away through
   // only a few 8-bit levels and would otherwise band. Filter textures
@@ -193,9 +204,9 @@ export async function loadCar(spec, paintSpec, { invalidate, onProgress }) {
     },
     setHeadlights(level) {
       if (drl) drl.emissiveIntensity = level * 3;
-      for(const name of spec.partMap?.projectorMaterials??[]) {
+      for(const [name,full] of Object.entries(spec.partMap?.projectorMaterials??{})) {
         const material=made.get(name);
-        if(material)material.emissiveIntensity=level*3;
+        if(material)material.emissiveIntensity=level*full;
       }
     },
     setTaillights(level) {

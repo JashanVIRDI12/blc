@@ -73,7 +73,7 @@ function initPractical() {
   let band;
   const watchBand=()=>{
     band?.disconnect();
-    band=new IntersectionObserver(([entry])=>header.classList.toggle('is-light',entry.isIntersecting),{rootMargin:`0px 0px -${Math.max(0,innerHeight-header.offsetHeight)}px 0px`});
+    band=new IntersectionObserver(entries=>header.classList.toggle('is-light',entries.at(-1).isIntersecting),{rootMargin:`0px 0px -${Math.max(0,innerHeight-header.offsetHeight)}px 0px`});
     band.observe(document.querySelector('#about'));
   };
   watchBand();

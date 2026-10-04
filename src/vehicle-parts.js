@@ -1,6 +1,8 @@
 // Audited against the supplied sources and their prepared GLBs.
 // Full evidence: docs/model-audit.json. Vehicle coordinates: +Z forward, +X left.
 // `size` is the body's bounding box, [width with mirrors, height, length], in metres.
+// `projectorMaterials` light with the headlamps: each material's emissive
+// intensity at full brightness.
 // `plates` are the number-plate mounts (centre and outward normal) found by
 // probing each bumper along the centre line; src/plates.js dresses them.
 const wheels = { frontLeft: 'Wheel_FL', frontRight: 'Wheel_FR', rearLeft: 'Wheel_RL', rearRight: 'Wheel_RR' };
@@ -9,7 +11,7 @@ export const vehicleParts = {
   gls: {
     wheels, doors, bonnet: 'Bonnet', tailgate: 'Tailgate',
     bodyMaterial: 'gls_paint', dashboardMaterial: 'gls_torpedka1', interiorMaterial: 'gls_interior',
-    headlightMaterial: 'lsiggls', projectorMaterials: ['gls_svet'], rearLightMaterials: ['gls_run'],
+    headlightMaterial: 'lsiggls', projectorMaterials: { gls_svet: .35, headlamp_led: 1.1 }, rearLightMaterials: ['gls_run'],
     headlamps: [[.74, .96, 2.47], [-.74, .96, 2.47]],
     taillamps: [[.77,1.15,-2.47],[-.77,1.15,-2.47]],
     wheelbase: 3.136, track: 1.648, wheelRadius: .421, size: [2.118, 1.86, 5.206],

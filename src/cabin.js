@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
+import { glassFinish, plainTransparent } from './glass.js';
 
 // Displays use the model's actual screen geometry. Their UVs were removed
 // during model preparation, so restore a planar projection in vehicle space.
@@ -83,11 +84,15 @@ function clearFunctionalGlazing(object,bounds) {
   if(!count)return;
   // Clear the screen covers and headlamp lenses by triangle position. Keep
   // every window's original tint despite the source's shared material.
-  const glazing=object.material.clone();
+  // The screen covers stay plainly transparent: inside the cabin, the room's
+  // reflections would only veil the displays. The headlamp lenses are clear
+  // polycarbonate: almost no tint, and the room's reflections over the lamp.
+  const glazing=plainTransparent(object.material.clone());
   glazing.name='display_glazing';glazing.color.set('#ffffff');
-  glazing.opacity=.075;glazing.roughness=.2;glazing.metalness=0;glazing.envMapIntensity=.25;
-  const lampGlazing=glazing.clone();lampGlazing.name='headlamp_glazing';
-  lampGlazing.opacity=.08;lampGlazing.roughness=.06;lampGlazing.envMapIntensity=.5;
+  glazing.opacity=.075;glazing.roughness=.2;glazing.metalness=0;
+  const lampGlazing=glassFinish(object.material.clone());lampGlazing.name='headlamp_glazing';
+  lampGlazing.color.set('#202224');lampGlazing.metalness=0;
+  lampGlazing.opacity=.025;lampGlazing.roughness=.015;lampGlazing.specularIntensity=1;
   object.geometry=geometry.clone();object.geometry.clearGroups();
   groups.forEach(group=>object.geometry.addGroup(group.start,group.count,group.materialIndex));
   object.material=[object.material,glazing,lampGlazing];
