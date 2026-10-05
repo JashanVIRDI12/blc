@@ -7,6 +7,9 @@ export const safeURL = value => {
 const present = value => value !== null && value !== undefined && value !== '';
 const numeric = value => typeof value === 'number' && Number.isFinite(value) && value >= 0;
 const number = value => new Intl.NumberFormat('en-IN').format(value);
+// The two manufacturer figures that best say what kind of car it is.
+const KEY_SPECS = ['Power', '0–100 km/h', 'Wading depth', 'Approach angle', 'Seats'];
+const keySpecs = item => KEY_SPECS.map(key => item.specs?.find(([name]) => name === key)).filter(Boolean).slice(0, 2);
 
 export function setupInventory(openEnquiry) {
   const records = inventory.filter(item => item.available !== false);
@@ -59,7 +62,7 @@ export function setupInventory(openEnquiry) {
     results.forEach(item => {
       const article = document.createElement('article'); article.className = 'vehicle-card';
       const meta = [item.year, numeric(item.kilometres) ? `${number(item.kilometres)} km` : null, numeric(item.owners) ? `${item.owners} ${item.owners===1?'owner':'owners'}` : null, item.fuel, item.transmission, item.location].filter(present);
-      article.innerHTML = `<button class="vehicle-visual" data-photo="${previews ? 'cutout' : 'full'}" aria-label="View ${escapeHTML(`${item.make} ${item.model}`)} details"><img src="${escapeHTML(safeURL(item.image) || '/vehicle-placeholder.svg')}" alt="${escapeHTML(`${item.make} ${item.model}`)}" loading="lazy" width="900" height="600" /><span class="vehicle-label">${previews ? 'Collection preview' : escapeHTML(item.body || 'Selected vehicle')}</span><span class="view-vehicle">View details</span></button><div class="vehicle-card-heading"><div><p class="make">${escapeHTML(item.make)}</p><h3>${escapeHTML(item.model)}</h3></div>${numeric(item.price) ? `<span class="vehicle-price">${currency.format(item.price)}</span>` : ''}</div>${meta.length ? `<div class="vehicle-meta">${meta.map(v=>`<span>${escapeHTML(v)}</span>`).join('')}</div>` : '<p class="availability">Enquire for current availability</p>'}${item.inspection?.mechanical === true ? '<span class="inspection-indicator">Inspection record available</span>' : ''}`;
+      article.innerHTML = `<button class="vehicle-visual" data-photo="${previews ? 'cutout' : 'full'}" aria-label="View ${escapeHTML(`${item.make} ${item.model}`)} details"><img src="${escapeHTML(safeURL(item.image) || '/vehicle-placeholder.svg')}" alt="${escapeHTML(`${item.make} ${item.model}`)}" loading="lazy" width="900" height="600" /><span class="vehicle-label">${previews ? 'Collection preview' : escapeHTML(item.body || 'Selected vehicle')}</span><span class="view-vehicle">View details</span></button><div class="vehicle-card-heading"><div><p class="make">${escapeHTML(item.make)}</p><h3>${escapeHTML(item.model)}</h3></div>${numeric(item.price) ? `<span class="vehicle-price">${currency.format(item.price)}</span>` : ''}</div>${keySpecs(item).length ? `<dl class="vehicle-keyspecs">${keySpecs(item).map(([key, value]) => `<div><dt>${escapeHTML(key)}</dt><dd>${escapeHTML(value)}</dd></div>`).join('')}</dl>` : ''}${meta.length ? `<div class="vehicle-meta">${meta.map(v=>`<span>${escapeHTML(v)}</span>`).join('')}</div>` : '<p class="availability">Enquire for current availability</p>'}${item.inspection?.mechanical === true ? '<span class="inspection-indicator">Inspection record available</span>' : ''}`;
       article.querySelector('button').addEventListener('click', () => openDetails(item));
       attachImageFallback(article);
       article.querySelectorAll('img').forEach(framePhoto);

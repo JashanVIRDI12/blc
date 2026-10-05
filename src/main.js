@@ -6,6 +6,8 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import { setupInventory } from './inventory.js';
 import { setupForms } from './forms.js';
+import { setupStandard } from './standard.js';
+import { setupValuation } from './valuation.js';
 import { dealer } from './config.js';
 gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
 
@@ -14,6 +16,7 @@ const loader = document.querySelector('#loader');
 let cinema, smoother, aboutDrive, cancelled = false;
 const { openEnquiry } = setupForms();
 setupInventory(openEnquiry);
+setupValuation(document.querySelector('#valuation-form'),document.querySelector('.valuation-card'),{motion:!reduced.matches});
 document.querySelector('#year').textContent = new Date().getFullYear();
 document.body.classList.add('is-loading');
 
@@ -44,7 +47,6 @@ document.addEventListener('click',event=>{
   event.preventDefault();goTo(element);
 });
 document.querySelector('#skip-film').addEventListener('click',()=>goTo('#inventory'));
-document.querySelectorAll('.standard-list details').forEach(d=>d.addEventListener('toggle',()=>ScrollTrigger.refresh()));
 document.addEventListener('layout:change',()=>ScrollTrigger.refresh());
 function finishLoading() {
   loader.classList.add('is-complete');loader.inert=true;
@@ -63,6 +65,7 @@ function staticExperience() {
 }
 document.querySelector('#skip-loading').addEventListener('click',()=>{staticExperience();goTo('#inventory',true);});
 function initPractical() {
+  setupStandard(document.querySelector('#standard'),{motion:!reduced.matches});
   // Glass header from the collection on, its coachline filling as the page is read.
   // onUpdate also catches jumps that skip the whole range.
   const header=document.querySelector('.site-header');

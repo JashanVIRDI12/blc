@@ -4,7 +4,7 @@ import { createDrivePath, createVehicleJourney } from '../src/motion.js';
 import { createCameraPath } from '../src/camera-path.js';
 import { PerspectiveCamera, Vector3 } from 'three';
 import { journeys, cameraFrames, mobileCameraFrames, wipes, doorProgress, bonnetProgress, lookAroundWeight, moments } from '../src/storyboard.js';
-import { aboutJourneys, aboutMarks, aboutCamera, aboutCopy, aboutAnchor, aboutTurn, aboutTurnWeight } from '../src/about-storyboard.js';
+import { aboutJourneys, aboutMarks, aboutCamera, aboutAnchor, aboutTurn, aboutTurnWeight } from '../src/about-storyboard.js';
 import { carCorners, fitFrame, frameCamera, freeRegion, screenBounds } from '../src/about-framing.js';
 import { filmVehicles, aboutVehicles, lineupVehicles } from '../src/config.js';
 import { slots, stagePoints, lineupCamera, carouselShot, lineupReveal, orbitLimits, orbitShot, maxElevation } from '../src/lineup.js';
@@ -158,24 +158,25 @@ const separated=(a,b)=>[a,b].some(poly=>poly.some((p,i)=>{
   const pa=project(a),pb=project(b);
   return Math.max(...pa)<Math.min(...pb)||Math.max(...pb)<Math.min(...pa);
 }));
-test('about: the two cars never touch, and both stop at their marks for the introduction',()=>{
+test('about: the two cars never touch, and both stop at their marks',()=>{
   const [near,far]=[aboutVehicles.near,aboutVehicles.far];
   for(let i=0;i<=4000;i++){
     const p=i/4000;
     assert(separated(footprint(about[near](p),vehicleParts[near].size,.2),footprint(about[far](p),vehicleParts[far].size,.2)),`The About cars touch at ${p}`);
   }
   const parked=[Math.max(...Object.values(aboutJourneys).map(j=>j.arrival.end)),Math.min(...Object.values(aboutJourneys).map(j=>j.departure.start))];
-  assert(aboutCopy.end<=parked[1] && aboutAnchor>parked[0] && aboutAnchor<parked[1],'The introduction is set, and navigation lands, while both cars are parked');
+  assert(aboutAnchor>parked[0] && aboutAnchor<parked[1],'Navigation lands while both cars are parked');
   for(const [id,sample] of Object.entries(about)) for(let p=parked[0];p<=parked[1];p+=.005) {
-    assert(distance(sample(p).position,aboutMarks[id])<1e-6,`${id} rests on its mark during the introduction`);
+    assert(distance(sample(p).position,aboutMarks[id])<1e-6,`${id} rests on its mark while parked`);
   }
 });
-// Representative stage layouts: the copy's rect as laid out by editorial.css.
+// Representative stage layouts: the copy's rect as laid out by about.css,
+// measured in Chrome at the anchor.
 const layouts=[
-  { name:'desktop', view:'desktop', width:1440, height:900, header:106, copy:{left:86,right:546,top:216,bottom:773} },
-  { name:'phone', view:'portrait', width:390, height:844, header:68, copy:{left:23,right:367,top:93,bottom:344} },
-  { name:'phone with toolbars', view:'portrait', width:390, height:664, header:68, copy:{left:23,right:367,top:88,bottom:312} },
-  { name:'tablet portrait', view:'portrait', width:820, height:1180, header:68, copy:{left:49,right:771,top:103,bottom:481} },
+  { name:'desktop', view:'desktop', width:1440, height:900, header:84, copy:{left:86,right:566,top:256,bottom:718} },
+  { name:'phone', view:'portrait', width:390, height:844, header:68, copy:{left:23,right:367,top:93,bottom:350} },
+  { name:'phone with toolbars', view:'portrait', width:390, height:664, header:68, copy:{left:23,right:367,top:88,bottom:296} },
+  { name:'tablet portrait', view:'portrait', width:820, height:1180, header:68, copy:{left:49,right:771,top:103,bottom:537} },
 ];
 for(const layout of layouts) {
   const {width,height}=layout,frames=aboutCamera[layout.view].frames,path=createCameraPath(frames);
@@ -190,13 +191,17 @@ for(const layout of layouts) {
     assert(b.left>=region.left-1&&b.right<=region.right+1&&b.top>=region.top-1&&b.bottom<=region.bottom+1,'Parked cars stay inside the free region');
     assert((b.right-b.left)/(region.right-region.left)>.97||(b.bottom-b.top)/(region.bottom-region.top)>.97,'The pair fills the free region along one axis');
   });
-  test(`about (${layout.name}): the cars never pass behind the copy while it shows`,()=>{
+  // The copy is always set, so this holds for the whole drive; a car still
+  // lost in the white (fog over 80%) cannot be seen behind it.
+  test(`about (${layout.name}): the cars never pass behind the copy`,()=>{
+    const [fogNear,fogFar]=aboutCamera[layout.view].fog;
     for(let i=0;i<=2000;i++) {
       const p=i/2000,cam=view(p);
       for(const {id,corners} of boxes(p)) {
         const b=screenBounds(cam,[corners],width,height);
         assert(!b.behind,`${id} passes behind the camera at ${p}`);
-        if(p<aboutCopy.start||!inFrame(b)) continue;
+        const nearest=Math.min(...corners.map(c=>c.distanceTo(cam.position)));
+        if(!inFrame(b)||(nearest-fogNear)/(fogFar-fogNear)>.8) continue;
         const clear=b.right<layout.copy.left||b.left>layout.copy.right||b.bottom<layout.copy.top||b.top>layout.copy.bottom;
         assert(clear,`${id} crosses the copy at ${p.toFixed(3)}`);
       }

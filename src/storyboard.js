@@ -81,11 +81,11 @@ export const wipes = []; // The camera remains outside; the entire film is conti
 // inspection headlines stay legible in front during the close-up shots.
 export const moments = [
   { id:'opening', start:0, end:.22, label:'Arrival' },
-  { id:'condition', start:.267, end:.443, label:'Bodywork' },
+  { id:'condition', start:.267, end:.443, label:'Body' },
   { id:'tyres', start:.46, end:.55, label:'Tyres', front:true },
   { id:'mechanical', start:.567, end:.685, label:'Engine', front:true },
   { id:'interior', start:.7, end:.777, label:'Cabin', front:true },
-  { id:'departure', start:.823, end:1, label:'Departure' },
+  { id:'departure', start:.823, end:1, label:'Drive home' },
 ];
 
 // Labels tethered to the inspected GLS, in its own space (metres, nose
