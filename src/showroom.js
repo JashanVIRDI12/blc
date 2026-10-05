@@ -16,6 +16,10 @@ import { createFloorMaterial, floorLayout, floorShader } from './showroom-floor.
 // Draw order: the room, then the film's headlines, then the cars. A car that
 // crosses a headline passes in front of it; the room never covers the type.
 const ROOM = 0, CARS = 1;
+// The floor reflection is kept when a typical frame, drawn to completion,
+// takes at most this long (ms): room to spare inside a 60 Hz frame, since
+// close-ups cost more than the opening shot it is measured on.
+const REFLECTION_BUDGET = 11;
 
 // The room's lights are unshadowed, so on their own they would also light the
 // floor and cars beyond the doorways. Fade everything outside the walls into
@@ -161,29 +165,29 @@ export function createShowroom(canvas, onFailure) {
   let raf = 0;
   // One density, moving or still, so the picture never softens while
   // scrolling (render-density.js: native up to 2x, desktop supersampled
-  // towards 2x). A device that cannot keep up first loses the floor
-  // reflection, then steps its density down for good: once, not back and
-  // forth.
+  // towards 2x). Whether the floor reflects is settled behind the loader
+  // (calibrate); a device that then cannot keep up steps its density down
+  // for good: once, not back and forth. The floor never changes in view.
   const density = createRenderDensity({ mobile });
   let ratio = density.ratio(canvas.clientWidth || innerWidth, canvas.clientHeight || innerHeight);
-  let headings = null;
+  let headings = null, frameCost = null;
   const invalidate = () => { dirty = true; schedule(); };
   function schedule() { if (!raf && enabled && !document.hidden && !disposed) raf = requestAnimationFrame(draw); }
   function draw(now) {
     raf = 0;
     if (!dirty || !enabled || disposed) return;
     dirty = false;
-    if (density.slow(now)) {
-      if (mirror?.visible) mirror.visible = false;
-      else if (density.step(size.w, size.h)) {
-        ratio = density.ratio(size.w, size.h);
-        renderer.setPixelRatio(ratio); renderer.setSize(size.w, size.h, false);
-        // Headlines are rasterised texel for pixel at the canvas density.
-        if (headings) type.layout(headings, canvas.getBoundingClientRect());
-      }
+    if (density.slow(now) && density.step(size.w, size.h)) {
+      ratio = density.ratio(size.w, size.h);
+      renderer.setPixelRatio(ratio); renderer.setSize(size.w, size.h, false);
+      // Headlines are rasterised texel for pixel at the canvas density.
+      if (headings) type.layout(headings, canvas.getBoundingClientRect());
     }
     pointer.x += (pointer.tx - pointer.x) * .075; pointer.y += (pointer.ty - pointer.y) * .075;
     if (Math.abs(pointer.tx - pointer.x) + Math.abs(pointer.ty - pointer.y) > .0005) { dirty = true; schedule(); }
+    renderFrame();
+  }
+  function renderFrame() {
     aim();
     renderer.info.reset(); renderer.clear();
     camera.layers.set(ROOM); renderer.render(scene, camera);
@@ -371,7 +375,26 @@ export function createShowroom(canvas, onFailure) {
     if (frame) setFrame(frame);
     camera.layers.enableAll();
     await renderer.compileAsync(scene, camera);
+    if (disposed) return;
+    calibrate();
     onProgress(1); invalidate();
+  }
+  // Decide the floor reflection once, while the loader still covers the
+  // film, by timing a few frames to completion (gl.finish, so the display's
+  // refresh rate doesn't round the times). Turning it off later, mid-film,
+  // made the polished floor go matte in front of the visitor.
+  function calibrate() {
+    if (!mirror) return;
+    const gl = renderer.getContext(), times = [];
+    for (let i = 0; i < 14; i++) {
+      const start = performance.now();
+      renderFrame(); gl.finish();
+      // The first frames upload textures and warm the shaders.
+      if (i >= 4) times.push(performance.now() - start);
+    }
+    times.sort((a, b) => a - b);
+    frameCost = times[times.length >> 1];
+    mirror.visible = frameCost <= REFLECTION_BUDGET;
   }
   function dispose() {
     disposed = true; cancelAnimationFrame(raf); observer.disconnect();
@@ -401,6 +424,6 @@ export function createShowroom(canvas, onFailure) {
     setActive(value) { enabled = value; if (value) invalidate(); },
     // Radians the shot is turned about the parked car; applied by setFrame.
     setOrbit(value) { orbit = value; },
-    snapshot: () => ({ orbit, type: type.snapshot(), pointer: { x: pointer.x, y: pointer.y }, studio: Boolean(studio), viewSurface: viewSurface(), camera: camera.position.toArray(), target: frame?.shot.target, dpr: ratio, render: { ...renderer.info.render }, vehicles: [...vehicles].map(([id, v]) => ({ id, position: v.holder.position.toArray(), yaw: v.holder.rotation.y, scale: v.holder.scale.toArray(), wheel: v.car.wheels[0].rotation.x, steer: v.car.wheels[0].parent.rotation.y, visible: v.holder.visible, door:v.car.root.getObjectByName('Door_FL')?.rotation.y??0, lights:v.lighting.snapshot(), screens: v.car.cabin.screens.map(m=>({name:m.name,lit:m.emissiveIntensity,texture:Boolean(m.emissiveMap)})) })) }),
+    snapshot: () => ({ orbit, reflection: mirror?.visible ?? false, frameCost, type: type.snapshot(), pointer: { x: pointer.x, y: pointer.y }, studio: Boolean(studio), viewSurface: viewSurface(), camera: camera.position.toArray(), target: frame?.shot.target, dpr: ratio, render: { ...renderer.info.render }, vehicles: [...vehicles].map(([id, v]) => ({ id, position: v.holder.position.toArray(), yaw: v.holder.rotation.y, scale: v.holder.scale.toArray(), wheel: v.car.wheels[0].rotation.x, steer: v.car.wheels[0].parent.rotation.y, visible: v.holder.visible, door:v.car.root.getObjectByName('Door_FL')?.rotation.y??0, lights:v.lighting.snapshot(), screens: v.car.cabin.screens.map(m=>({name:m.name,lit:m.emissiveIntensity,texture:Boolean(m.emissiveMap)})) })) }),
   };
 }

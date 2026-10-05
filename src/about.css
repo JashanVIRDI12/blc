@@ -7,23 +7,23 @@
 .brand-intro:before{top:0}
 .brand-intro:after{bottom:0}
 .brand-copy{position:relative;z-index:2}
-.brand-copy h2{margin:0 0 26px;font-size:clamp(44px,5vw,82px);line-height:1.02;color:#121211}
-.brand-copy h2 .line{display:block;overflow:hidden;padding:0 .14em .16em 0;margin-bottom:-.16em}
-.brand-copy h2 .line>span{display:inline-block}
-.brand-description{max-width:30ch;font:400 clamp(19px,1.55vw,25px)/1.42 var(--font-display);letter-spacing:-.006em;color:#2b2a27}
-/* The word-by-word reveal (text-reveal.js) only fades words; they keep their
-   layout, so ligatures and kerning across word gaps never shift. */
-.reveal-word{transition:none}
-.editorial-link{display:inline-flex;margin-top:26px;padding:10px 0 8px;font:500 14px/1.2 var(--font-text);color:#121211;background:linear-gradient(var(--gold),var(--gold)) 0 100%/100% 1px no-repeat;transition:background-size .5s var(--ease)}
+.brand-copy .eyebrow{color:#8a5a28}
+/* Two lines: the statement, then its turn in italic, in the logo's deep gold.
+   The introduction is set in the text face, so the headline leads. */
+.brand-copy h2{margin:0 0 28px;font-size:clamp(40px,3.7vw,60px);line-height:1.06;color:#121211}
+.brand-copy h2 em{color:#84502c}
+.brand-description{max-width:38ch;font:400 17px/1.75 var(--font-text);color:#4b4944}
+.editorial-link{display:inline-flex;margin-top:30px;padding:10px 0 8px;font:500 14px/1.2 var(--font-text);color:#121211;background:linear-gradient(var(--gold),var(--gold)) 0 100%/100% 1px no-repeat;transition:background-size .5s var(--ease)}
 .editorial-link:hover{background-size:40% 1px}
-.brand-signoff{margin-top:26px;font-size:13px;color:#8b8882}
+/* A signature beneath a hairline. */
+.brand-signoff{max-width:38ch;margin-top:44px;padding-top:22px;border-top:1px solid rgba(18,18,17,.12);font:italic 400 19px/1.4 var(--font-display);color:#6b675f}
 .brand-visual{position:relative;height:320px;margin:36px calc(var(--gutter) * -1) 0}
 .brand-visual canvas{position:relative;z-index:1;display:block;width:100%;height:100%;opacity:0;transition:opacity .6s}
 .brand-visual.is-rendered canvas{opacity:1}
 .brand-fallback{position:absolute;inset:0;transition:opacity .45s}
 .is-rendered .brand-fallback{opacity:0}
 .brand-fallback img{position:absolute;object-fit:contain}
-.brand-gls{width:66%;left:2%;bottom:6%}
+.brand-near{width:66%;left:2%;bottom:6%}
 .brand-defender{width:54%;right:2%;top:8%}
 .brand-visual figcaption{position:absolute;left:var(--gutter);right:var(--gutter);bottom:0;z-index:2;display:flex;justify-content:space-between;gap:24px;font-size:12px;color:#8b8882}
 .brand-visual figcaption>span:first-child{flex:none;color:#94602a}
@@ -32,7 +32,7 @@
 @media(min-width:761px){
   .brand-intro{grid-template-columns:40% 60%}
   .brand-visual{height:540px;margin:0 calc(var(--gutter) * -1) 0 0}
-  .brand-gls{width:68%;left:0;bottom:15%}
+  .brand-near{width:68%;left:0;bottom:15%}
   .brand-defender{width:56%;right:0;top:19%}
   .brand-visual figcaption{left:6%;right:var(--gutter);bottom:4%}
 }
@@ -40,11 +40,10 @@
 .brand-intro.is-drive{display:block;height:100svh;min-height:560px;padding:0}
 .is-drive .brand-visual{position:absolute;inset:0;height:auto;margin:0;align-self:stretch}
 .is-drive .brand-copy{position:absolute;left:var(--gutter);top:50%;width:min(34vw,480px);transform:translateY(-42%)}
-.is-drive .editorial-link,.is-drive .brand-signoff{will-change:transform,opacity}
 .is-drive .brand-visual figcaption{left:auto;right:var(--gutter);bottom:30px;gap:40px}
 .is-drive .turn-hint{bottom:72px;color:#3c3a36;background:rgba(255,255,255,.86);border:1px solid rgba(132,80,44,.3)}
 .static-experience .turn-hint{display:none}
-.is-drive .brand-gls{width:34%;left:47%;top:43%;bottom:auto}
+.is-drive .brand-near{width:34%;left:47%;top:43%;bottom:auto}
 .is-drive .brand-defender{width:26%;left:65%;right:auto;top:35%}
 @media(max-width:1100px){.is-drive .brand-copy{width:40vw}}
 /* Phones and other tall, narrow screens stack the copy above the cars.
@@ -52,16 +51,17 @@
 @media(max-width:760px),(max-aspect-ratio:4/5){
   .is-drive .brand-copy{left:var(--gutter);right:var(--gutter);top:calc(var(--header-height) + 3svh);width:auto;transform:none}
   .is-drive .brand-visual figcaption{left:var(--gutter);right:var(--gutter);bottom:16px;justify-content:space-between}
-  .is-drive .brand-gls{width:74%;left:-3%;top:auto;bottom:10%}
+  .is-drive .brand-near{width:74%;left:-3%;top:auto;bottom:10%}
   .is-drive .brand-defender{width:58%;left:auto;right:-4%;top:auto;bottom:20%}
 }
 /* Phones: a compact introduction, so the cars below can fill the width. */
 @media(max-width:760px){
-  .is-drive .brand-copy h2{margin-bottom:12px;font-size:clamp(32px,9.4vw,42px)}
-  .is-drive .brand-description{font-size:16.5px;line-height:1.38}
+  .is-drive .brand-copy .eyebrow{margin-bottom:14px}
+  .is-drive .brand-copy h2{margin-bottom:12px;font-size:clamp(32px,9vw,40px)}
+  .is-drive .brand-description{font-size:15px;line-height:1.6}
   .is-drive .editorial-link{margin-top:8px}
   .is-drive .brand-signoff{display:none}
   .is-drive .brand-visual figcaption{font-size:10px}
   .is-drive .turn-hint{bottom:42px}
 }
-@media(max-width:760px) and (max-height:700px){.is-drive .brand-copy h2{font-size:30px}.is-drive .brand-description{font-size:15px}}
+@media(max-width:760px) and (max-height:700px){.is-drive .brand-copy .eyebrow{display:none}.is-drive .brand-copy h2{font-size:30px}.is-drive .brand-description{font-size:14px}}

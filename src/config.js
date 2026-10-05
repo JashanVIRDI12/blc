@@ -37,7 +37,7 @@ export const filmVehicles = { first: 'gls' };
 // The white About sequence (src/about-drive.js): two cars drive in side by
 // side, pause for the introduction, and drive away. `near` takes the lane
 // closer to the camera.
-export const aboutVehicles = { near: 'gls', far: 'defender' };
+export const aboutVehicles = { near: 'x7', far: 'defender' };
 // The collection, parked on an arc at the back of the showroom after the film
 // (src/lineup.js), left to right as seen from the stage. The film's car takes
 // its place among them.

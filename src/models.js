@@ -119,7 +119,9 @@ export const models = {
       // The projector lens: dark optical glass, glossy, softly lit from
       // within when the lamps are on (vehicle-parts.js: projectorMaterials).
       gls_svet: { color: 0x07090c, metalness: 0, roughness: 0.03, clearcoat: 1, clearcoatRoughness: 0.02, emissive: 0x9fb2d4, emissiveIntensity: 0 },
-      gls_rear: { color: 0x8d9095, metalness: 1, roughness: 0.15 },
+      // Tail-lamp reflectors: red-tinted chrome, as the lens in front of
+      // them filters what they show (glass.js can only darken, not tint).
+      gls_rear: { color: 0x5e0f16, metalness: 1, roughness: 0.2, emissive: 0xff2617, emissiveIntensity: 0 },
       gls_sigl: { color: 0xb9bcc0, metalness: 1, roughness: 0.12 },
       gls_sigr: { color: 0xb9bcc0, metalness: 1, roughness: 0.12 },
       lsiggls: { color: 0xffffff, emissive: 0xf4f7ff, emissiveIntensity: 4, roughness: 0.2 },
@@ -130,9 +132,11 @@ export const models = {
       // of the model's fixed glass), standard on the GLS.
       gls_glass_1: { ...GLASS, color: 0x1d2724, opacity: 0.22 },
       gls_carbonn: { ...GLASS, color: 0x0a0d10, opacity: 0.86 },
-      // The tail-lamp lenses: red glass over the lamp, gloss on top.
-      etk800_glass: { ...GLASS, color: 0x6e0710, opacity: 0.8 },
-      gls_run: { color: 0x96101a, emissive: 0x7a0610, emissiveIntensity: 1.5, roughness: 0.25 },
+      // The tail-lamp lenses: deep ruby glass, clear enough that the light
+      // guides and reflectors behind read through it, gloss on top.
+      etk800_glass: { ...GLASS, color: 0x45030a, roughness: 0.01, opacity: 0.66 },
+      // LED light guides: dark ruby when off, gently lit as running lights.
+      gls_run: { color: 0x4a0510, emissive: 0xff1426, emissiveIntensity: 1.2, roughness: 0.16, clearcoat: 0.6, clearcoatRoughness: 0.05 },
       gls_stop: { color: 0x96101a, emissive: 0x3c0308, emissiveIntensity: 0, roughness: 0.25 },
       gls_grille: { color: 0x0a0a0b, metalness: 0.6, roughness: 0.22, clearcoat: 1 },
       // No cabin overrides: loadCar retains the original GLB materials.
@@ -253,8 +257,8 @@ export const models = {
       light_glass: { ...GLASS, color: 0x202224, roughness: 0.015, opacity: 0.05 },
       light: { color: 0xeef0f2, metalness: 1, roughness: 0.05 },
       Front_Lights_emissive: { color: 0xffffff, emissive: 0xf4f7ff, emissiveIntensity: 3.5, roughness: 0.2 },
-      Back_lights_emissive: { ...GLASS, color: 0x6e0710, emissive: 0x3c0308, emissiveIntensity: 0, opacity: 0.85 },
-      red_emiss: { color: 0x96101a, emissive: 0x7a0610, emissiveIntensity: 1.5, roughness: 0.25 },
+      Back_lights_emissive: { ...GLASS, color: 0x45030a, emissive: 0x3c0308, emissiveIntensity: 0, roughness: 0.01, opacity: 0.7 },
+      red_emiss: { color: 0x4a0510, emissive: 0xff1426, emissiveIntensity: 1.2, roughness: 0.16, clearcoat: 0.6, clearcoatRoughness: 0.05 },
       Mirror: { color: 0xffffff, metalness: 1, roughness: 0 },
       Mirror_lights_mat: { color: 0xb9bcc0, metalness: 1, roughness: 0.12 },
       Koleso_support: { color: 0x1b3f8f, metalness: 0.4, roughness: 0.35 },

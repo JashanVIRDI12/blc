@@ -9,11 +9,10 @@ import { models } from './models.js';
 import { vehicleParts } from './vehicle-parts.js';
 import { showcase, aboutVehicles } from './config.js';
 import { createCameraPath } from './camera-path.js';
-import { createVehicleJourney, interval } from './motion.js';
-import { aboutJourneys, aboutCamera, aboutCopy, aboutAnchor, aboutTurn, aboutTurnWeight } from './about-storyboard.js';
+import { createVehicleJourney } from './motion.js';
+import { aboutJourneys, aboutCamera, aboutAnchor, aboutTurn, aboutTurnWeight } from './about-storyboard.js';
 import { carCorners, fitFrame, frameCamera, freeRegion, screenBounds } from './about-framing.js';
 import { createTurnGesture } from './turn-gesture.js';
-import { createTextReveal } from './text-reveal.js';
 import { createRenderDensity } from './render-density.js';
 gsap.registerPlugin(ScrollTrigger);
 
@@ -21,12 +20,11 @@ const PINNED = 2.8; // viewport heights the section stays pinned
 // Phones and other tall, narrow screens stack the copy above the cars (see
 // editorial.css).
 const STACKED = matchMedia('(max-width: 760px), (max-aspect-ratio: 4/5)');
-const easeOut = t => 1 - (1 - t) ** 3;
-const smooth = t => t * t * (3 - 2 * t);
 
-// Baba's introduction on a white stage. The section pins while the GLS 580
-// and the Defender drive in, stop for the copy and drive away; the scroll position
-// is the only clock, so reversing replays it exactly. The two models load in
+// Baba's introduction on a white stage. The section pins while the BMW X7
+// and the Defender drive in beside the copy, stop, and drive away; the scroll
+// position is the only clock, so reversing replays it exactly. The copy is
+// always set: it never waits on the cars. The two models load in
 // the background and the stills stand in until they arrive. Throws when
 // WebGL is unavailable; the section then keeps its static layout.
 export function createAboutDrive(section) {
@@ -65,11 +63,6 @@ export function createAboutDrive(section) {
   const ids = Object.values(aboutVehicles);
   const travel = Object.fromEntries(ids.map(id => [id, createVehicleJourney(aboutJourneys[id], vehicleParts[id].wheelbase)]));
   const paths = Object.fromEntries(Object.entries(aboutCamera).map(([name, view]) => [name, createCameraPath(view.frames)]));
-  // The headline and the introduction read as one passage: every word waits
-  // as a ghost and fills in to full ink as the scroll moves on (text-reveal.js).
-  // The link and sign-off follow once the passage is set.
-  const passage = createTextReveal([copy.querySelector('h2'), copy.querySelector('.brand-description')]);
-  const trailing = [...copy.querySelectorAll('.editorial-link, .brand-signoff')];
   const vehicles = new Map(), textures = [];
   const playhead = { progress: 0 };
   let size = { w: 1, h: 1 }, view = 'desktop', fit = { zoom: 1, offset: [0, 0] };
@@ -110,16 +103,6 @@ export function createAboutDrive(section) {
     render();
   }
 
-  function reveal(p) {
-    const { start, end } = aboutCopy, span = end - start;
-    // The ghosts appear first, then the ink runs through the words.
-    passage.set(interval(p, start + span * .1, end - span * .22), smooth(interval(p, start, start + span * .12)));
-    trailing.forEach((element, i) => {
-      const from = end - span * (.2 - i * .06), e = easeOut(interval(p, from, from + span * .14));
-      element.style.opacity = e.toFixed(3);
-      element.style.transform = `translate3d(0,${((1 - e) * 14).toFixed(2)}px,0)`;
-    });
-  }
   // Turning by hand: each parked car on its own spot, the one under the
   // finger, or both when the drag starts on the white.
   const turn = Object.fromEntries(ids.map(id => [id, 0]));
@@ -159,7 +142,6 @@ export function createAboutDrive(section) {
   function render() {
     if (disposed) return;
     const p = playhead.progress;
-    reveal(p);
     frameCamera(camera, paths[view](p), size.w, size.h, fit);
     // Turns count only while parked; outside that window they are forgotten,
     // so the cars always arrive and leave straight.
@@ -195,9 +177,6 @@ export function createAboutDrive(section) {
     const smoother = ScrollSmoother.get(), y = scrollPosition(progress);
     if (smoother) smoother.scrollTo(y, !instant); else window.scrollTo({ top: y, behavior: instant ? 'instant' : 'smooth' });
   }
-  // Keyboard focus inside hidden copy would land on invisible text.
-  const onFocus = () => { if (playhead.progress < aboutCopy.end) scrollTo(aboutAnchor, true); };
-  copy.addEventListener('focusin', onFocus);
 
   async function load() {
     const loader = new THREE.TextureLoader();
@@ -255,8 +234,7 @@ export function createAboutDrive(section) {
       gesture.dispose(); canvas.removeEventListener('keydown', onKey); gsap.killTweensOf(turn);
       pin.kill(true); timeline.scrollTrigger?.kill(); timeline.kill();
       resizeObserver.disconnect(); document.removeEventListener('visibilitychange', onVisible);
-      canvas.removeEventListener('webglcontextlost', onLost); copy.removeEventListener('focusin', onFocus);
-      passage.reset(); trailing.forEach(element => { element.style.transform = ''; element.style.opacity = ''; });
+      canvas.removeEventListener('webglcontextlost', onLost);
       section.classList.remove('is-drive'); visual.classList.remove('is-rendered');
       const geometries = new Set(), materials = new Set();
       scene.traverse(o => { if (o.geometry) geometries.add(o.geometry); if (o.material) [o.material].flat().forEach(m => materials.add(m)); });

@@ -43,10 +43,9 @@ async function checkAbout(mobile) {
   assert.equal(state.background,'rgb(255, 255, 255)');assert.equal(state.about.background,'#ffffff');assert.equal(state.controls,0,'Remove the ignition and orbit system');
   assert.deepEqual(state.sections,['home','inventory','about','standard','sell'],'The film, then the collection, then About Baba');
   assert(state.about.pinned,'The About stage is pinned while the cars are parked');assert(state.header,'The header is in its white practical style');
-  assert.deepEqual(state.about.vehicles.map(v=>v.id).sort(),Object.keys(aboutMarks).sort(),'The GLS 580 and the Defender drive in');
+  assert.deepEqual(state.about.vehicles.map(v=>v.id).sort(),Object.keys(aboutMarks).sort(),'The X7 and the Defender drive in');
   for(const v of state.about.vehicles) assert(Math.hypot(...v.position.map((c,i)=>c-aboutMarks[v.id][i]))<.01,`${v.id} is parked on its mark`);
-  assert(Number(state.set)>.99,'The introduction is fully set while the cars are parked');
-  assert(await evaluate('[...document.querySelectorAll("#about .reveal-word")].every(w=>Number(getComputedStyle(w).opacity)>.99)'),'Every word of the introduction is revealed while the cars are parked');
+  assert(Number(state.set)>.99,'The introduction is set');
   const cars={left:state.stage.left+state.about.bounds.left,top:state.stage.top+state.about.bounds.top};
   if(!mobile)assert(cars.left>state.copy.right,'Cars are framed to the right of the copy');
   else assert(cars.top>=state.copy.bottom-2,'Mobile frames the cars below the copy');
@@ -57,14 +56,13 @@ async function checkAbout(mobile) {
   await aboutScroll(.26);await shot(`${prefix}-about-arrival`);
   const arriving=await evaluate('window.__about.snapshot()');
   assert(arriving.vehicles.every(v=>Math.hypot(...v.position.map((c,i)=>c-aboutMarks[v.id][i]))>1),'The cars are still driving in');
-  assert(Number(await evaluate('getComputedStyle(document.querySelector(".brand-signoff")).opacity'))<.01,'The introduction waits for the cars');
-  assert(await evaluate('[...document.querySelectorAll("#about .reveal-word")].every(w=>Number(getComputedStyle(w).opacity)<.01)'),'The words wait, not even ghosted, until the cars settle');
+  assert(Number(await evaluate('getComputedStyle(document.querySelector(".brand-signoff")).opacity'))>.99,'The introduction is set while the cars arrive');
   await aboutScroll(.74);await shot(`${prefix}-about-departure`);
   const gone=await evaluate('window.__about.snapshot().bounds');
   assert(gone.left>state.about.bounds.left,'The cars leave to the right, away from the copy');
   await aboutScroll(aboutAnchor);
   assert.deepEqual(aboutPose((await evaluate('window.__about.snapshot()')).vehicles),aboutPose(state.about.vehicles),'Reverse scrolling restores the parked pair');
-  console.log(`PASS ${prefix} About Baba: white pinned stage, GLS 580 and Defender drive in, copy read in word by word while parked, both drive away, reversal and responsive framing.`);
+  console.log(`PASS ${prefix} About Baba: white pinned stage, X7 and Defender drive in beside the set copy, both drive away, reversal and responsive framing.`);
 }
 await send('Page.enable');await send('Runtime.enable');await send('Network.enable');
 try {

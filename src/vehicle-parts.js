@@ -11,7 +11,7 @@ export const vehicleParts = {
   gls: {
     wheels, doors, bonnet: 'Bonnet', tailgate: 'Tailgate',
     bodyMaterial: 'gls_paint', dashboardMaterial: 'gls_torpedka1', interiorMaterial: 'gls_interior',
-    headlightMaterial: 'lsiggls', projectorMaterials: { gls_svet: .35, headlamp_led: 1.1 }, rearLightMaterials: ['gls_run'],
+    headlightMaterial: 'lsiggls', projectorMaterials: { gls_svet: .35, headlamp_led: 1.1 }, rearLightMaterials: ['gls_run'], rearReflectorMaterials: ['gls_rear'],
     headlamps: [[.74, .96, 2.47], [-.74, .96, 2.47]],
     taillamps: [[.77,1.15,-2.47],[-.77,1.15,-2.47]],
     wheelbase: 3.136, track: 1.648, wheelRadius: .421, size: [2.118, 1.86, 5.206],

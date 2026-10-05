@@ -106,7 +106,7 @@ function displayTexture(kind) {
   background.addColorStop(0,'#071725');background.addColorStop(.6,'#0b1522');background.addColorStop(1,'#182334');
   c.fillStyle=background;c.fillRect(0,0,w,h);
   const text=(value,x,y,size=22,color='#dcebf1',align='left')=>{
-    c.font=`500 ${size}px "Jost", sans-serif`;c.fillStyle=color;c.textAlign=align;c.fillText(value,x,y);
+    c.font=`500 ${size}px "Manrope", sans-serif`;c.fillStyle=color;c.textAlign=align;c.fillText(value,x,y);
   };
   const line=(points,color,width=2)=>{
     c.strokeStyle=color;c.lineWidth=width;c.lineCap='round';c.lineJoin='round';c.beginPath();points.forEach(([x,y],i)=>i?c.lineTo(x,y):c.moveTo(x,y));c.stroke();

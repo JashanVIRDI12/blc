@@ -4,16 +4,20 @@ import { MeshoptDecoder } from "three/addons/libs/meshopt_decoder.module.js";
 import gsap from "gsap";
 import { createAmbient } from "./ambient.js";
 import { createCabin } from "./cabin.js";
-import { applyTwoTone, prepareTwoTone } from './paint.js';
+import { applyTwoTone, carPaint, prepareTwoTone } from './paint.js';
 import { mountPlates } from './plates.js';
 import { addStarBadges } from './badges.js';
 import { glassFinish } from './glass.js';
+import { addLampGlow } from './lamp-glow.js';
 
 const WHEELS = ["Wheel_FL", "Wheel_FR", "Wheel_RL", "Wheel_RR"];
 
+// Base coat under the lacquer (paint.js adds flakes, flop and orange peel).
+// The roughness is the flakes' average, seen from beyond a few metres. A
+// solid base reflects little of its own: the lacquer does the shining.
 const FINISH = {
-  metallic: { metalness: 0.55, roughness: 0.28 },
-  solid: { metalness: 0.0, roughness: 0.22 },
+  metallic: { metalness: 0.6, roughness: 0.32 },
+  solid: { metalness: 0.0, roughness: 0.34, specularIntensity: 0.4 },
 };
 
 const easeOpen = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
@@ -97,11 +101,12 @@ export async function loadCar(spec, paintSpec, { invalidate, onProgress }) {
   const paint = new THREE.MeshPhysicalMaterial({
     color: new THREE.Color(paintSpec.color),
     clearcoat: 1,
-    clearcoatRoughness: 0.03,
+    clearcoatRoughness: 0.02,
     side: THREE.DoubleSide,
     ...FINISH[paintSpec.finish],
   });
   if(paintSpec.upperColor)applyTwoTone(paint,paintSpec.upperColor);
+  carPaint(paint, { metallic: paintSpec.finish !== 'solid' });
   const { material: rimOf, ...rimLook } = spec.rim ?? {};
   const rim = spec.rim && new THREE.MeshPhysicalMaterial(rimLook);
   const made = new Map();
@@ -150,6 +155,12 @@ export async function loadCar(spec, paintSpec, { invalidate, onProgress }) {
   const box = new THREE.Box3().setFromObject(wheels[0]);
   const wheelRadius = spec.partMap?.wheelRadius ?? (box.max.y - box.min.y) / 2;
   const drl = made.get(spec.drl);
+  // Lit lamps glow beyond their edges (lamp-glow.js): the tail lamps' light
+  // guides in red, the daytime running lights in a cool white.
+  const rearLights = (spec.partMap?.rearLightMaterials ?? []).map(name => made.get(name)).filter(Boolean);
+  const reflectors = (spec.partMap?.rearReflectorMaterials ?? []).map(name => made.get(name)).filter(Boolean);
+  rearLights.forEach(material => addLampGlow(root, material, { color: '#ff2617', full: 5, spread: .018, strength: .6 }));
+  if (drl) addLampGlow(root, drl, { color: '#e4ecff', full: 3, spread: .012, strength: .4 });
 
   // Everything that isn't a wheel sits on the suspension.
   const chassis = new THREE.Group();
@@ -209,11 +220,12 @@ export async function loadCar(spec, paintSpec, { invalidate, onProgress }) {
         if(material)material.emissiveIntensity=level*full;
       }
     },
+    // LED light guides run hot: at full output the core of each guide
+    // overexposes towards orange-white, as it does on camera. The chrome
+    // reflectors behind them catch their light.
     setTaillights(level) {
-      for(const name of spec.partMap?.rearLightMaterials??[]) {
-        const material=made.get(name);
-        if(material){material.emissive.set('#ed1225');material.emissiveIntensity=level*4;}
-      }
+      rearLights.forEach(material=>{material.emissive.set('#ff1426');material.emissiveIntensity=level*5;});
+      reflectors.forEach(material=>{material.emissiveIntensity=level*.35;});
     },
     lightState:()=>({headlight:drl?.emissiveIntensity??0,taillights:(spec.partMap?.rearLightMaterials??[]).map(name=>made.get(name)?.emissiveIntensity??0)}),
 
