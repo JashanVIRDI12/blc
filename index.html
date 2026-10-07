@@ -121,42 +121,46 @@
     </section>
 
     <section class="india" id="india" aria-labelledby="india-title">
-      <div class="india-story">
-        <header class="india-heading india-copy">
-          <div><p class="eyebrow">The Baba journey</p><h2 id="india-title">Across <em>India.</em></h2></div>
-          <p class="india-intro" data-india-intro></p>
+      <div class="india-inner">
+        <header class="india-head">
+          <p class="india-eyebrow" data-india-reveal><i aria-hidden="true"></i>The Baba journey</p>
+          <h2 id="india-title"><span class="india-line"><span>Across</span></span><span class="india-line"><span><em>India.</em></span></span></h2>
+          <p class="india-intro" data-india-intro data-india-reveal></p>
         </header>
-        <div class="india-journey-grid">
-          <div class="india-gallery" data-india-gallery aria-label="Delivery photographs"></div>
-          <div class="india-map">
-            <div class="india-map-stage">
-              <p class="india-map-overline">From Paschim Vihar <span>to your driveway</span></p>
-              <canvas data-india-canvas role="img" aria-label="An expanding map of India. Gold routes connect Paschim Vihar, New Delhi, to destinations across the country. Explore a destination for its delivery photographs and cars."></canvas>
-              <article class="india-card" data-india-card aria-label="Destination details" aria-hidden="true" inert>
-                <button class="india-card-close" type="button" data-card-close aria-label="Close destination details">×</button>
-                <div class="india-card-photo"><img data-card-photo alt="" decoding="async" /></div>
-                <div class="india-card-copy">
-                  <p class="india-card-kicker" data-card-kicker></p>
-                  <h3 data-card-name></h3>
-                  <p class="india-card-meta" data-card-meta></p>
-                  <p class="india-card-caption" data-card-caption></p>
-                  <a class="india-card-car" data-card-car hidden></a>
-                </div>
-              </article>
+        <div class="india-atlas">
+          <aside class="india-index" aria-labelledby="india-index-title">
+            <p class="india-label" id="india-index-title" data-india-reveal>Destinations <span data-india-count></span></p>
+            <ol class="india-list" data-india-list></ol>
+          </aside>
+          <div class="india-view">
+            <div class="india-stage" data-india-stage>
+              <div class="india-fallback" data-india-fallback aria-hidden="true"></div>
+              <canvas data-india-canvas aria-hidden="true"></canvas>
+              <div class="india-pins" data-india-pins aria-hidden="true"></div>
+              <p class="india-stage-note" aria-hidden="true">From Paschim Vihar <span>to your driveway</span></p>
             </div>
-            <div class="india-map-tools">
-              <p class="india-map-hint"><span class="india-hint-hover">Hover over a city</span><span class="india-hint-touch">Tap a city</span> to explore</p>
-              <select data-india-select aria-label="Explore a destination" aria-controls="india-destination-status"><option value="">Choose a destination</option></select>
-            </div>
+            <article class="india-panel" data-india-panel aria-live="polite">
+              <div class="india-panel-body" data-panel-body>
+                <figure class="india-panel-photo" data-panel-photo hidden><img alt="" decoding="async" /></figure>
+                <p class="india-panel-mark" aria-hidden="true"><span data-panel-coords></span><b data-panel-number></b></p>
+                <p class="india-panel-kicker" data-panel-kicker></p>
+                <h3 class="india-panel-name" data-panel-name></h3>
+                <p class="india-panel-meta" data-panel-meta></p>
+                <p class="india-panel-caption" data-panel-caption></p>
+                <a class="india-panel-car" data-panel-car hidden></a>
+              </div>
+            </article>
           </div>
         </div>
-        <footer class="india-foot">
-          <div class="india-origin"><i aria-hidden="true"></i><div><p>Every journey starts here</p><strong>Paschim Vihar, New Delhi</strong></div></div>
-          <dl class="india-stats" data-india-stats></dl>
-          <div class="india-scroll-cue" aria-hidden="true"><span data-india-phase>Scroll to explore</span><i></i></div>
-        </footer>
-        <ul class="sr-only" data-india-list></ul>
-        <p class="sr-only" id="india-destination-status" data-india-status role="status" aria-live="polite"></p>
+        <dl class="india-stats" data-india-stats></dl>
+        <div class="india-moments" data-india-moments hidden>
+          <div class="india-moments-head">
+            <p class="india-label">Moments from the journey <span data-moments-count></span></p>
+            <div class="india-moments-nav"><button type="button" data-moments-prev aria-label="Previous photographs">←</button><button type="button" data-moments-next aria-label="Next photographs">→</button></div>
+          </div>
+          <ul class="india-strip" data-india-strip aria-label="Delivery photographs"></ul>
+          <div class="india-strip-track" aria-hidden="true"><i></i></div>
+        </div>
       </div>
     </section>
 

@@ -1,7 +1,6 @@
 import * as THREE from 'three';
 import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
-import { Reflector } from 'three/addons/objects/Reflector.js';
 import { loadCar } from './car.js';
 import { models } from './models.js';
 import { vehicleParts } from './vehicle-parts.js';
@@ -11,15 +10,11 @@ import { showroomRoom } from './showroom-room.js';
 import { createVehicleLighting } from './vehicle-lighting.js';
 import { createTypePlane } from './type-plane.js';
 import { createRenderDensity } from './render-density.js';
-import { createFloorMaterial, floorLayout, floorShader } from './showroom-floor.js';
+import { createFloorMaterial } from './showroom-floor.js';
 
 // Draw order: the room, then the film's headlines, then the cars. A car that
 // crosses a headline passes in front of it; the room never covers the type.
 const ROOM = 0, CARS = 1;
-// The floor reflection is kept when a typical frame, drawn to completion,
-// takes at most this long (ms): room to spare inside a 60 Hz frame, since
-// close-ups cost more than the opening shot it is measured on.
-const REFLECTION_BUDGET = 11;
 
 // The room's lights are unshadowed, so on their own they would also light the
 // floor and cars beyond the doorways. Fade everything outside the walls into
@@ -78,67 +73,20 @@ export function createShowroom(canvas, onFailure) {
   fill.layers.enableAll();
   scene.add(fill);
 
-  // Polished stone floor (showroom-floor.js). It continues past the
-  // doorways into the dark. Dithered: the floor's light and shadow falloffs
-  // span only a few 8-bit levels and would otherwise band.
+  // Honed stone floor (showroom-floor.js), the same on every device. It
+  // continues past the doorways into the dark. Dithered: the floor's light and
+  // shadow falloffs span only a few 8-bit levels and would otherwise band.
+  // There is deliberately no planar mirror over it: a reflection drawn into a
+  // small target and blurred from its mipmaps stepped and shimmered as the
+  // camera moved (the wheels and sills ghosting across the tiles), turned the
+  // stone into wet glass, and cost a second full scene render every frame.
+  // The floor's own soft sheen of the captured room and the baked contact
+  // shadows ground the car.
   const floorUniforms = { showroomLevel: { value: 1 } };
   const polished = createFloorMaterial(floorUniforms);
   const floor = new THREE.Mesh(new THREE.PlaneGeometry(120, 120), polished);
   floor.rotation.x = -Math.PI / 2; floor.position.y = -.025;
   scene.add(floor);
-
-  // The floor's reflection, softly sampled. Polished stone reflects little
-  // looking down and much at a glance (Fresnel), and nothing in its joints.
-  // The reflection is drawn small, so it is multisampled and read from its
-  // mipmaps: a tap blur over the full-size image stamped ghost copies of
-  // every thin light, and blew the materials' dithering up into dots.
-  // Portrait devices use the PBR floor alone. The reflection never replaces
-  // the contact shadow.
-  let mirror;
-  if (!mobile) {
-    const shader = {
-      uniforms: THREE.UniformsUtils.clone(Reflector.ReflectorShader.uniforms),
-      vertexShader: `uniform mat4 textureMatrix; varying vec4 vUv; varying vec3 floorWorld;
-        void main() {
-          vUv = textureMatrix * vec4(position, 1.0);
-          floorWorld = (modelMatrix * vec4(position, 1.0)).xyz;
-          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-        }`,
-      fragmentShader: `#include <common>
-        #include <dithering_pars_fragment>
-        uniform sampler2D tDiffuse; varying vec4 vUv; varying vec3 floorWorld;
-        ${floorShader}
-        void main() {
-          vec2 uv=vUv.xy/vUv.w; vec2 d=vec2(.003,.0045); const float soft=1.4;
-          vec3 c=texture2D(tDiffuse,uv,soft).rgb*.28;
-          c+=texture2D(tDiffuse,uv+d,soft).rgb*.18;
-          c+=texture2D(tDiffuse,uv-d,soft).rgb*.18;
-          c+=texture2D(tDiffuse,uv+vec2(d.x,-d.y),soft).rgb*.18;
-          c+=texture2D(tDiffuse,uv+vec2(-d.x,d.y),soft).rgb*.18;
-          vec3 view=normalize(cameraPosition-floorWorld);
-          float fresnel=pow(1.0-saturate(view.y),4.0);
-          vec2 tile; float edge=floorJoint(floorWorld.xz,tile);
-          float stage=1.0-smoothstep(${floorLayout.stage.toFixed(2)}-.004,${floorLayout.stage.toFixed(2)}+.004,length(floorWorld.xz));
-          float joint=mix(smoothstep(.001,.001+max(fwidth(edge),1e-4)*1.5,edge),1.0,stage);
-          gl_FragColor=vec4(c,(.08+.36*fresnel+.06*stage)*joint);
-          #include <tonemapping_fragment>
-          #include <colorspace_fragment>
-          #include <dithering_fragment>
-        }`,
-    };
-    mirror = new Reflector(new THREE.PlaneGeometry(2*showroomRoom.wall.inner, 2*showroomRoom.wall.inner), { textureWidth: 768, textureHeight: 512, multisample: 4, clipBias: .002, shader });
-    const reflection = mirror.getRenderTarget().texture;
-    reflection.generateMipmaps = true; reflection.minFilter = THREE.LinearMipmapLinearFilter;
-    mirror.rotation.x = -Math.PI / 2;
-    mirror.position.y = .002;
-    mirror.material.transparent = true;
-    mirror.material.depthWrite = false;
-    mirror.material.dithering = true;
-    mirror.renderOrder = 0;
-    // The reflection shows the cars as well as the room.
-    mirror.getReflectionCamera(camera).layers.enableAll();
-    scene.add(mirror);
-  }
 
   let studio;
 
@@ -165,12 +113,11 @@ export function createShowroom(canvas, onFailure) {
   let raf = 0;
   // One density, moving or still, so the picture never softens while
   // scrolling (render-density.js: native up to 2x, desktop supersampled
-  // towards 2x). Whether the floor reflects is settled behind the loader
-  // (calibrate); a device that then cannot keep up steps its density down
-  // for good: once, not back and forth. The floor never changes in view.
+  // towards 2x). A device that cannot keep up steps its density down for
+  // good: once, not back and forth.
   const density = createRenderDensity({ mobile });
   let ratio = density.ratio(canvas.clientWidth || innerWidth, canvas.clientHeight || innerHeight);
-  let headings = null, frameCost = null;
+  let headings = null;
   const invalidate = () => { dirty = true; schedule(); };
   function schedule() { if (!raf && enabled && !document.hidden && !disposed) raf = requestAnimationFrame(draw); }
   function draw(now) {
@@ -236,24 +183,32 @@ export function createShowroom(canvas, onFailure) {
     const depth = (1 - 1 / 1.6) / Math.max(shot.position.distanceTo(shot.target), 1) * focal;
     type.setOffset(pointer.x * .34 * reach * depth, -pointer.y * .16 * reach * depth);
   }
-  // Labels tethered to points on a car, re-projected every frame.
+  // Labels tethered to points on a car, re-projected every frame. Each style
+  // is written only when it changes: most labels sit hidden most of the film.
+  const placed = new WeakMap();
   function placeTethers() {
     for (const tether of tethers) {
+      const { element } = tether;
+      let last = placed.get(element);
+      if (!last) placed.set(element, last = {});
       const entry = vehicles.get(tether.id);
-      if (!entry || tether.alpha <= 0) { tether.element.style.opacity = 0; continue; }
+      if (!entry || tether.alpha <= 0) { if (last.opacity !== '0') element.style.opacity = last.opacity = '0'; continue; }
       probe.set(...tether.point);
       entry.car.root.localToWorld(probe);
       const distance = probe.distanceTo(camera.position);
       probe.project(camera);
       const onScreen = probe.z < 1 && Math.abs(probe.x) < 1.1 && Math.abs(probe.y) < 1.1;
-      tether.element.style.opacity = onScreen ? tether.alpha : 0;
+      const opacity = onScreen ? tether.alpha.toFixed(3) : '0';
+      if (last.opacity !== opacity) element.style.opacity = last.opacity = opacity;
       const x = (probe.x + 1) / 2 * size.w, y = (1 - probe.y) / 2 * size.h;
-      tether.element.style.transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`;
+      const transform = `translate3d(${x.toFixed(1)}px,${y.toFixed(1)}px,0)`;
+      if (last.transform !== transform) element.style.transform = last.transform = transform;
       // Keep the label on screen: flip it away from a near edge.
-      const prefer = tether.element.dataset.prefer ??= tether.element.dataset.side || 'right';
+      const prefer = element.dataset.prefer ??= element.dataset.side || 'right';
       const side = x > size.w - 170 ? 'left' : x < 170 ? 'right' : prefer;
-      if (tether.element.dataset.side !== side) tether.element.dataset.side = side;
-      tether.element.dataset.near = distance < 3.2 ? 'true' : 'false';
+      if (element.dataset.side !== side) element.dataset.side = side;
+      const near = distance < 3.2 ? 'true' : 'false';
+      if (element.dataset.near !== near) element.dataset.near = near;
     }
   }
   const finePointer = matchMedia('(pointer: fine)').matches && !mobile;
@@ -376,25 +331,10 @@ export function createShowroom(canvas, onFailure) {
     camera.layers.enableAll();
     await renderer.compileAsync(scene, camera);
     if (disposed) return;
-    calibrate();
+    // One frame drawn behind the loader uploads every texture and settles the
+    // programs, so the first frame the visitor sees does not hitch.
+    renderFrame();
     onProgress(1); invalidate();
-  }
-  // Decide the floor reflection once, while the loader still covers the
-  // film, by timing a few frames to completion (gl.finish, so the display's
-  // refresh rate doesn't round the times). Turning it off later, mid-film,
-  // made the polished floor go matte in front of the visitor.
-  function calibrate() {
-    if (!mirror) return;
-    const gl = renderer.getContext(), times = [];
-    for (let i = 0; i < 14; i++) {
-      const start = performance.now();
-      renderFrame(); gl.finish();
-      // The first frames upload textures and warm the shaders.
-      if (i >= 4) times.push(performance.now() - start);
-    }
-    times.sort((a, b) => a - b);
-    frameCost = times[times.length >> 1];
-    mirror.visible = frameCost <= REFLECTION_BUDGET;
   }
   function dispose() {
     disposed = true; cancelAnimationFrame(raf); observer.disconnect();
@@ -406,7 +346,7 @@ export function createShowroom(canvas, onFailure) {
     scene.traverse(o => { if (o.geometry) geometries.add(o.geometry); if (o.material) (Array.isArray(o.material) ? o.material : [o.material]).forEach(m => materials.add(m)); });
     materials.forEach(m => { Object.values(m).forEach(v => { if (v?.isTexture) textures.add(v); }); m.dispose(); });
     geometries.forEach(g => g.dispose()); textures.forEach(t => t.dispose());
-    mirror?.dispose(); scene.userData.environmentTarget?.dispose(); renderer.dispose();
+    scene.userData.environmentTarget?.dispose(); renderer.dispose();
   }
   function viewSurface() {
     const ray = new THREE.Raycaster();
@@ -424,6 +364,6 @@ export function createShowroom(canvas, onFailure) {
     setActive(value) { enabled = value; if (value) invalidate(); },
     // Radians the shot is turned about the parked car; applied by setFrame.
     setOrbit(value) { orbit = value; },
-    snapshot: () => ({ orbit, reflection: mirror?.visible ?? false, frameCost, type: type.snapshot(), pointer: { x: pointer.x, y: pointer.y }, studio: Boolean(studio), viewSurface: viewSurface(), camera: camera.position.toArray(), target: frame?.shot.target, dpr: ratio, render: { ...renderer.info.render }, vehicles: [...vehicles].map(([id, v]) => ({ id, position: v.holder.position.toArray(), yaw: v.holder.rotation.y, scale: v.holder.scale.toArray(), wheel: v.car.wheels[0].rotation.x, steer: v.car.wheels[0].parent.rotation.y, visible: v.holder.visible, door:v.car.root.getObjectByName('Door_FL')?.rotation.y??0, lights:v.lighting.snapshot(), screens: v.car.cabin.screens.map(m=>({name:m.name,lit:m.emissiveIntensity,texture:Boolean(m.emissiveMap)})) })) }),
+    snapshot: () => ({ orbit, type: type.snapshot(), pointer: { x: pointer.x, y: pointer.y }, studio: Boolean(studio), viewSurface: viewSurface(), camera: camera.position.toArray(), target: frame?.shot.target, dpr: ratio, render: { ...renderer.info.render }, vehicles: [...vehicles].map(([id, v]) => ({ id, position: v.holder.position.toArray(), yaw: v.holder.rotation.y, scale: v.holder.scale.toArray(), wheel: v.car.wheels[0].rotation.x, steer: v.car.wheels[0].parent.rotation.y, visible: v.holder.visible, door:v.car.root.getObjectByName('Door_FL')?.rotation.y??0, lights:v.lighting.snapshot(), screens: v.car.cabin.screens.map(m=>({name:m.name,lit:m.emissiveIntensity,texture:Boolean(m.emissiveMap)})) })) }),
   };
 }

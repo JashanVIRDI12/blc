@@ -43,13 +43,17 @@ export const vehicleParts = {
     supports: { engine: false, bonnet: false, cabin: false },
     engineEvidence: [],
   },
-  // The collection drive's cars, measured by tools/prep-fleet.mjs. They wear
-  // no plates: they are only seen in the white collection drive.
+  // The collection drive's cars, measured by tools/prep-fleet.mjs. Their
+  // plates were probed the same way. The Maybach's front plate stands on the
+  // bumper face between the grille and the lower intake, just proud of its
+  // curve, as on a bracket; the rear one sits in the boot lid's recess, where
+  // the source's own plate was, leaning back with the lid.
   sclass: {
     wheels, doors: [], bonnet: null, tailgate: null, bodyMaterial: 'sclass_paint',
     headlamps: [[.7, .72, 2.6], [-.7, .72, 2.6]], taillamps: [[.75, .8, -2.65], [-.75, .8, -2.65]],
     wheelbase: 3.384, track: 1.629, wheelRadius: .367, size: [2.105, 1.543, 5.469],
-    plates: [], supports: { engine: false, bonnet: false, cabin: false }, engineEvidence: [],
+    plates: [{ at: [0, .47, 2.729], normal: [0, 0, 1] }, { at: [0, .83, -2.614], normal: [0, .28, -.96] }],
+    supports: { engine: false, bonnet: false, cabin: false }, engineEvidence: [],
   },
   i7: {
     wheels, doors: [], bonnet: null, tailgate: null, bodyMaterial: 'i7_paint',
@@ -57,10 +61,13 @@ export const vehicleParts = {
     wheelbase: 3.184, track: 1.629, wheelRadius: .38, size: [2.193, 1.527, 5.391],
     plates: [], supports: { engine: false, bonnet: false, cabin: false }, engineEvidence: [],
   },
+  // The Land Cruiser's plates cover the source's own plate recesses: the
+  // bumper's, and the tailgate's, which leans back a little.
   landcruiser: {
     wheels, doors: [], bonnet: null, tailgate: null, bodyMaterial: 'lc_paint',
     headlamps: [[.72, 1.0, 2.4], [-.72, 1.0, 2.4]], taillamps: [[.78, 1.19, -2.3], [-.78, 1.19, -2.3]],
     wheelbase: 2.815, track: 1.61, wheelRadius: .408, size: [2.173, 1.887, 4.985],
-    plates: [], supports: { engine: false, bonnet: false, cabin: false }, engineEvidence: [],
+    plates: [{ at: [0, .53, 2.49], normal: [0, 0, 1] }, { at: [0, .95, -2.357], normal: [0, .1, -1] }],
+    supports: { engine: false, bonnet: false, cabin: false }, engineEvidence: [],
   },
 };

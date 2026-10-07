@@ -10,7 +10,9 @@ import { setupFeatured } from './inventory.js';
 import { setupForms } from './forms.js';
 import { setupMenu, previewBanner } from './chrome.js';
 import { loadSite } from './data.js';
-import { dealer } from './config.js';
+import { dealer, lightsVehicles } from './config.js';
+import { models } from './models.js';
+import { prefetchModels } from './model-cache.js';
 gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -96,7 +98,9 @@ function initPractical() {
 }
 // Created after the film so their pins are measured below the film's, the
 // collection drive before About; the models load in the background without
-// holding the loader.
+// holding the loader. About, further down, loads once the collection drive
+// is ready: the drive the visitor reaches next has the network and the GPU
+// to itself.
 async function startFleet() {
   try {
     const { createLightsOn }=await import('./lights-on.js');
@@ -106,7 +110,7 @@ async function startFleet() {
 async function startAbout() {
   try {
     const { createAboutDrive }=await import('./about-drive.js');
-    if(!cancelled)aboutDrive=createAboutDrive(document.querySelector('#about'));
+    if(!cancelled)aboutDrive=createAboutDrive(document.querySelector('#about'),{after:fleetDrive?.loaded});
   } catch(error) { console.error('About drive unavailable; using the static introduction.',error); }
 }
 async function start() {
@@ -116,6 +120,10 @@ async function start() {
     const { createCinema }=await import('./cinema.js');
     if(cancelled){initPractical();return;}
     cinema=createCinema({onProgress:value=>{document.querySelector('#load-bar').style.transform=`scaleX(${value})`;document.querySelector('#load-percent').textContent=`${Math.round(value*100)}%`;},onFailure:staticExperience});
+    // The collection drive's cars download behind the film's at a lower
+    // priority (model-cache.js), so they are in hand by the time the film
+    // ends instead of starting then.
+    prefetchModels(lightsVehicles.map(({id})=>models[id].url));
     await cinema.ready;
     if(!cancelled){await startFleet();await startAbout();finishLoading();}
   } catch(error) { console.error('Showroom unavailable; using static collection.',error);staticExperience(); }

@@ -25,9 +25,11 @@ const STACKED = matchMedia('(max-width: 760px), (max-aspect-ratio: 4/5)');
 // and the Defender drive in beside the copy, stop, and drive away; the scroll
 // position is the only clock, so reversing replays it exactly. The copy is
 // always set: it never waits on the cars. The two models load in
-// the background and the stills stand in until they arrive. Throws when
-// WebGL is unavailable; the section then keeps its static layout.
-export function createAboutDrive(section) {
+// the background and the stills stand in until they arrive; given `after`,
+// they wait for it (the home page's collection drive, which the visitor
+// reaches first) so the two never compete for the network and the GPU. Throws
+// when WebGL is unavailable; the section then keeps its static layout.
+export function createAboutDrive(section, { after } = {}) {
   const visual = section.querySelector('.brand-visual');
   const canvas = visual.querySelector('canvas');
   const copy = section.querySelector('.brand-copy');
@@ -178,7 +180,10 @@ export function createAboutDrive(section) {
     if (smoother) smoother.scrollTo(y, !instant); else window.scrollTo({ top: y, behavior: instant ? 'instant' : 'smooth' });
   }
 
+  const nextFrame = () => new Promise(resolve => requestAnimationFrame(() => resolve()));
   async function load() {
+    await after?.catch(() => {});
+    if (disposed) return;
     const loader = new THREE.TextureLoader();
     await Promise.all(ids.map(async id => {
       const item = showcase.find(entry => entry.id === id);
@@ -203,6 +208,15 @@ export function createAboutDrive(section) {
     render();
     await renderer.compileAsync(scene, camera);
     if (disposed) return;
+    // The textures a few a frame, so the first frame in view uploads none of
+    // them in one block.
+    const maps = new Set();
+    scene.traverse(node => [node.material].flat().forEach(material => material && Object.values(material).forEach(value => { if (value?.isTexture) maps.add(value); })));
+    let n = 0;
+    for (const texture of maps) {
+      renderer.initTexture(texture);
+      if (++n % 4 === 0) { await nextFrame(); if (disposed) return; }
+    }
     ready = true; invalidate();
   }
   const loaded = load().catch(error => { console.error('About drive unavailable; keeping the stills.', error); });

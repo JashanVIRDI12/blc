@@ -45,6 +45,7 @@ export function createCinema({ onProgress, onFailure }) {
   });
   const tethers = tetherSpecs.map(t => ({ ...t, element: document.querySelector(`[data-tether="${t.id}"]`), window: moments.find(m => m.id === t.moment) }));
   const chapters = [...document.querySelectorAll('[data-chapter]')].map(button => ({ button, moment: moments.find(m => m.id === button.dataset.chapter) }));
+  const rail = stage.querySelector('.film-chapters');
   const playhead = { progress: 0 }, intro = { value: 0 };
   // While the GLS is parked, a sideways drag turns the shot about it.
   // Scrolling on eases the view back onto the film's path, and it is fully
@@ -60,7 +61,16 @@ export function createCinema({ onProgress, onFailure }) {
     onTurn(dx) { orbit.yaw -= dx / innerWidth * Math.PI * .9; render(); },
     onEnd() { orbit.yaw = Math.atan2(Math.sin(orbit.yaw), Math.cos(orbit.yaw)); },
   });
-  let timeline, disposed = false, typeReady = false, activeChapter = null, activeRecord = null;
+  let timeline, disposed = false, typeReady = false, activeChapter = null, activeRecord = null, chapterFill = '';
+  // Inline style, written only when its value changes.
+  const written = new WeakMap();
+  function write(element, property, value) {
+    let styles = written.get(element);
+    if (!styles) written.set(element, styles = {});
+    if (styles[property] === value) return;
+    styles[property] = value;
+    element.style[property] = value;
+  }
 
   function bindVerifiedRecord() {
     const record = inventory.find(item => item.model3d === filmVehicles.first && item.available !== false);
@@ -97,17 +107,19 @@ export function createCinema({ onProgress, onFailure }) {
       const passage = interval(p, m.start, m.end);
       const drift = m.front ? [0, 0] : [(narrow ? 8 : 28) * (1 - passage), -passage * (narrow ? 8 : 14)];
       type[m.id] = { lines, scrim: set, drift };
-      m.kicker.style.opacity = set;
-      m.kicker.style.transform = `translate3d(0,${((1 - set) * 8).toFixed(2)}px,0)`;
-      m.body.style.opacity = alpha;
-      m.body.style.transform = `translate3d(0,${((1 - alpha) * 14).toFixed(2)}px,0)`;
+      // Every scrubbed frame passes through here for all six moments, five of
+      // them hidden: write only what changed, so a hidden moment costs no
+      // style recalculation and a set one only its own fade.
+      write(m.kicker, 'opacity', set.toFixed(3));
+      write(m.kicker, 'transform', `translate3d(0,${((1 - set) * 8).toFixed(2)}px,0)`);
+      write(m.body, 'opacity', alpha.toFixed(3));
+      write(m.body, 'transform', `translate3d(0,${((1 - alpha) * 14).toFixed(2)}px,0)`);
       const showing = typeReady ? set > .02 || alpha > .001 : alpha > .001;
-      m.element.classList.toggle('is-visible', showing);
       // Without the WebGL type, the DOM headline carries the fade itself.
-      if (!typeReady) m.heading.style.opacity = alpha;
+      if (!typeReady) write(m.heading, 'opacity', alpha.toFixed(3));
       const readable = Math.max(alpha, set) >= .4;
-      m.element.setAttribute('aria-hidden', readable ? 'false' : 'true');
-      m.element.inert = !readable;
+      if (m.showing !== showing) { m.showing = showing; m.element.classList.toggle('is-visible', showing); }
+      if (m.readable !== readable) { m.readable = readable; m.element.setAttribute('aria-hidden', readable ? 'false' : 'true'); m.element.inert = !readable; }
     });
     showroom.setFrame({
       shot, motion, light, cabin: false, bonnet, door, type,
@@ -127,7 +139,10 @@ export function createCinema({ onProgress, onFailure }) {
       activeChapter = current;
     }
     const next = chapters[chapters.indexOf(current) + 1]?.moment.start ?? 1;
-    stage.style.setProperty('--chapter-fill', interval(p, current.moment.start, next).toFixed(3));
+    // On the chapter rail, not the stage: a custom property set on the stage
+    // restyled everything inside it, the copy and the tethers, every frame.
+    const fill = interval(p, current.moment.start, next).toFixed(3);
+    if (fill !== chapterFill) { chapterFill = fill; rail.style.setProperty('--chapter-fill', fill); }
   }
   // Chapters jump the film; the scroll position stays the source of truth.
   function goTo(progress) {
@@ -145,7 +160,7 @@ export function createCinema({ onProgress, onFailure }) {
     showroom.layoutType(copies.map(m => ({ id: m.id, element: m.heading, color: TYPE_COLOR, front: Boolean(m.front) })));
     typeReady = true;
     stage.classList.add('has-type');
-    copies.forEach(m => { m.heading.style.opacity = ''; });
+    copies.forEach(m => { m.heading.style.opacity = ''; written.delete(m.heading); });
     render();
   }
   render();

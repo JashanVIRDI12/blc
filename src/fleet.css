@@ -68,7 +68,9 @@
   -webkit-mask-image:linear-gradient(180deg,#000 52%,rgba(0,0,0,.18) 100%);mask-image:linear-gradient(180deg,#000 52%,rgba(0,0,0,.18) 100%);
   transform:translate3d(calc(var(--sway-x,0) * 10px),calc(var(--sway-y,0) * 5px),0)}
 .fleet-word .ch{display:inline-block;will-change:transform}
-.fleet--stage .fleet-stage canvas:not(.fleet-dust){z-index:1}
+/* The cars fade in out of the white by themselves (fleet-drive.js); the
+   canvas need not hold them back behind a long fade of its own. */
+.fleet--stage .fleet-stage canvas:not(.fleet-dust){z-index:1;transition-duration:.45s}
 /* Stills (reduced motion, or no WebGL): the same group, in front of the
    title, centred in the height the cars would take. */
 .fleet--stage.is-static{--stage-shift:clamp(0px,(100svh - 720px) / 2,110px)}

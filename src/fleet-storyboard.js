@@ -43,7 +43,9 @@ export const fleetAnchor = .66;
 // The camera looks up the lanes as the cars appear, comes down with them to
 // near their own height, so the group fills the frame, and drifts in a little
 // while they hold. Fog: distances from the camera where the cars begin to
-// fade and where they are gone.
+// fade and where they are gone. Emerge: the playhead where the first car
+// begins to show through the white; before it the stage is empty, so the
+// collection page's arrival starts there rather than waiting it out.
 const pose = (at, position, target, fov, extra = {}) => ({ at, position, target, fov, offset: [0, 0], ...extra });
 export const fleetCamera = {
   stage: {
@@ -54,6 +56,7 @@ export const fleetCamera = {
       pose(1, [0, 1.98, 18.2], [0, .84, -1.9], 28, { hold: true }),
     ],
     fog: [27, 54],
+    emerge: .16,
   },
   'stage-portrait': {
     frames: [
@@ -63,6 +66,7 @@ export const fleetCamera = {
       pose(1, [0, 10, 27.3], [0, .85, -2.9], 30, { hold: true }),
     ],
     fog: [31, 66],
+    emerge: .13,
   },
 };
 

@@ -1,398 +1,378 @@
-// A scroll-led atlas: the country expands, routes unfurl, and real handover
-// photographs tell the journeys. Every camera movement follows the scroll.
+// Across India: where Baba's cars have gone. An atlas of India in fine dots
+// (india-atlas.js, three.js) with gold routes from the showroom in Paschim
+// Vihar to every destination; beside it an index of the destinations, a
+// panel that tells the chosen one, the figures, and a strip of real handover
+// photographs. The section scrolls like any other: nothing is pinned. It
+// assembles once as it comes into view, then the atlas leans gently with the
+// scroll. An SVG of the same map stands in at once, and for good without WebGL.
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { dots, project as geo } from './india-map.js';
+import PhotoSwipeLightbox from 'photoswipe/lightbox';
+import 'photoswipe/style.css';
+import { dots, outline, project, viewBox } from './india-map.js';
 import { ORIGIN, findPlace, readPlaces, stateCode } from './places.js';
-import { carName, carURL, cover, FOR_SALE } from './data.js';
+import { carName, carURL, FOR_SALE } from './data.js';
 import { escapeHTML, safeImage, thumbImage } from './util.js';
-import { createJourneyGallery } from './journey-gallery.js';
 gsap.registerPlugin(ScrollTrigger);
 
-const RAW = [...dots.matchAll(/M([\d.]+) ([\d.]+)h0/g)].map(m => [Number(m[1]), Number(m[2])]);
-const N = RAW.length;
-const CX = RAW.reduce((s, [x]) => s + x, 0) / N, CY = RAW.reduce((s, [, y]) => s + y, 0) / N;
-const PX = new Float32Array(N), PY = new Float32Array(N);
-RAW.forEach(([x, y], i) => { PX[i] = x - CX; PY[i] = y - CY; });
-const HULL = Array.from({ length: 48 }, (_, s) => {
-  const a = s / 48 * Math.PI * 2, c = Math.cos(a), si = Math.sin(a);
-  let best = 0;
-  for (let i = 1; i < N; i++) if (PX[i] * c + PY[i] * si > PX[best] * c + PY[best] * si) best = i;
-  return [PX[best], PY[best], 0];
-});
-const D = 1900, TILT = .48, EXPANDED = 1.2;
-const GOLD = '213,178,123', IVORY = '224,215,196';
 const grouping = new Intl.NumberFormat('en-IN');
 const km = ([lat1, lng1], [lat2, lng2]) => {
   const r = Math.PI / 180, a = Math.sin((lat2 - lat1) * r / 2) ** 2 + Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.sin((lng2 - lng1) * r / 2) ** 2;
   return 6371 * 2 * Math.asin(Math.min(1, Math.sqrt(a)));
 };
 const samePlace = (a, b) => a && b && km(a.at, b.at) < 1;
+const two = n => String(n).padStart(2, '0');
+const distanceText = j => `${grouping.format(Math.round(j.km / 10) * 10)} km`;
+const coordinates = ([lat, lng]) => `${Math.abs(lat).toFixed(2)}° ${lat < 0 ? 'S' : 'N'} · ${Math.abs(lng).toFixed(2)}° ${lng < 0 ? 'W' : 'E'}`;
 
 export function createAcrossIndia(section, { settings, deliveries = [], cars = [], reduced = false }) {
-  const map = section.querySelector('.india-map-stage');
-  const canvas = section.querySelector('[data-india-canvas]');
-  const card = section.querySelector('[data-india-card]');
-  const select = section.querySelector('[data-india-select]');
-  const status = section.querySelector('[data-india-status]');
-  const storyElement = section.querySelector('.india-story');
-  const phase = section.querySelector('[data-india-phase]');
-  const ctx = canvas.getContext('2d');
+  const $ = selector => section.querySelector(selector);
+  const stage = $('[data-india-stage]'), canvas = $('[data-india-canvas]'), pinLayer = $('[data-india-pins]');
+  const list = $('[data-india-list]'), panel = $('[data-india-panel]'), panelBody = $('[data-panel-body]');
   const india = settings.india || {};
-  section.querySelector('[data-india-intro]').textContent = india.intro || '';
+  $('[data-india-intro]').textContent = india.intro || '';
 
+  // ------------------------------------------------------------ the places
+  // The places in Settings, and every place a handover photograph names.
   const { places } = readPlaces(india.places);
   const photographs = deliveries.filter(delivery => safeImage(delivery.photo));
-  const handovers = photographs.map(delivery => ({ ...delivery, place: findPlace(delivery.city) })).filter(delivery => delivery.place);
-  for (const delivery of handovers) {
-    if (!places.some(place => samePlace(place, delivery.place))) places.push(delivery.place);
-  }
-  const [gx, gy] = geo(ORIGIN.at), OX = gx - CX, OY = gy - CY;
-  const PD = Float32Array.from(PX, (x, i) => Math.hypot(x - OX, PY[i] - OY));
-  const revealEnd = Math.max(...PD) + 140;
+  const handovers = photographs.map((delivery, index) => ({ ...delivery, index, place: findPlace(delivery.city) }));
+  for (const { place } of handovers) if (place && !places.some(other => samePlace(other, place))) places.push(place);
   const stock = cars.filter(car => !car.preview && car.status !== 'hidden');
   // A state registration is useful context, not evidence that a particular
-  // car was delivered to this city. Delivery photos match actual places.
+  // car went to this city; only a photograph says a car was delivered there.
   const journeys = places.filter((place, i) => places.findIndex(other => samePlace(other, place)) === i).map(place => {
-    const [x, y] = geo(place.at), code = stateCode(place.name);
     const photo = handovers.find(delivery => samePlace(delivery.place, place));
+    const code = stateCode(place.name);
     const local = code ? stock.filter(car => String(car.registration).trim().toUpperCase().startsWith(code)).sort((a, b) => FOR_SALE.includes(b.status) - FOR_SALE.includes(a.status)) : [];
-    return { name: photo?.place.name || place.name, km: km(ORIGIN.at, place.at), photo, local, code, X: x - CX, Y: y - CY };
+    return { name: photo?.place.name || place.name, at: place.at, km: km(ORIGIN.at, place.at), photo, local, code };
   }).filter(j => j.km >= 60).sort((a, b) => a.km - b.km);
-  journeys.forEach(j => {
-    const length = Math.hypot(j.X - OX, j.Y - OY), lift = 22 + length * .24;
-    j.samples = Array.from({ length: 49 }, (_, s) => {
-      const t = s / 48;
-      return [OX + (j.X - OX) * t, OY + (j.Y - OY) * t, Math.sin(Math.PI * t) * lift];
-    });
-    Object.assign(j, { screen: new Float32Array(98), base: [0, 0], top: [0, 0], draw: reduced ? 1 : 0, pillar: reduced ? 1 : 0 });
-  });
-  section.querySelector('[data-india-list]').innerHTML = journeys.map(j => `<li>${escapeHTML(j.name)}, approximately ${grouping.format(Math.round(j.km))} km from Paschim Vihar</li>`).join('');
-  select.innerHTML = '<option value="">Choose a destination</option>' + journeys.map((j, i) => `<option value="${i}">${escapeHTML(j.name)}</option>`).join('');
-  select.disabled = !journeys.length;
+  handovers.forEach(delivery => { delivery.journey = delivery.place ? journeys.findIndex(j => samePlace(j, delivery.place)) : -1; });
 
-  let narrativePhoto = 0, manualPhoto = null, manualAt = 0, storyActive = -1, activeAt = 0;
-  const journeyForPhoto = index => {
-    const place = findPlace(photographs[index]?.city);
-    return place ? journeys.findIndex(j => samePlace(findPlace(j.name), place)) : -1;
-  };
-  const gallery = createJourneyGallery(section.querySelector('[data-india-gallery]'), {
-    deliveries: photographs, reduced,
-    onSelect(index, delivery) {
-      manualPhoto = index; manualAt = view.progress; storyActive = journeyForPhoto(index);
-      selected = -1; select.value = ''; showCard(-1);
-      status.textContent = `Delivery photograph ${index + 1} of ${photographs.length}. ${delivery.city || 'A new owner'}. ${delivery.caption || ''}`;
-      requestDraw();
-    },
-  });
-  section.classList.toggle('has-no-photos', !gallery.count);
-  storyActive = journeyForPhoto(0);
+  // ------------------------------------------------------------- the index
+  $('[data-india-count]').textContent = two(journeys.length);
+  list.innerHTML = journeys.map((j, i) => `<li><button type="button" class="india-place" data-place="${i}" aria-pressed="false">
+      <span class="india-place-index">${two(i + 1)}</span><span class="india-place-name">${escapeHTML(j.name)}</span>
+      <span class="india-place-km">${j.photo ? '<i class="india-place-photo" aria-label="Handover photograph"></i>' : ''}${distanceText(j)}</span>
+    </button></li>`).join('');
+  const items = [...list.querySelectorAll('[data-place]')];
 
+  // ------------------------------------------------------------- the figures
   const sold = stock.filter(car => car.status === 'sold').length;
   const onSale = stock.filter(car => FOR_SALE.includes(car.status)).length;
   const delivered = Number(String(india.delivered || '').replace(/[^\d]/g, '')) || 0;
+  const longest = journeys.at(-1);
   const stats = [
-    [journeys.length + 1, 'Cities and states'],
-    ...(delivered ? [[delivered, 'Cars delivered', /\+\s*$/.test(String(india.delivered)) ? '+' : '']] : sold ? [[sold, 'Recently delivered']] : []),
-    ...(onSale ? [[onSale, 'On sale today']] : []),
+    [journeys.length + 1, 'Cities and states', ''],
+    ...(delivered ? [[delivered, 'Cars delivered', /\+\s*$/.test(String(india.delivered)) ? '+' : '']] : sold ? [[sold, 'Recently delivered', '']] : []),
+    ...(longest ? [[Math.round(longest.km / 10) * 10, `Our longest journey, to ${longest.name}`, ' km']] : []),
+    ...(onSale ? [[onSale, 'On sale today', '']] : []),
   ];
-  section.querySelector('[data-india-stats]').innerHTML = stats.map(([value, label, suffix = '']) => `<div><dt>${label}</dt><dd><span data-count="${value}">${reduced ? grouping.format(value) : 0}</span>${suffix}</dd></div>`).join('');
+  $('[data-india-stats]').innerHTML = `<div class="india-origin"><dt>Every journey starts here</dt><dd>Paschim Vihar, New Delhi</dd></div>`
+    + stats.map(([value, label, suffix]) => `<div><dt>${escapeHTML(label)}</dt><dd><span data-count="${value}">${grouping.format(value)}</span>${suffix}</dd></div>`).join('');
+  const counters = [...section.querySelectorAll('[data-count]')];
 
-  const cardPhoto = card.querySelector('[data-card-photo]'), cardKicker = card.querySelector('[data-card-kicker]');
-  const cardName = card.querySelector('[data-card-name]'), cardMeta = card.querySelector('[data-card-meta]');
-  const cardCaption = card.querySelector('[data-card-caption]'), cardCar = card.querySelector('[data-card-car]');
-  const close = card.querySelector('[data-card-close]');
-  let active = -1, selected = -1, closeTimer;
-  function showCard(i) {
-    clearTimeout(closeTimer);
-    if (i === active) return;
-    active = i;
-    activeAt = view.progress;
-    card.inert = i < 0;
-    card.setAttribute('aria-hidden', String(i < 0));
-    card.classList.toggle('is-visible', i >= 0);
-    if (i < 0) { gallery.show(manualPhoto ?? narrativePhoto); requestDraw(); return; }
-    const j = journeys[i], car = j.local[0];
-    if (j.photo) gallery.show(photographs.findIndex(photo => photo.photo === j.photo.photo));
-    const image = j.photo ? thumbImage(j.photo.photo) : car ? thumbImage(cover(car)) : '';
-    card.classList.toggle('has-photo', Boolean(image));
-    card.classList.toggle('is-handover', Boolean(j.photo));
-    if (image) cardPhoto.src = image;
-    else cardPhoto.removeAttribute('src');
-    cardPhoto.alt = j.photo ? (j.photo.caption || `A Baba Luxury Cars handover in ${j.name}`) : car ? carName(car) : '';
-    cardKicker.textContent = j.photo ? 'Delivered here' : car ? `Registered in ${j.code}` : 'Our reach';
-    cardName.textContent = j.name;
-    cardMeta.textContent = `Approx. ${grouping.format(Math.round(j.km))} km from Paschim Vihar`;
-    cardMeta.title = 'Straight-line distance';
-    cardCaption.textContent = j.photo?.caption || '';
-    cardCar.hidden = !car;
-    if (car) {
-      cardCar.href = carURL(car);
-      cardCar.textContent = `${carName(car)} · ${FOR_SALE.includes(car.status) ? 'View car' : 'Sold'} ↗`;
-      cardCar.title = `Registered in ${j.code}`;
-    } else cardCar.removeAttribute('href');
-    placeCard();
-    requestDraw();
+  // ------------------------------------------------------------- the panel
+  const panelPhoto = $('[data-panel-photo]'), panelImage = panelPhoto.querySelector('img');
+  const fields = { coords: $('[data-panel-coords]'), number: $('[data-panel-number]'), kicker: $('[data-panel-kicker]'), name: $('[data-panel-name]'), meta: $('[data-panel-meta]'), caption: $('[data-panel-caption]'), car: $('[data-panel-car]') };
+  panelImage.addEventListener('error', () => { panelPhoto.hidden = true; });
+  function fill(i) {
+    const j = journeys[i];
+    fields.coords.textContent = coordinates(j ? j.at : ORIGIN.at);
+    fields.number.textContent = j ? two(i + 1) : '';
+    if (!j) {
+      fields.kicker.textContent = 'Every journey starts here';
+      fields.name.textContent = 'Paschim Vihar';
+      fields.meta.textContent = journeys.length ? `New Delhi · ${journeys.length} destinations and counting` : 'New Delhi';
+      fields.caption.textContent = journeys.length ? 'Choose a destination to see where our cars have gone.' : '';
+      panelPhoto.hidden = true; fields.car.hidden = true;
+      return;
+    }
+    const car = j.local[0];
+    fields.kicker.textContent = j.photo ? 'Delivered here' : car ? `Registered in ${j.code}` : 'Within our reach';
+    fields.name.textContent = j.name;
+    fields.meta.textContent = `${distanceText(j)} from Paschim Vihar`;
+    fields.caption.textContent = j.photo?.caption || '';
+    panelPhoto.hidden = !j.photo;
+    if (j.photo) { panelImage.src = thumbImage(j.photo.photo); panelImage.alt = j.photo.caption || `A Baba Luxury Cars handover in ${j.name}`; }
+    fields.car.hidden = !car;
+    if (car) { fields.car.href = carURL(car); fields.car.textContent = `${carName(car)} · ${FOR_SALE.includes(car.status) ? 'View the car' : 'Sold'} ↗`; }
+    else fields.car.removeAttribute('href');
   }
-  function placeCard() {
-    if (active < 0) return;
-    const j = journeys[active], x = j.base[0] / dpr, y = j.base[1] / dpr;
-    const width = card.offsetWidth, height = card.offsetHeight, gap = 18, inset = 10;
-    let left = x + gap;
-    if (left + width > map.clientWidth - inset) left = x - width - gap;
-    card.style.left = `${Math.max(inset, Math.min(left, map.clientWidth - width - inset))}px`;
-    card.style.top = `${Math.max(inset, Math.min(y - height * .45, map.clientHeight - height - inset))}px`;
+  let shownInPanel = null, panelSwap;
+  function showPanel(i) {
+    if (i === shownInPanel) return;
+    shownInPanel = i;
+    panelSwap?.kill();
+    if (reduced) { fill(i); return; }
+    panelSwap = gsap.timeline()
+      .to(panelBody, { autoAlpha: 0, y: 6, duration: .16, ease: 'power2.in' })
+      .add(() => fill(i))
+      .to(panelBody, { autoAlpha: 1, y: 0, duration: .5, ease: 'expo.out' });
   }
+  fill(-1); shownInPanel = -1;
 
-  const view = { tilt: reduced ? TILT : .02, reveal: reduced ? revealEnd : 0, zoom: reduced ? EXPANDED : .64, turn: reduced ? 0 : -.1, progress: reduced ? 1 : 0 };
-  let dpr = 1, cw = 1, ch = 1, small = false, pending = 0, disposed = false;
-  let ct = 1, st = 0, cr = 1, sr = 0, k = 1, ox = 0, oy = 0, measuring = false;
-  const P = [0, 0, 0], labels = [];
-  const project = (X, Y, Z) => {
-    const xs = X * cr + Z * sr, zs = Z * cr - X * sr;
-    const ys = Y * ct - zs * st, depth = -Y * st - zs * ct, f = D / (D + depth);
-    const scale = k * (measuring ? 1 : view.zoom);
-    P[0] = ox + xs * f * scale; P[1] = oy + ys * f * scale; P[2] = f;
-    return P;
-  };
-  // Fit the complete camera envelope once. Expansion is intentional and
-  // monotonic, rather than a side effect of refitting each animation frame.
-  function resize() {
-    const rect = canvas.getBoundingClientRect();
-    small = rect.width < 600;
-    dpr = Math.min(devicePixelRatio || 1, 2);
-    cw = canvas.width = Math.max(1, Math.round(rect.width * dpr));
-    ch = canvas.height = Math.max(1, Math.round(rect.height * dpr));
-    k = 1; ox = oy = 0;
-    let x0 = Infinity, x1 = -Infinity, y0 = Infinity, y1 = -Infinity;
-    const bounds = [...HULL, [OX, OY, 72], ...journeys.flatMap(j => [[j.X, j.Y, 30], ...j.samples])];
-    measuring = true;
-    for (let step = 0; step <= 4; step++) {
-      ct = Math.cos(TILT * step / 4); st = Math.sin(TILT * step / 4);
-      cr = Math.cos(-.1 * (1 - step / 4)); sr = Math.sin(-.1 * (1 - step / 4));
-      for (const point of bounds) {
-        const [x, y] = project(...point);
-        x0 = Math.min(x0, x); x1 = Math.max(x1, x); y0 = Math.min(y0, y); y1 = Math.max(y1, y);
-      }
-    }
-    measuring = false;
-    const padX = cw * .05, padY = ch * .1;
-    k = Math.min((cw - padX * 2) / (x1 - x0), (ch - padY * 2) / (y1 - y0));
-    ox = cw / 2 - (x0 + x1) / 2 * k;
-    oy = ch / 2 - (y0 + y1) / 2 * k;
-    requestDraw();
-  }
-  function requestDraw() {
-    if (!disposed && !pending) pending = requestAnimationFrame(frame);
-  }
-  const BUCKETS = 6, bucket = Array.from({ length: BUCKETS }, () => new Float32Array(N * 3)), counts = new Int32Array(BUCKETS);
-  function frame() {
-    pending = 0;
-    ct = Math.cos(view.tilt); st = Math.sin(view.tilt);
-    cr = Math.cos(view.turn); sr = Math.sin(view.turn);
-    ctx.clearRect(0, 0, cw, ch);
-    counts.fill(0);
-    const radius = Math.max(.85 * dpr, 1.5 * k * view.zoom);
-    for (let i = 0; i < N; i++) {
-      const fade = .22 + .78 * gsap.utils.clamp(0, 1, (view.reveal - PD[i]) / 140);
-      const [x, y, f] = project(PX[i], PY[i], 0);
-      const alpha = (.34 + .16 * gsap.utils.clamp(0, 1, (f - .8) / .5)) * fade;
-      const b = Math.min(BUCKETS - 1, Math.floor(alpha / .55 * BUCKETS)), o = counts[b]++ * 3;
-      bucket[b][o] = x; bucket[b][o + 1] = y; bucket[b][o + 2] = radius * f;
-    }
-    for (let b = 0; b < BUCKETS; b++) {
-      if (!counts[b]) continue;
-      ctx.fillStyle = `rgba(${IVORY},${(b + .5) / BUCKETS * .55})`;
-      ctx.beginPath();
-      for (let c = 0; c < counts[b]; c++) {
-        const o = c * 3, x = bucket[b][o], y = bucket[b][o + 1], r = bucket[b][o + 2];
-        ctx.moveTo(x + r, y); ctx.arc(x, y, r, 0, Math.PI * 2);
-      }
-      ctx.fill();
-    }
-    ctx.lineCap = 'round'; ctx.lineJoin = 'round';
-    journeys.forEach((j, i) => {
-      const [bx, by] = project(j.X, j.Y, 0);
-      j.base[0] = bx; j.base[1] = by;
-      const focus = active >= 0 ? active : storyActive;
-      const on = i === focus, draw = i === active ? 1 : j.draw, pillar = i === active ? 1 : j.pillar;
-      if (draw <= 0) return;
-      for (let s = 0; s < 49; s++) {
-        const [x, y] = project(...j.samples[s]); j.screen[s * 2] = x; j.screen[s * 2 + 1] = y;
-      }
-      const end = draw * 48;
-      ctx.beginPath(); ctx.moveTo(j.screen[0], j.screen[1]);
-      for (let s = 1; s <= Math.floor(end); s++) ctx.lineTo(j.screen[s * 2], j.screen[s * 2 + 1]);
-      if (end % 1) {
-        const s = Math.floor(end), f = end - s;
-        ctx.lineTo(j.screen[s * 2] + (j.screen[s * 2 + 2] - j.screen[s * 2]) * f, j.screen[s * 2 + 1] + (j.screen[s * 2 + 3] - j.screen[s * 2 + 1]) * f);
-      }
-      ctx.strokeStyle = `rgba(${GOLD},${on ? .95 : active >= 0 ? .18 : .42})`;
-      ctx.lineWidth = (on ? 1.65 : .85) * dpr; ctx.stroke();
-      if (draw < 1) {
-        const sample = Math.min(48, Math.floor(end));
-        dot(j.screen[sample * 2], j.screen[sample * 2 + 1], 1.5 * dpr, `rgba(${IVORY},.85)`);
-      }
-      if (pillar <= 0) return;
-      const [tx, ty] = project(j.X, j.Y, 30 * pillar);
-      j.top[0] = tx; j.top[1] = ty;
-      const g = ctx.createLinearGradient(bx, by, tx, ty);
-      g.addColorStop(0, `rgba(${GOLD},${.75 * pillar})`); g.addColorStop(1, `rgba(${GOLD},0)`);
-      ctx.strokeStyle = g; ctx.lineWidth = dpr; ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(tx, ty); ctx.stroke();
-      glowAt(bx, by, on ? 15 : 8, (on ? .4 : .2) * pillar);
-      dot(bx, by, (on ? 3 : 2.3) * dpr, `rgba(${GOLD},${pillar})`);
-    });
-    const show = .3 + .7 * Math.min(1, view.reveal / 300);
-    const [bx, by] = project(OX, OY, 0), [tx, ty] = project(OX, OY, 72);
-    ctx.strokeStyle = `rgba(${GOLD},${show * .6})`; ctx.lineWidth = dpr;
-    ctx.beginPath(); ctx.moveTo(bx, by); ctx.lineTo(tx, ty); ctx.stroke();
-    glowAt(bx, by, 17, .45 * show);
-    dot(bx, by, 3.2 * dpr, `rgba(${GOLD},${show})`);
-    labels.length = 0;
-    const focus = active >= 0 ? active : storyActive;
-    if (focus >= 0 && journeys[focus].pillar > .5) label(journeys[focus].name.toUpperCase(), ...journeys[focus].top, `rgb(${GOLD})`, focus);
-    label('PASCHIM VIHAR', tx, ty, `rgba(${IVORY},${show})`, -1);
-    // Every destination gets a chance at a label; the selector also reaches
-    // crowded northern cities whose labels cannot fit beside one another.
-    [...journeys.keys()].reverse().forEach(i => {
-      const j = journeys[i];
-      if (i !== focus && j.pillar > .5) label(j.name.toUpperCase(), ...j.top, `rgba(${IVORY},${(active >= 0 ? .3 : .7) * (j.pillar - .5) * 2})`, i);
-    });
-    placeCard();
-  }
-  function glowAt(x, y, radius, alpha) {
-    const r = radius * dpr, g = ctx.createRadialGradient(x, y, 0, x, y, r);
-    g.addColorStop(0, `rgba(${GOLD},${alpha})`); g.addColorStop(1, `rgba(${GOLD},0)`);
-    ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2);
-  }
-  function dot(x, y, r, color) { ctx.fillStyle = color; ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill(); }
-  function label(text, x, y, color, index) {
-    const size = (small ? 8.5 : 10.5) * dpr, gap = 9 * dpr;
-    ctx.font = `600 ${size}px Manrope, system-ui, sans-serif`;
-    if ('letterSpacing' in ctx) ctx.letterSpacing = `${(small ? .8 : 1.4) * dpr}px`;
-    const width = ctx.measureText(text).width;
-    const tries = x > cw * .6 ? [x - gap - width, x + gap] : [x + gap, x - gap - width];
-    for (const tx of tries) {
-      const box = [tx - 3 * dpr, y - size, tx + width + 3 * dpr, y + size];
-      if (box[0] < 4 * dpr || box[2] > cw - 4 * dpr || labels.some(({ box: o }) => box[0] < o[2] && box[2] > o[0] && box[1] < o[3] && box[3] > o[1])) continue;
-      labels.push({ index, box });
-      ctx.fillStyle = color; ctx.textBaseline = 'middle'; ctx.fillText(text, tx, y); break;
-    }
-    if ('letterSpacing' in ctx) ctx.letterSpacing = '0px';
-  }
+  // ------------------------------------------------------- the stand-in map
+  // The same map as an SVG, drawn at once: the dots, the coast, the routes
+  // as flat arcs and the points. It gives way to the atlas when that is
+  // ready, and stays where WebGL is unavailable.
+  const [vw, vh] = viewBox.slice(2);
+  const home = project(ORIGIN.at);
+  const flatRoute = j => { const [x, y] = project(j.at), mx = (home[0] + x) / 2, my = (home[1] + y) / 2 - Math.hypot(x - home[0], y - home[1]) * .22; return `M${home[0].toFixed(1)} ${home[1].toFixed(1)}Q${mx.toFixed(1)} ${my.toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)}`; };
+  $('[data-india-fallback]').innerHTML = `<svg viewBox="0 0 ${vw} ${vh}" preserveAspectRatio="xMidYMid meet">
+      <path class="india-svg-dots" d="${dots}"/><path class="india-svg-coast" d="${outline}"/>
+      ${journeys.map((j, i) => `<path class="india-svg-route" data-route="${i}" d="${flatRoute(j)}"/>`).join('')}
+      ${journeys.map((j, i) => { const [x, y] = project(j.at); return `<circle class="india-svg-point" data-point="${i}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5"/>`; }).join('')}
+      <circle class="india-svg-home" cx="${home[0].toFixed(1)}" cy="${home[1].toFixed(1)}" r="7"/>
+    </svg>`;
+  const svgRoutes = [...section.querySelectorAll('[data-route]')], svgPoints = [...section.querySelectorAll('[data-point]')];
 
-  function hit(event) {
-    const r = canvas.getBoundingClientRect(), x = (event.clientX - r.left) * dpr, y = (event.clientY - r.top) * dpr;
-    let best = -1, nearest = (event.pointerType === 'touch' ? 26 : 19) * dpr;
-    journeys.forEach((j, i) => {
-      const distance = Math.hypot(j.base[0] - x, j.base[1] - y);
-      if (j.pillar > .5 && distance < nearest) { best = i; nearest = distance; }
-    });
-    if (best >= 0) return best;
-    return labels.find(({ index, box: b }) => index >= 0 && x >= b[0] && x <= b[2] && y >= b[1] && y <= b[3])?.index ?? -1;
+  // --------------------------------------------------------------- the pins
+  // Names on the atlas, in the page's own type: crisp at any density, and
+  // each one a way in. Where names would collide (the cities crowd round
+  // Delhi), the chosen one and the farther ones win; the index lists them all.
+  pinLayer.innerHTML = `<span class="india-pin india-pin--home"><b>Paschim Vihar</b></span>`
+    + journeys.map((j, i) => `<button type="button" class="india-pin" data-pin="${i}" tabindex="-1">${escapeHTML(j.name)}</button>`).join('');
+  const homePin = pinLayer.querySelector('.india-pin--home'), pins = [...pinLayer.querySelectorAll('[data-pin]')];
+  // Sizes are read here, on resize and once the type has loaded, never while
+  // drawing: a read after the frame's writes would force a layout each frame.
+  let widths = [], homeWidth = 0, stageSize = { w: 1, h: 1 };
+  const measurePins = () => {
+    widths = pins.map(pin => pin.offsetWidth); homeWidth = homePin.offsetWidth;
+    stageSize = { w: stage.clientWidth, h: stage.clientHeight };
+    placed = '';
+  };
+
+  // --------------------------------------------------------------- choosing
+  let atlas = null, hovered = -1, selected = -1, focus = -1, placed = '';
+  function setFocus() {
+    const next = hovered >= 0 ? hovered : selected;
+    if (next === focus) return;
+    focus = next;
+    items.forEach((item, i) => { item.classList.toggle('is-active', i === focus); item.setAttribute('aria-pressed', String(i === selected)); });
+    pins.forEach((pin, i) => pin.classList.toggle('is-active', i === focus));
+    section.classList.toggle('has-focus', focus >= 0);
+    svgRoutes.forEach((route, i) => route.classList.toggle('is-on', i === focus));
+    svgPoints.forEach((point, i) => point.classList.toggle('is-on', i === focus));
+    strip?.querySelectorAll('[data-journey]').forEach(card => card.classList.toggle('is-on', focus >= 0 && Number(card.dataset.journey) === focus));
+    // overwrite 'auto': only an earlier focus tween gives way, never the
+    // intro's, which tweens the same routes' other values.
+    atlas?.routes.forEach((route, i) => gsap.to(route, { focus: i === focus ? 1 : 0, duration: reduced ? 0 : .6, ease: 'expo.out', overwrite: 'auto', onUpdate: atlas.request }));
+    showPanel(focus);
+    placePins();
   }
-  const onMove = event => {
-    if (event.pointerType === 'touch') return;
-    const i = hit(event);
-    canvas.style.cursor = i >= 0 ? 'pointer' : '';
-    if (i >= 0) showCard(i);
-    else scheduleClose();
-  };
-  const scheduleClose = () => {
-    clearTimeout(closeTimer);
-    closeTimer = setTimeout(() => { if (!card.matches(':hover') && !card.contains(document.activeElement)) showCard(selected); }, 180);
-  };
-  const choose = i => {
-    selected = i; select.value = i < 0 ? '' : String(i); showCard(i);
-    status.textContent = i < 0 ? 'Destination details closed.' : `${journeys[i].name}. ${cardMeta.textContent}. ${cardKicker.textContent}. ${cardCaption.textContent}`;
-  };
-  const onTap = event => { const i = hit(event); choose(i === selected ? -1 : i); };
-  const onSelect = () => choose(select.value === '' ? -1 : Number(select.value));
-  const dismiss = () => { if (card.contains(document.activeElement)) select.focus({ preventScroll: true }); choose(-1); };
-  const onKey = event => { if (event.key === 'Escape' && active >= 0 && !document.querySelector('.pswp--open')) { event.preventDefault(); dismiss(); } };
-  const holdCard = () => clearTimeout(closeTimer);
-  const onPhotoError = () => card.classList.remove('has-photo');
-  canvas.addEventListener('pointermove', onMove);
-  canvas.addEventListener('pointerleave', scheduleClose);
-  canvas.addEventListener('click', onTap);
-  card.addEventListener('pointerenter', holdCard);
-  card.addEventListener('pointerleave', scheduleClose);
-  card.addEventListener('focusout', scheduleClose);
-  close.addEventListener('click', dismiss);
-  select.addEventListener('change', onSelect);
+  const hover = i => { hovered = i; setFocus(); };
+  const choose = i => { selected = i === selected ? -1 : i; hovered = -1; setFocus(); };
+  list.addEventListener('click', event => { const item = event.target.closest('[data-place]'); if (item) choose(Number(item.dataset.place)); });
+  list.addEventListener('pointerover', event => { const item = event.target.closest('[data-place]'); if (item && event.pointerType !== 'touch') hover(Number(item.dataset.place)); });
+  list.addEventListener('pointerleave', () => hover(-1));
+  list.addEventListener('focusin', event => { const item = event.target.closest('[data-place]'); if (item) hover(Number(item.dataset.place)); });
+  list.addEventListener('focusout', event => { if (!list.contains(event.relatedTarget)) hover(-1); });
+  pinLayer.addEventListener('click', event => { const pin = event.target.closest('[data-pin]'); if (pin) { event.stopPropagation(); choose(Number(pin.dataset.pin)); } });
+  const onKey = event => { if (event.key === 'Escape' && selected >= 0 && !document.querySelector('.pswp--open')) { selected = -1; setFocus(); } };
   document.addEventListener('keydown', onKey);
-  cardPhoto.addEventListener('error', onPhotoError);
 
-  let story, intro;
-  const desktop = matchMedia('(min-width: 1001px) and (min-height: 800px)');
-  const copy = section.querySelectorAll('.india-copy > :not(.sr-only)');
-  function updateStory() {
-    if (manualPhoto !== null && Math.abs(view.progress - manualAt) > .04) manualPhoto = null;
-    if (active >= 0 && selected < 0 && Math.abs(view.progress - activeAt) > .03) showCard(-1);
-    if (!reduced && photographs.length) narrativePhoto = Math.min(photographs.length - 1, Math.floor(gsap.utils.clamp(0, .99999, (view.progress - .32) / .64) * photographs.length));
-    storyActive = journeyForPhoto(manualPhoto ?? narrativePhoto);
-    if (active < 0) gallery.show(manualPhoto ?? narrativePhoto);
-    phase.textContent = reduced ? 'Pan-India delivery' : view.progress < .3 ? 'Scroll to explore' : view.progress < .72 ? 'The journeys unfold' : 'Explore the destinations';
-    section.style.setProperty('--journey-progress', `${view.progress * 100}%`);
-    requestDraw();
-  }
-  function motion() {
-    story?.scrollTrigger?.kill(); story?.kill();
-    intro?.scrollTrigger?.kill(); intro?.kill();
-    story = intro = null;
-    if (reduced) {
-      Object.assign(view, { reveal: revealEnd, tilt: TILT, zoom: EXPANDED, turn: 0, progress: 1 });
-      journeys.forEach(j => Object.assign(j, { draw: 1, pillar: 1 }));
-      gsap.set(copy, { clearProps: 'opacity,visibility,transform' });
-      section.querySelectorAll('[data-count]').forEach(count => { count.textContent = grouping.format(Number(count.dataset.count)); });
-    } else {
-      // Desktop holds the complete composition while the story unfolds.
-      // Smaller screens retain native scrolling and an accessible gallery.
-      story = gsap.timeline({ onUpdate: updateStory, scrollTrigger: {
-        trigger: section, start: desktop.matches ? 'top top' : 'top 70%',
-        end: desktop.matches ? () => `+=${innerHeight * Math.max(2.1, Math.min(3.5, photographs.length * .7))}` : 'clamp(bottom 85%)',
-        pin: desktop.matches ? storyElement : false, anticipatePin: 1,
-        scrub: .85, invalidateOnRefresh: true,
-      } })
-        .fromTo(view, { progress: 0 }, { progress: 1, duration: 1, ease: 'none' }, 0)
-        .fromTo(view, { reveal: 0 }, { reveal: revealEnd, duration: .4, ease: 'power1.out' }, 0)
-        .fromTo(view, { zoom: .64 }, { zoom: EXPANDED, duration: .7, ease: 'sine.inOut' }, .02)
-        .fromTo(view, { turn: -.1 }, { turn: 0, duration: .65, ease: 'sine.inOut' }, .04)
-        .fromTo(view, { tilt: .02 }, { tilt: TILT, duration: .65, ease: 'sine.inOut' }, .04);
-      journeys.forEach((j, i) => {
-        const offset = journeys.length > 1 ? i / (journeys.length - 1) * .18 : 0;
-        story.fromTo(j, { draw: 0 }, { draw: 1, duration: .35, ease: 'sine.inOut' }, .2 + offset)
-          .fromTo(j, { pillar: 0 }, { pillar: 1, duration: .18, ease: 'sine.out' }, .43 + offset);
-      });
-      intro = gsap.timeline({ scrollTrigger: { trigger: section, start: 'top 78%', once: true } })
-        .fromTo(copy, { autoAlpha: 0, y: 16 }, { autoAlpha: 1, y: 0, duration: .9, stagger: .07, ease: 'power2.out' });
-      section.querySelectorAll('[data-count]').forEach(count => intro.to({ v: 0 }, { v: Number(count.dataset.count), duration: 1.6, ease: 'power2.out', onUpdate() { count.textContent = grouping.format(Math.round(this.targets()[0].v)); } }, .2));
+  // On the atlas itself: the nearest point within reach of the pointer.
+  const nearest = (event, reach) => {
+    if (!atlas) return -1;
+    const rect = canvas.getBoundingClientRect(), x = event.clientX - rect.left, y = event.clientY - rect.top;
+    let best = -1, closest = reach;
+    journeys.forEach((j, i) => { const p = atlas.screen(i), d = Math.hypot(p.x - x, p.y - y); if (d < closest) { closest = d; best = i; } });
+    return best;
+  };
+  stage.addEventListener('pointermove', event => {
+    if (event.pointerType === 'touch' || event.target.closest('.india-panel')) return;
+    const i = event.target.closest('[data-pin]') ? Number(event.target.closest('[data-pin]').dataset.pin) : nearest(event, 26);
+    stage.classList.toggle('is-pointing', i >= 0);
+    if (i !== hovered) hover(i);
+  });
+  stage.addEventListener('pointerleave', () => { stage.classList.remove('is-pointing'); hover(-1); });
+  stage.addEventListener('click', event => {
+    if (event.target.closest('.india-panel, [data-pin]')) return;
+    const i = nearest(event, event.pointerType === 'touch' ? 34 : 26);
+    if (i >= 0) choose(i); else if (selected >= 0) choose(selected);
+  });
+
+  // When the atlas has moved (or a route has landed, or the focus changed),
+  // the names follow their points. Unchanged frames, the routes' lights
+  // running, touch nothing.
+  const boxes = [], last = new Map();
+  const set = (element, transform, hidden) => {
+    const before = last.get(element);
+    if (before?.transform !== transform) element.style.transform = transform;
+    if (before?.hidden !== hidden) element.classList.toggle('is-hidden', hidden);
+    last.set(element, { transform, hidden });
+  };
+  function placePins() {
+    if (!atlas) return;
+    const { view, routes } = atlas;
+    const key = `${view.elevation.toFixed(4)}|${view.lean.toFixed(4)}|${view.intro > .5}|${focus}|${routes.filter(route => route.shown > .6).length}|${stageSize.w}x${stageSize.h}`;
+    if (key === placed) return;
+    placed = key;
+    const { w: width, h: height } = stageSize;
+    boxes.length = 0;
+    const place = (x, y, w, priority) => {
+      // Right of the point, or left of it near the right edge.
+      const left = x + 12 + w > width - 8 ? x - 12 - w : x + 12;
+      const box = [left - 4, y - 11, left + w + 4, y + 11];
+      const clear = box[0] > 4 && box[2] < width - 4 && box[1] > 4 && box[3] < height - 4 && !boxes.some(o => box[0] < o[2] && box[2] > o[0] && box[1] < o[3] && box[3] > o[1]);
+      if (clear || priority) boxes.push(box);
+      return { transform: `translate3d(${left.toFixed(1)}px,${(y - 11).toFixed(1)}px,0)`, shown: clear || priority };
+    };
+    const origin = atlas.screen(-1), home = place(origin.x, origin.y, homeWidth, true);
+    set(homePin, home.transform, view.intro < .5);
+    const order = journeys.map((_, i) => i).sort((a, b) => (b === focus) - (a === focus) || journeys[b].km - journeys[a].km);
+    for (const i of order) {
+      const p = atlas.screen(i), landed = routes[i].shown > .6;
+      const spot = landed ? place(p.x, p.y, widths[i], i === focus) : { transform: last.get(pins[i])?.transform ?? '', shown: false };
+      set(pins[i], spot.transform, !spot.shown);
     }
-    updateStory();
   }
-  const resizer = new ResizeObserver(resize), cardResizer = new ResizeObserver(placeCard);
-  resizer.observe(canvas); cardResizer.observe(card);
-  const motionQuery = matchMedia('(prefers-reduced-motion: reduce)');
-  const onMotion = () => { reduced = motionQuery.matches; gallery.setReduced?.(reduced); motion(); ScrollTrigger.refresh(); };
-  motionQuery.addEventListener('change', onMotion);
-  desktop.addEventListener('change', onMotion);
-  document.fonts.ready.then(() => requestDraw());
-  resize(); motion();
+
+  // -------------------------------------------------------- the photographs
+  const moments = $('[data-india-moments]'), strip = $('[data-india-strip]');
+  const cleanups = [];
+  let lightbox = null;
+  if (photographs.length) {
+    moments.hidden = false;
+    $('[data-moments-count]').textContent = `${two(photographs.length)} ${photographs.length === 1 ? 'handover' : 'handovers'}`;
+    strip.innerHTML = handovers.map(delivery => `<li><a class="india-moment" href="${escapeHTML(safeImage(delivery.photo))}" data-photo="${delivery.index}" data-journey="${delivery.journey}" target="_blank" rel="noopener">
+        <img src="${escapeHTML(thumbImage(delivery.photo))}" alt="${escapeHTML(delivery.caption || `A Baba Luxury Cars handover${delivery.city ? ` in ${delivery.city}` : ''}`)}" loading="lazy" decoding="async" draggable="false" />
+        <span class="india-moment-copy"><b>${escapeHTML(delivery.city || 'A new owner')}</b>${delivery.caption ? `<small>${escapeHTML(delivery.caption)}</small>` : ''}</span>
+      </a></li>`).join('');
+    strip.querySelectorAll('img').forEach(image => image.addEventListener('error', () => { const full = safeImage(photographs[Number(image.closest('[data-photo]').dataset.photo)].photo); if (image.src !== full) image.src = full; }, { once: true }));
+    lightbox = new PhotoSwipeLightbox({
+      pswpModule: () => import('photoswipe'),
+      bgOpacity: .97, showHideAnimationType: 'fade', showAnimationDuration: reduced ? 0 : 350, hideAnimationDuration: reduced ? 0 : 300,
+      wheelToZoom: true, loop: false,
+      paddingFn: viewport => ({ top: 70, bottom: 64, left: viewport.x < 760 ? 16 : 64, right: viewport.x < 760 ? 16 : 64 }),
+    });
+    lightbox.on('uiRegister', () => lightbox.pswp.ui.registerElement({
+      name: 'journey-caption', order: 9, isButton: false, appendTo: 'root',
+      onInit(element, pswp) {
+        element.classList.add('journey-lightbox-caption');
+        const update = () => { element.textContent = pswp.currSlide?.data.caption ?? ''; };
+        pswp.on('change', update); update();
+      },
+    }));
+    lightbox.init();
+    // PhotoSwipe fits and zooms by the real dimensions; read them on opening.
+    const sizes = new Map();
+    const dimensions = i => {
+      if (!sizes.has(i)) sizes.set(i, new Promise(resolve => {
+        const image = new Image();
+        image.onload = () => resolve({ src: image.src, width: image.naturalWidth, height: image.naturalHeight, alt: handovers[i].caption || '', caption: [handovers[i].city, handovers[i].caption].filter(Boolean).join(' · ') });
+        image.onerror = () => { sizes.delete(i); resolve(null); };
+        image.src = safeImage(photographs[i].photo);
+      }));
+      return sizes.get(i);
+    };
+    // A drag scrolls the strip with a fine pointer; a click opens the photograph.
+    let drag = null, dragged = false;
+    strip.addEventListener('pointerdown', event => {
+      if (event.pointerType !== 'mouse' || event.button !== 0) return;
+      drag = { x: event.clientX, left: strip.scrollLeft }; dragged = false;
+    });
+    const onDrag = event => {
+      if (!drag) return;
+      const dx = event.clientX - drag.x;
+      if (!dragged && Math.abs(dx) > 6) { dragged = true; strip.classList.add('is-dragging'); }
+      if (dragged) strip.scrollLeft = drag.left - dx;
+    };
+    const onDrop = () => { if (!drag) return; drag = null; strip.classList.remove('is-dragging'); };
+    addEventListener('pointermove', onDrag); addEventListener('pointerup', onDrop);
+    cleanups.push(() => { removeEventListener('pointermove', onDrag); removeEventListener('pointerup', onDrop); });
+    strip.addEventListener('click', async event => {
+      const card = event.target.closest('[data-photo]');
+      if (!card) return;
+      if (dragged) { event.preventDefault(); dragged = false; return; }
+      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      event.preventDefault();
+      const index = Number(card.dataset.photo);
+      const data = await Promise.all(photographs.map((_, i) => dimensions(i)));
+      if (!data[index]) { window.open(card.href, '_blank', 'noopener'); return; }
+      lightbox.loadAndOpen(data.slice(0, index).filter(Boolean).length, data.filter(Boolean));
+    });
+    strip.addEventListener('pointerover', event => { const card = event.target.closest('[data-journey]'); if (card && event.pointerType !== 'touch') hover(Number(card.dataset.journey)); });
+    strip.addEventListener('pointerleave', () => hover(-1));
+    const step = direction => { const card = strip.querySelector('li'); strip.scrollBy({ left: direction * (card ? card.offsetWidth + 16 : 300) * Math.max(1, Math.floor(strip.clientWidth / ((card?.offsetWidth || 300) + 16))), behavior: reduced ? 'instant' : 'smooth' }); };
+    $('[data-moments-prev]').addEventListener('click', () => step(-1));
+    $('[data-moments-next]').addEventListener('click', () => step(1));
+    const track = moments.querySelector('.india-strip-track');
+    const onStrip = () => {
+      const room = strip.scrollWidth - strip.clientWidth;
+      track.style.setProperty('--strip', room > 0 ? (strip.scrollLeft / room).toFixed(3) : '1');
+      track.style.setProperty('--strip-size', room > 0 ? (strip.clientWidth / strip.scrollWidth).toFixed(3) : '1');
+      moments.classList.toggle('is-scrollable', room > 1);
+    };
+    strip.addEventListener('scroll', onStrip, { passive: true });
+    new ResizeObserver(onStrip).observe(strip);
+    onStrip();
+  }
+
+  // ----------------------------------------------------------------- motion
+  const lines = section.querySelectorAll('.india-line > span');
+  const reveal = section.querySelectorAll('[data-india-reveal], .india-stats > div, .india-moments');
+  let entered = reduced, atlasIntro = null, lean = null;
+  if (!reduced) {
+    gsap.set(lines, { yPercent: 108 });
+    gsap.set([...reveal, ...items], { autoAlpha: 0, y: 16 });
+    counters.forEach(counter => { counter.textContent = '0'; });
+    ScrollTrigger.create({
+      trigger: section, start: 'top 72%', once: true,
+      onEnter: () => {
+        entered = true;
+        gsap.timeline({ defaults: { ease: 'expo.out' } })
+          .to(lines, { yPercent: 0, duration: 1.5, stagger: .1 }, 0)
+          .to(reveal, { autoAlpha: 1, y: 0, duration: 1.2, stagger: .07, clearProps: 'transform' }, .2)
+          .to(items, { autoAlpha: 1, y: 0, duration: 1, stagger: .035, clearProps: 'transform' }, .55);
+        counters.forEach((counter, i) => gsap.to({ v: 0 }, { v: Number(counter.dataset.count), duration: 2.2, delay: .6 + i * .12, ease: 'power3.out', onUpdate() { counter.textContent = grouping.format(Math.round(this.targets()[0].v)); } }));
+        playAtlas();
+      },
+    });
+  }
+  // The atlas assembles once, when the section is first in view (or at once,
+  // if it arrives after that); each name appears as its route lands.
+  function playAtlas() {
+    if (!atlas || atlasIntro) return;
+    atlasIntro = atlas.intro();
+  }
+
+  // ------------------------------------------------------------- the atlas
+  let disposeAtlas = () => {}, visible = false, disposed = false;
+  const watcher = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; atlas?.loop(visible); });
+  watcher.observe(stage);
+  const onVisibility = () => atlas?.loop(visible && !document.hidden);
+  document.addEventListener('visibilitychange', onVisibility);
+  if ('WebGL2RenderingContext' in window) {
+    import('./india-atlas.js').then(({ createAtlas }) => {
+      if (disposed) return;
+      atlas = createAtlas(canvas, { origin: ORIGIN.at, destinations: journeys, reduced });
+      const off = atlas.onRender(placePins);
+      document.fonts.ready.then(() => { measurePins(); atlas?.request(); });
+      measurePins();
+      section.classList.add('has-atlas');
+      if (entered) playAtlas();
+      // The atlas leans a few degrees as the page scrolls past it.
+      if (!reduced) lean = gsap.fromTo(atlas.view, { lean: -.075 }, { lean: .075, ease: 'none', onUpdate: atlas.request, scrollTrigger: { trigger: section, start: 'top bottom', end: 'bottom top', scrub: .9 } });
+      atlas.loop(visible);
+      focus = -2; setFocus();
+      disposeAtlas = () => { off(); lean?.scrollTrigger?.kill(); lean?.kill(); atlasIntro?.kill(); atlas.dispose(); atlas = null; };
+    }).catch(error => { atlas = null; section.classList.remove('has-atlas'); console.error('The atlas is unavailable; keeping the map.', error); });
+  }
+  const resizer = new ResizeObserver(() => { measurePins(); atlas?.request(); });
+  resizer.observe(stage);
+
   if (import.meta.env.DEV) window.__india = {
-    journeys: () => journeys.map(j => ({ name: j.name, base: j.base.map(v => v / dpr), local: j.local.length, photo: Boolean(j.photo) })),
-    state: () => ({ tilt: view.tilt, zoom: view.zoom, turn: view.turn, reveal: view.reveal, active, selected, storyActive, photo: gallery.index, photos: gallery.count, reduced, pinned: Boolean(story?.scrollTrigger?.isActive && desktop.matches), settled: journeys.every(j => j.draw === 1 && j.pillar === 1), progress: story?.progress() ?? 1, start: story?.scrollTrigger?.start, end: story?.scrollTrigger?.end }),
+    journeys: () => journeys.map(j => ({ name: j.name, km: Math.round(j.km), photo: Boolean(j.photo), local: j.local.length })),
+    state: () => ({ atlas: Boolean(atlas), entered, focus, selected, hovered, view: atlas ? { elevation: atlas.view.elevation, lean: atlas.view.lean, reveal: atlas.view.reveal, intro: atlas.view.intro } : null, pins: pins.filter(pin => !pin.classList.contains('is-hidden')).length, shown: atlas?.routes.map(route => +route.shown.toFixed(2)) }),
+    choose,
   };
   return {
-    refresh: resize,
+    refresh: () => atlas?.request(),
     dispose() {
-      disposed = true; cancelAnimationFrame(pending); clearTimeout(closeTimer);
-      resizer.disconnect(); cardResizer.disconnect();
-      story?.scrollTrigger?.kill(); story?.kill(); intro?.scrollTrigger?.kill(); intro?.kill();
-      motionQuery.removeEventListener('change', onMotion);
-      desktop.removeEventListener('change', onMotion); gallery.dispose();
-      canvas.removeEventListener('pointermove', onMove); canvas.removeEventListener('pointerleave', scheduleClose); canvas.removeEventListener('click', onTap);
-      card.removeEventListener('pointerenter', holdCard); card.removeEventListener('pointerleave', scheduleClose); card.removeEventListener('focusout', scheduleClose);
-      close.removeEventListener('click', dismiss); select.removeEventListener('change', onSelect); document.removeEventListener('keydown', onKey); cardPhoto.removeEventListener('error', onPhotoError);
+      disposed = true; disposeAtlas(); watcher.disconnect(); resizer.disconnect(); lightbox?.destroy(); cleanups.forEach(cleanup => cleanup());
+      document.removeEventListener('keydown', onKey); document.removeEventListener('visibilitychange', onVisibility);
     },
   };
 }

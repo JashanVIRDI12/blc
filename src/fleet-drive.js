@@ -20,7 +20,10 @@ gsap.registerPlugin(ScrollTrigger);
 // The studio, tuned on the five cars together.
 const LIGHT = { exposure: 1.03, room: .55, environment: .95, rotation: Math.PI * 1.5, hemisphere: .35, key: .9, softboxes: 1, shadow: .58 };
 const STACKED = matchMedia('(max-width: 760px), (max-aspect-ratio: 4/5)');
-const ARRIVAL = 4.6; // seconds the stage's arrival takes
+// Seconds the whole arrival would take from the playhead's start; the clock
+// starts where the cars emerge from the white (fleet-storyboard.js), so the
+// visitor watches about three seconds of it, every one with cars in view.
+const ARRIVAL = 4.2;
 
 // The collection drive: on a white stage, five cars drive out of the white
 // towards the visitor and settle into formation, as large as the stage
@@ -123,8 +126,8 @@ export function createFleetDrive(section, { reduced = false, onProgress } = {}) 
     // the cars and draws them together. A slow device steps its density
     // down only between movements: a resize mid-drive is a visible hitch.
     if (arrival) {
-      const t = Math.min(1, Math.max(0, (now - arrival.start) / (ARRIVAL * 1000)));
-      playhead.progress = fleetAnchor * t;
+      const t = Math.min(1, Math.max(0, (now - arrival.start) / arrival.duration));
+      playhead.progress = arrival.from + (fleetAnchor - arrival.from) * t;
       if (t >= 1) arrival = null;
       render();
     } else if (density.slow(now) && density.step(size.w, size.h)) { ratio = density.ratio(size.w, size.h); applySize(); }
@@ -249,26 +252,42 @@ export function createFleetDrive(section, { reduced = false, onProgress } = {}) 
   function arrive() {
     const inView = section.getBoundingClientRect().bottom > header.offsetHeight && section.getBoundingClientRect().top < innerHeight;
     if (reduced || !inView) { playhead.progress = fleetAnchor; render(); return; }
-    arrival = { start: performance.now() + 60 };
-    invalidate();
+    // From where the first car shows through the white, at the drive's own pace.
+    const from = Math.min(fleetCamera[view].emerge ?? 0, fleetAnchor);
+    arrival = { start: performance.now() + 30, from, duration: ARRIVAL * 1000 * (1 - from / fleetAnchor) };
+    playhead.progress = from; render();
   }
   const nextFrame = () => new Promise(resolve => requestAnimationFrame(() => resolve()));
-  // Everything the first frames need, a little at a time: each car's shaders,
-  // then its textures, a frame apart, so nothing stalls the page in one
-  // block (browsers without parallel shader compiling do it on the main
-  // thread). Then two frames drawn with the cars still out in the white.
+  const texturesOf = root => {
+    const maps = new Set();
+    root.traverse(node => [node.material].flat().forEach(material => material && Object.values(material).forEach(value => { if (value?.isTexture) maps.add(value); })));
+    return maps;
+  };
+  async function upload(maps) {
+    let n = 0;
+    for (const texture of maps) { renderer.initTexture(texture); if (++n % 6 === 0) { await nextFrame(); if (disposed) return; } }
+  }
+  // Everything the first frames need, without stalling the page in one block.
+  // Where the browser compiles shaders in parallel (KHR_parallel_shader_compile)
+  // every car's programs are handed over at once and build while the
+  // textures upload, a few a frame; the cars arrive when the slowest is done,
+  // not after the five in turn. Without it, compiling is main-thread work, so
+  // one car at a time, a frame apart.
   async function warm() {
     FADE.value = 1;
-    for (const { holder } of vehicles.values()) {
-      await renderer.compileAsync(holder, camera, scene);
-      await nextFrame();
-      if (disposed) return;
-      const maps = new Set();
-      holder.traverse(node => [node.material].flat().forEach(material => material && Object.values(material).forEach(value => { if (value?.isTexture) maps.add(value); })));
-      let n = 0;
-      for (const texture of maps) { renderer.initTexture(texture); if (++n % 6 === 0) await nextFrame(); }
-      await nextFrame();
-      if (disposed) return;
+    if (renderer.extensions.has('KHR_parallel_shader_compile')) {
+      const compiled = renderer.compileAsync(scene, camera);
+      await upload(texturesOf(scene));
+      await compiled;
+    } else {
+      for (const { holder } of vehicles.values()) {
+        await renderer.compileAsync(holder, camera, scene);
+        await nextFrame();
+        if (disposed) return;
+        await upload(texturesOf(holder));
+        await nextFrame();
+        if (disposed) return;
+      }
     }
     FADE.value = 0;
   }
@@ -280,8 +299,8 @@ export function createFleetDrive(section, { reduced = false, onProgress } = {}) 
     const progress = (id, share) => { shares.set(id, share); onProgress?.([...shares.values()].reduce((a, b) => a + b, 0) / fleetVehicles.length); };
     await Promise.all(fleetVehicles.map(async ({ id, paint }) => {
       const item = showcase.find(entry => entry.id === id);
-      // No plates here: a dealer plate on some cars and not others reads as a mistake.
-      const spec = { ...models[id], partMap: { ...vehicleParts[id], plates: [] } };
+      // Every car wears Baba's dealer plates, as the film's GLS does.
+      const spec = { ...models[id], partMap: vehicleParts[id] };
       const [car, shadowTexture] = await Promise.all([loadCar(spec, paint ?? item.paint, { invalidate, onProgress: share => progress(id, share) }), loader.loadAsync(spec.shadow)]);
       progress(id, 1);
       textures.push(shadowTexture);
@@ -304,7 +323,7 @@ export function createFleetDrive(section, { reduced = false, onProgress } = {}) 
     await warm();
     if (disposed) return;
     ready = true; travelled.clear(); invalidate();
-    await nextFrame(); await nextFrame(); if (!disposed) arrive();
+    await nextFrame(); if (!disposed) arrive();
   }
   const loaded = load().catch(error => { console.error('Collection drive unavailable; keeping the still.', error); section.classList.add('is-static'); });
 

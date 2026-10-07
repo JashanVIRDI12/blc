@@ -33,8 +33,29 @@ export function createStudioOutput(renderer, { mobile }) {
       gl_FragColor.rgb = studioDither(gl_FragColor.rgb);`)
     .replace(/\n\s*}\s*$/, '\n gl_FragColor.rgb *= coverage;\n }');
 
+  // Programs are keyed on where they draw: one compiled for the canvas
+  // (sRGB, tone mapped) is not the one the HDR target needs (linear, no tone
+  // mapping), and three would build that one synchronously on the first
+  // frame, stalling the page for every car material at once just as the
+  // stage scrolls into view. So compile with the scene's real target bound,
+  // the filter passes with it, in parallel where the browser allows
+  // (KHR_parallel_shader_compile).
+  const passes = smaa ? [smaa._materialEdges, smaa._materialWeights, smaa._materialBlend].filter(Boolean) : [];
+  const flat = new THREE.OrthographicCamera(-1, 1, 1, -1, 0, 1), quad = new THREE.PlaneGeometry(2, 2);
+  function compile(scene, camera, targetScene = scene) {
+    const target = renderer.getRenderTarget();
+    renderer.setRenderTarget(sceneTarget);
+    try {
+      const quads = passes.map(material => new THREE.Mesh(quad, material));
+      return Promise.all([renderer.compileAsync(scene, camera, targetScene), ...quads.map(mesh => renderer.compileAsync(mesh, flat))]);
+    } finally {
+      renderer.setRenderTarget(target);
+    }
+  }
+
   return {
     quality: { hdr: true, smaa: Boolean(smaa), samples },
+    compile,
     setSize(width, height) {
       sceneTarget.setSize(width, height);
       filtered?.setSize(width, height);
@@ -56,7 +77,7 @@ export function createStudioOutput(renderer, { mobile }) {
       }
     },
     dispose() {
-      sceneTarget.dispose(); filtered?.dispose(); smaa?.dispose(); output.dispose();
+      sceneTarget.dispose(); filtered?.dispose(); smaa?.dispose(); output.dispose(); quad.dispose();
     },
   };
 }

@@ -166,6 +166,10 @@ export const loadSite = () => pending ??= fetchSite();
 async function fetchSite() {
   let cars = inventory.map(fromConfig), collections = defaultCollections, saved = {}, source = 'config', deliveries = [];
   if (live) {
+    // The deliveries gallery is optional: the site works without it. Asked
+    // for alongside the stock, not after it, so no card waits a second round
+    // trip.
+    const gallery = rest('deliveries?select=id,photo,caption,city&visible=eq.true&order=sort_order.asc,created_at.desc').catch(() => []);
     try {
       const [rows, groups, settings] = await Promise.all([
         rest('cars?select=*&status=neq.hidden&order=sort_order.asc,created_at.desc'),
@@ -176,8 +180,7 @@ async function fetchSite() {
       collections = groups.map(({ slug, title, subtitle, cover }) => ({ slug, title, subtitle: subtitle || '', cover: cover || '' }));
       saved = Object.fromEntries(settings.map(({ key, value }) => [key, value]));
       source = 'supabase';
-      // The deliveries gallery is optional: the site works without it.
-      deliveries = await rest('deliveries?select=id,photo,caption,city&visible=eq.true&order=sort_order.asc,created_at.desc').catch(() => []);
+      deliveries = await gallery;
     } catch (error) { console.error('Stock unavailable; showing the showcase models.', error); }
   } else if (previewing()) {
     const draft = stored.get('baba:admin-preview', null);

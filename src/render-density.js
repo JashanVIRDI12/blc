@@ -6,9 +6,12 @@
 // - a device that cannot keep up steps down, one way and for good, so the
 //   picture never pumps between sharp and soft. Only sustained slowness
 //   counts: the warm-up frames, while textures upload, are skipped, and the
-//   density never falls below 1.5x (or the screen's own, if lower).
+//   density never falls below 1.5x (or the screen's own, if lower). Windows
+//   are short enough that a device which cannot keep up adapts within a
+//   second or two of scrolling, not after twenty seconds of judder; a fast
+//   one never steps at all.
 const BUDGET = 2880 * 1840;
-const WARM_UP = 90, WINDOW = 120, SLOW_MS = 26, STEP = .25;
+const WARM_UP = 40, WINDOW = 50, SLOW_MS = 26, STEP = .25;
 
 export function createRenderDensity({ mobile }) {
   let stepped = 0, frames = 0, samples = 0, total = 0, last = 0;

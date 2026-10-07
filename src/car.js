@@ -9,6 +9,7 @@ import { mountPlates } from './plates.js';
 import { addStarBadges } from './badges.js';
 import { glassFinish } from './glass.js';
 import { addLampGlow } from './lamp-glow.js';
+import { fetchModel } from './model-cache.js';
 
 const WHEELS = ["Wheel_FL", "Wheel_FR", "Wheel_RL", "Wheel_RR"];
 
@@ -94,9 +95,10 @@ function splitPieces(root, { node: name, box, material: { inherit, ...look } }) 
 // materials and the paint it's for sale in. `invalidate` asks the studio for
 // a redraw.
 export async function loadCar(spec, paintSpec, { invalidate, onProgress }) {
-  const gltf = await new Promise((resolve, reject) =>
-    loader.load(spec.url, resolve, (e) => e.total && onProgress?.(e.loaded / e.total), reject),
-  );
+  // The file is fetched once per page (model-cache.js); each scene parses its
+  // own copy of the car, since each dresses and lights it its own way.
+  const bytes = await fetchModel(spec.url, { onProgress });
+  const gltf = await loader.parseAsync(bytes, spec.url.slice(0, spec.url.lastIndexOf('/') + 1));
   const root = gltf.scene;
   root.updateMatrixWorld(true);
 
