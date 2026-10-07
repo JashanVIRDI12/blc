@@ -12,6 +12,15 @@ export const dealer = {
   enquiryEndpoint: '',
 };
 
+// The dealership's own figures, on the home page's "Across India" section
+// (src/across-india.js). `value` rolls up as the section comes into view;
+// `suffix` follows it.
+export const figures = [
+  { value: 12, suffix: 'k+', label: 'Happy clients' },
+  { value: 98, suffix: '%', label: 'Satisfaction rate' },
+  { value: 18, suffix: '+', label: 'Years of experience' },
+];
+
 // The supplied GLBs are showcase vehicles, not evidence of stock or condition.
 // Stock facts (year, kilometres, owners, registration state, price, photos)
 // stay null until the dealership supplies them for a real car; the page then

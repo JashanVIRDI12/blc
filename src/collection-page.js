@@ -9,6 +9,7 @@ import './fleet.css';
 import './collection.css';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { SplitText } from 'gsap/SplitText';
 import { setupPage } from './chrome.js';
 import { loadSite, FOR_SALE, BODIES, FUELS, PRICE_BANDS, KM_BANDS, STATUS, priceBand, isNew, recommended, plateLabel } from './data.js';
 import { carCard, shortlist } from './cards.js';
@@ -18,7 +19,10 @@ import { fleetVehicles } from './config.js';
 import { models } from './models.js';
 import { prefetchModels } from './model-cache.js';
 
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, SplitText);
+// "Recently delivered" (delivered.js), the ring of cars handed over: set to
+// true to show it again.
+const SHOW_DELIVERED = false;
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 // The drive's five cars start downloading now, while three.js and the drive
 // itself are still on their way, rather than after them (model-cache.js). At
@@ -356,9 +360,11 @@ async function init() {
   apply();
 
   // ----------------------------------------------- recently delivered
-  // The cars handed over, and their handover photographs, on a ring.
+  // The cars handed over, and their handover photographs, on a ring. Off
+  // for now (SHOW_DELIVERED): the section stays hidden until it is turned
+  // back on.
   const shownSold = settings.listing.showSold ? sold : [];
-  if (shownSold.length || deliveries.length) {
+  if (SHOW_DELIVERED && (shownSold.length || deliveries.length)) {
     $('[data-sold]').hidden = false;
     const { createDelivered } = await import('./delivered.js');
     createDelivered($('[data-sold]'), { sold: shownSold.slice(0, 18), deliveries, reduced });
@@ -387,21 +393,46 @@ function rollCounters(root) {
 }
 
 // ----------------------------------------------------------------- motion
-// The title's letters rise out of the floor, from the middle outwards; the
-// words beneath follow. The cars arrive on their own clock (fleet-drive.js).
+// The stage's words arrive on CSS keyframes (fleet.css), off the main thread,
+// so the cars loading beside them can never make them stutter. The later
+// section heads rise as they come into view.
 function introCopy() {
   document.querySelectorAll('[data-magnetic]').forEach(magnetic);
-  const line = document.querySelector('.fleet-word-main');
-  line.replaceChildren(...[...line.textContent].map(letter => Object.assign(document.createElement('span'), { className: 'ch', textContent: letter })));
+  promises();
   if (reduced) return;
-  gsap.timeline({ defaults: { ease: 'expo.out' } })
-    .fromTo('.fleet-word .ch', { yPercent: 62, autoAlpha: 0 }, { yPercent: 0, autoAlpha: 1, duration: 2, stagger: { each: .055, from: 'center' } }, .15)
-    .fromTo('.fleet-word-the', { autoAlpha: 0, y: 10 }, { autoAlpha: 1, y: 0, duration: 1.2 }, .5)
-    .fromTo('.fleet--stage .fleet-copy', { '--rule': 0 }, { '--rule': 1, duration: 1.6, ease: 'expo.inOut' }, .3)
-    .fromTo('.fleet-line, .fleet--stage .fleet-note, .fleet--stage .fleet-actions', { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, duration: 1.1, stagger: .08, clearProps: 'transform' }, .7);
-  // Each later section's head rises as it comes into view.
-  gsap.utils.toArray('.c-promises li, .c-section-head, .c-source > *').forEach((element, i) => {
-    gsap.fromTo(element, { autoAlpha: 0, y: 28 }, { autoAlpha: 1, y: 0, duration: 1.1, ease: 'expo.out', delay: element.matches('.c-promises li') ? (i % 4) * .08 : 0, scrollTrigger: { trigger: element, start: 'top 90%', once: true } });
+  gsap.utils.toArray('.c-section-head, .c-source > *').forEach(element => {
+    gsap.fromTo(element, { autoAlpha: 0, y: 28 }, { autoAlpha: 1, y: 0, duration: 1.1, ease: 'expo.out', scrollTrigger: { trigger: element, start: 'top 90%', once: true } });
+  });
+}
+// The promises, as the band comes into view: its hairline draws across and
+// the dividers down; in each column the index rolls to its number, the
+// promise rises out of its line word by word, and the note follows. Under a
+// fine pointer a soft light follows the pointer within its column.
+function promises() {
+  const band = document.querySelector('.c-promises');
+  if (!band) return;
+  const items = [...band.querySelectorAll('.c-promise')];
+  if (finePointer) items.forEach(item => item.addEventListener('pointermove', event => {
+    const box = item.getBoundingClientRect();
+    item.style.setProperty('--x', `${(event.clientX - box.left).toFixed(0)}px`);
+    item.style.setProperty('--y', `${(event.clientY - box.top).toFixed(0)}px`);
+  }));
+  if (reduced) return;
+  const media = gsap.matchMedia();
+  media.add({ wide: '(min-width: 900px)', narrow: '(max-width: 899px)' }, ({ conditions }) => {
+    const words = items.map(item => SplitText.create(item.querySelector('.c-promise-title'), { type: 'words', mask: 'words' }).words);
+    const timeline = gsap.timeline({ defaults: { ease: 'expo.out' }, scrollTrigger: { trigger: band, start: 'top 86%', once: true } })
+      .fromTo(band, { '--rule': 0 }, { '--rule': 1, duration: 1.6, ease: 'expo.inOut' }, 0);
+    if (conditions.wide) timeline.fromTo(band.querySelectorAll('.c-promise-rule'), { scaleY: 0 }, { scaleY: 1, duration: 1.3, ease: 'expo.inOut', stagger: .1 }, .35);
+    items.forEach((item, i) => {
+      const at = .3 + i * .12, drum = item.querySelector('.c-promise-drum');
+      // From the first row to its number on the second turn of the drum (y
+      // zeroed: GSAP would otherwise read the CSS resting place as a y offset).
+      timeline.fromTo(drum, { y: 0, yPercent: 0 }, { y: 0, yPercent: -5 * parseFloat(drum.style.getPropertyValue('--to')), duration: 1.6, ease: 'expo.inOut' }, at)
+        .fromTo(words[i], { yPercent: 105 }, { yPercent: 0, duration: 1.3, stagger: .045 }, at + .2)
+        .fromTo(item.querySelector('.c-promise-note'), { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 1.1, clearProps: 'transform' }, at + .45);
+    });
+    return () => timeline.scrollTrigger?.kill();
   });
 }
 // The strip drifts slowly, a touch faster while the page is scrolled and the
