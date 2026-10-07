@@ -9,7 +9,7 @@ import { safeImage, thumbImage } from '../util.js';
 const uuid = () => crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 export function renderDeliveries(view, app) {
-  view.innerHTML = `<header class="a-head"><div><h1>Deliveries</h1><p class="a-sub">Handover photos: they appear in the home page’s Across India gallery, captioned with the place each car went to.</p></div><a class="a-button" href="${esc(siteURL(app, '/'))}#india" target="_blank" rel="noopener">View the gallery ${icon.out}</a></header>
+  view.innerHTML = `<header class="a-head"><div><h1>Deliveries</h1><p class="a-sub">Handover photos, captioned with the place each car went to. The home page’s Across India gallery shows Baba’s own set (deliveryPhotos in src/config.js); while that set is empty, it shows these.</p></div><a class="a-button" href="${esc(siteURL(app, '/'))}#india" target="_blank" rel="noopener">View the gallery ${icon.out}</a></header>
     <section class="a-card"><label class="a-drop" data-drop><input type="file" accept="image/*" multiple hidden data-file>${icon.gallery}<span><b>Add delivery photos</b> — drag them here or <u>choose from your device</u></span><small>Portrait photos work best. They show in this order; the newest come first.</small></label>
       <p class="a-hint" data-progress hidden></p>
       <ol class="a-deliveries" data-grid></ol></section>`;

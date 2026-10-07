@@ -2,7 +2,7 @@
    the handover photographs on a drifting arc. Black, ivory type, gold only in
    the details; one column of hairlines, as on the rest of the site. */
 .india{--ink:#efe9de;--muted:#9a9388;--dim:#6f6a62;--gold-line:rgba(213,178,123,.16);--gold-text:#d5b27b;--gold-bright:#f3d49a;
-  --card:clamp(240px,22vw,330px);
+  --card:clamp(280px,27vw,420px);
   position:relative;padding:clamp(104px,12vw,184px) 0 clamp(84px,9vw,140px);color:var(--ink);background:#070708;isolation:isolate;overflow:clip}
 .india:before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;
   background:radial-gradient(55% 45% at 50% 78%,rgba(166,117,51,.12),transparent 72%),radial-gradient(40% 30% at 10% 6%,rgba(239,233,222,.035),transparent 70%)}
@@ -38,13 +38,13 @@
 .india-gallery{position:relative;margin-top:clamp(64px,7vw,112px);
   -webkit-mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent);mask-image:linear-gradient(90deg,transparent,#000 9%,#000 91%,transparent)}
 .india-gallery[hidden]{display:none}
-.india-track{position:relative;height:calc(var(--card) * 1.25 + 190px);column-gap:clamp(18px,2vw,30px);cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none}
+.india-track{position:relative;height:calc(var(--card) * .8 + 190px);column-gap:clamp(18px,2vw,30px);cursor:grab;touch-action:pan-y;user-select:none;-webkit-user-select:none}
 .india-track:active{cursor:grabbing}
 .india-card{position:absolute;left:0;top:0;width:var(--card);margin:0;transform-origin:50% 60%;will-change:transform}
-.india-card-frame{position:relative;display:block;aspect-ratio:4/5;overflow:hidden;background:#121110;outline:1px solid rgba(213,178,123,.12);outline-offset:-1px;transition:outline-color .5s var(--ease)}
+.india-card-frame{position:relative;display:block;aspect-ratio:5/4;overflow:hidden;background:#121110;outline:1px solid rgba(213,178,123,.12);outline-offset:-1px;transition:outline-color .5s var(--ease)}
 .india-card-frame:after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,transparent 60%,rgba(0,0,0,.35));opacity:.8;transition:opacity .6s var(--ease)}
 .india-card-shift{position:absolute;inset:0 -10%;display:block;will-change:transform}
-.india-card-shift img{display:block;width:100%;height:100%;object-fit:cover;transform:scale(1.04);transition:transform 1.4s var(--ease);-webkit-user-drag:none}
+.india-card-shift img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 40%;transform:scale(1.04);transition:transform 1.4s var(--ease);-webkit-user-drag:none}
 .india-card-caption{display:grid;gap:5px;margin:16px 0 0;transition:transform .7s var(--ease)}
 .india-card-caption span{font:600 9.5px/1.4 var(--font-text);letter-spacing:.2em;text-transform:uppercase;color:var(--gold-text)}
 .india-card-caption b{position:relative;justify-self:start;font:400 clamp(20px,1.6vw,25px)/1.15 var(--font-display);letter-spacing:-.01em;color:#f2ede4}
@@ -75,7 +75,7 @@
 .india :focus-visible{outline:2px solid var(--gold-text);outline-offset:3px}
 
 @media(max-width:900px){
-  .india{--card:min(64vw,300px)}
+  .india{--card:min(80vw,360px)}
   .india-head{grid-template-columns:1fr;gap:22px}
   .india h2{font-size:clamp(58px,15vw,104px)}
   .india-statement{font-size:clamp(24px,6.4vw,32px)}
@@ -83,7 +83,7 @@
   .india-figure,.india-figure+.india-figure{flex-direction:row-reverse;justify-content:space-between;align-items:baseline;padding:22px 0;border-left:0;border-bottom:1px solid var(--gold-line)}
   .india-figure dd{font-size:clamp(52px,15vw,76px)}
   .india-figure dt{max-width:14ch;text-align:right}
-  .india-track{height:calc(var(--card) * 1.25 + 150px)}
+  .india-track{height:calc(var(--card) * .8 + 112px)}
   .journey-lightbox-caption{left:20px;right:20px;font-size:12px}
 }
 @media(prefers-reduced-motion:reduce){

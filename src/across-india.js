@@ -16,7 +16,7 @@ import { Draggable } from 'gsap/Draggable';
 import { InertiaPlugin } from 'gsap/InertiaPlugin';
 import PhotoSwipeLightbox from 'photoswipe/lightbox';
 import 'photoswipe/style.css';
-import { figures } from './config.js';
+import { figures, deliveryPhotos } from './config.js';
 import { escapeHTML, safeImage, thumbImage } from './util.js';
 gsap.registerPlugin(ScrollTrigger, SplitText, Draggable, InertiaPlugin);
 
@@ -40,11 +40,14 @@ export function createAcrossIndia(section, { deliveries = [], reduced = false } 
 
   // ---------------------------------------------------------- the gallery
   const gallery = $('[data-india-gallery]'), track = $('[data-india-track]'), foot = $('[data-india-foot]');
-  const photos = deliveries.filter(delivery => safeImage(delivery.photo));
-  const alt = photo => photo.caption || `A Baba Luxury Cars handover${photo.city ? ` in ${photo.city}` : ''}`;
+  // Baba's own set (config.js), or else the photos uploaded in the admin.
+  const photos = deliveryPhotos.length
+    ? deliveryPhotos.map(({ city, card, full, caption }) => ({ city, caption, photo: full, card }))
+    : deliveries.filter(delivery => safeImage(delivery.photo));
+  const alt = photo => photo.caption || `A Baba Luxury Cars handover${photo.city ? `, delivered to ${photo.city}` : ''}`;
   const card = (photo, index, copy) => `<div class="india-card" role="listitem"${copy ? ' aria-hidden="true"' : ''}>
       <a class="india-card-frame" href="${escapeHTML(safeImage(photo.photo))}" data-photo="${index}" target="_blank" rel="noopener"${copy ? ' tabindex="-1"' : ''} aria-label="${escapeHTML(`View the photograph: ${alt(photo)}`)}">
-        <span class="india-card-shift"><img src="${escapeHTML(thumbImage(photo.photo))}" alt="" loading="lazy" decoding="async" draggable="false" /></span>
+        <span class="india-card-shift"><img src="${escapeHTML(photo.card || thumbImage(photo.photo))}" alt="" loading="lazy" decoding="async" draggable="false" /></span>
       </a>
       <p class="india-card-caption"><span>Delivered to</span><b>${escapeHTML(photo.city || 'A new owner')}</b></p>
     </div>`;

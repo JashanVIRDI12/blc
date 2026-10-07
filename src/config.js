@@ -21,6 +21,20 @@ export const figures = [
   { value: 18, suffix: '+', label: 'Years of experience' },
 ];
 
+// Baba's own handover photographs, in the home page's "Across India" gallery,
+// in this order. Each is in public/deliveries/: `full` is the original
+// graphic, opened from the gallery; `card` is the photograph inside it,
+// cropped clear of its banners, shown on the card. To add one, put both files
+// there and add a line. While this list is empty, the photos uploaded in the
+// admin's Deliveries page are shown instead.
+export const deliveryPhotos = [
+  { city: 'Jammu & Kashmir', card: '/deliveries/jammu-kashmir-card.webp', full: '/deliveries/jammu-kashmir.webp' },
+  { city: 'Punjab', card: '/deliveries/punjab-card.webp', full: '/deliveries/punjab.webp' },
+  { city: 'Dehradun', card: '/deliveries/dehradun-card.webp', full: '/deliveries/dehradun.webp' },
+  { city: 'Tamil Nadu', card: '/deliveries/tamil-nadu-card.webp', full: '/deliveries/tamil-nadu.webp' },
+  { city: 'Nagaland', card: '/deliveries/nagaland-card.webp', full: '/deliveries/nagaland.webp' },
+];
+
 // The supplied GLBs are showcase vehicles, not evidence of stock or condition.
 // Stock facts (year, kilometres, owners, registration state, price, photos)
 // stay null until the dealership supplies them for a real car; the page then
