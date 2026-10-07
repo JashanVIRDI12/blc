@@ -78,7 +78,11 @@ export function createLightsOn(section, { reduced = false } = {}) {
   const canvas = stage.querySelector('canvas');
   const copy = section.querySelector('.fleet-copy');
   const header = document.querySelector('.site-header');
-  const context = canvas.getContext('webgl2', { antialias: true, alpha: true, powerPreference: 'high-performance' });
+  // The scene is drawn, multisampled, into its own HDR target
+  // (studio-output.js); the canvas receives one full-screen quad. Its own
+  // multisampled colour, depth and stencil buffers would never be used, and
+  // at the stage's density they cost well over a hundred megabytes.
+  const context = canvas.getContext('webgl2', { antialias: false, depth: false, stencil: false, alpha: true, powerPreference: 'high-performance' });
   if (!context) throw new Error('WebGL 2 is unavailable.');
   // RGBA16F filtering is core in WebGL 2; the 32-bit float filtering
   // extension is not required. Both render-target extensions allow 16F.
@@ -86,7 +90,7 @@ export function createLightsOn(section, { reduced = false } = {}) {
   if (!hdr) throw new Error('Floating-point studio lighting is unavailable.');
   // MSAA resolves before tone mapping. SMAA filters remaining edges in
   // linear light without a temporal history that could ghost on scroll.
-  const renderer = new THREE.WebGLRenderer({ canvas, context, antialias: true, alpha: true });
+  const renderer = new THREE.WebGLRenderer({ canvas, context, antialias: false, depth: false, stencil: false, alpha: true });
   const anisotropy = Math.min(innerWidth <= 760 ? 8 : 16, renderer.capabilities.getMaxAnisotropy());
   const output = createStudioOutput(renderer, { mobile: innerWidth <= 760 });
   renderer.outputColorSpace = THREE.SRGBColorSpace;
@@ -178,8 +182,13 @@ export function createLightsOn(section, { reduced = false } = {}) {
     return [id, { panel, pool }];
   }));
   const playhead = { progress: 0 };
+  // 0 while the stills stand in, 1 once the cars are drawn. Until then the
+  // section is the page's white with the stills and the words set, never a
+  // dark, empty stage pinned under the visitor; if the cars arrive while it is
+  // on screen, the room fades from white to wherever the scroll has it.
+  const shown = { value: 0 };
   let size = { w: 1, h: 1 }, fit = { zoom: 1, offset: [0, 0] };
-  let active = false, ready = false, rendered = false, dirty = true, raf = 0, dark = null;
+  let active = false, ready = false, rendered = false, dirty = true, raf = 0, dark = null, background = '';
   const density = createRenderDensity({ mobile: innerWidth <= 760 });
   let ratio = density.ratio(innerWidth, innerHeight);
 
@@ -268,10 +277,12 @@ export function createLightsOn(section, { reduced = false } = {}) {
     signMark.opacity = signMark.map ? 1 : 0;
     signGlow.opacity = LIGHT.signGlow * (1 - roomUp);
     // The room itself, from black to the white of the page, and the header
-    // with it.
-    const tone = roomUp ** 1.4;
-    section.style.backgroundColor = `rgb(${DARK.map((c, i) => Math.round(c + (WHITE[i] - c) * tone)).join(',')})`;
-    const isDark = roomUp < .5;
+    // with it. Written only when it changes: a new background repaints the
+    // whole section.
+    const tone = 1 - (1 - roomUp ** 1.4) * shown.value;
+    const color = `rgb(${DARK.map((c, i) => Math.round(c + (WHITE[i] - c) * tone)).join(',')})`;
+    if (color !== background) { background = color; section.style.backgroundColor = color; }
+    const isDark = shown.value > .5 && roomUp < .5;
     if (isDark !== dark) { dark = isDark; section.classList.toggle('is-dark', dark); document.dispatchEvent(new CustomEvent('stage:tone')); }
   }
 
@@ -294,7 +305,9 @@ export function createLightsOn(section, { reduced = false } = {}) {
     const t = smooth(interval(p, LIGHTS.room[0], LIGHTS.anchor));
     frameCamera(camera, paths[view](p), size.w, size.h, { zoom: 1 + (fit.zoom - 1) * t, offset: fit.offset.map(v => v * t) });
     light(p);
-    showWords(p >= LIGHTS.words);
+    // With the stills standing in, the words are set as soon as the stage is
+    // well into view.
+    showWords(p >= LIGHTS.words || (shown.value < .5 && p > .12));
     invalidate();
     if (import.meta.env.DEV) window.__fleetProgress = p;
   }
@@ -319,7 +332,8 @@ export function createLightsOn(section, { reduced = false } = {}) {
     const loader = new THREE.TextureLoader();
     await Promise.all(lightsVehicles.map(async ({ id, paint }) => {
       const item = showcase.find(entry => entry.id === id);
-      const spec = { ...models[id], partMap: { ...vehicleParts[id], plates: [] } };
+      // Each car wears Baba's dealer plates, as the film's GLS does.
+      const spec = { ...models[id], partMap: vehicleParts[id] };
       const [car, shadowTexture] = await Promise.all([loadCar(spec, paint ?? item.paint, { invalidate }), loader.loadAsync(spec.shadow)]);
       textures.push(shadowTexture);
       if (disposed) return;
@@ -359,27 +373,48 @@ export function createLightsOn(section, { reduced = false } = {}) {
     render();
     await studio;
     if (disposed) return;
-    // The shaders and textures a little at a time, so nothing stalls.
-    const toneMapping = renderer.toneMapping;
-    if (hdr) renderer.toneMapping = THREE.NoToneMapping;
-    try {
-      for (const { holder } of vehicles.values()) {
-        await renderer.compileAsync(holder, camera, scene);
-        await nextFrame();
-        if (disposed) return;
-      }
-    } finally {
-      renderer.toneMapping = toneMapping;
-    }
-    ready = true; invalidate();
+    await warm();
+    if (disposed) return;
+    ready = true;
+    // Arriving unseen, the cars are simply there; arriving in view, the
+    // stills give way to them as the canvas fades in (fleet.css).
+    if (active) gsap.to(shown, { value: 1, duration: 1.2, ease: 'power2.inOut', onUpdate: render });
+    else shown.value = 1;
+    render();
   }
-  const loaded = load().catch(error => { console.error('The lights-on drive is unavailable; keeping the stills.', error); section.classList.remove('is-dark'); });
+  // Everything the first frames need, a little at a time, while the film
+  // still plays above: each car's programs, compiled for the HDR target they
+  // really draw into (studio-output.js), then its textures, uploaded a few a
+  // frame; then the room's own pieces and the filter passes. Without this the
+  // first frame in view built every program and uploaded every texture at
+  // once, freezing the page just as the visitor scrolled into the section.
+  async function warm() {
+    for (const { holder } of vehicles.values()) {
+      await output.compile(holder, camera, scene);
+      if (disposed) return;
+      await upload(holder);
+      if (disposed) return;
+    }
+    await output.compile(scene, camera);
+    if (!disposed) await upload(scene);
+  }
+  async function upload(root) {
+    const maps = new Set();
+    root.traverse(node => [node.material].flat().forEach(material => material && Object.values(material).forEach(value => { if (value?.isTexture) maps.add(value); })));
+    let n = 0;
+    for (const texture of maps) {
+      renderer.initTexture(texture);
+      if (++n % 4 === 0) { await nextFrame(); if (disposed) return; }
+    }
+    await nextFrame();
+  }
+  const loaded = load().catch(error => { console.error('The lights-on drive is unavailable; keeping the stills.', error); shown.value = 0; render(); });
 
   const resizeObserver = new ResizeObserver(() => { if (!disposed) layout(); });
   resizeObserver.observe(canvas); resizeObserver.observe(copy);
   const onVisible = () => { if (!document.hidden) invalidate(); };
   document.addEventListener('visibilitychange', onVisible);
-  const onLost = event => { event.preventDefault(); ready = false; stage.classList.remove('is-rendered'); };
+  const onLost = event => { event.preventDefault(); ready = false; rendered = false; stage.classList.remove('is-rendered'); gsap.killTweensOf(shown); shown.value = 0; render(); };
   canvas.addEventListener('webglcontextlost', onLost);
   layout();
 
@@ -395,7 +430,7 @@ export function createLightsOn(section, { reduced = false } = {}) {
     }),
     setProgress(p) { playhead.progress = p; render(); },
     dispose() {
-      disposed = true; cancelAnimationFrame(raf);
+      disposed = true; cancelAnimationFrame(raf); gsap.killTweensOf(shown);
       words.kill(); pin.kill(true); timeline.scrollTrigger?.kill(); timeline.kill();
       resizeObserver.disconnect(); document.removeEventListener('visibilitychange', onVisible);
       canvas.removeEventListener('webglcontextlost', onLost);

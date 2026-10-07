@@ -14,10 +14,17 @@ import { loadSite, FOR_SALE, BODIES, FUELS, PRICE_BANDS, KM_BANDS, STATUS, price
 import { carCard, shortlist } from './cards.js';
 import { escapeHTML, numeric } from './util.js';
 import { marqueArt, sizeMarques } from './marque-art.js';
+import { fleetVehicles } from './config.js';
+import { models } from './models.js';
+import { prefetchModels } from './model-cache.js';
 
 gsap.registerPlugin(ScrollTrigger);
-const { renderContact } = setupPage('collection');
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// The drive's five cars start downloading now, while three.js and the drive
+// itself are still on their way, rather than after them (model-cache.js). At
+// a low priority, so the scripts that draw the page come first.
+if (!reduced && 'WebGL2RenderingContext' in window) prefetchModels(fleetVehicles.map(({ id }) => models[id].url));
+const { renderContact } = setupPage('collection');
 const finePointer = matchMedia('(hover: hover) and (pointer: fine)').matches;
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -47,6 +54,8 @@ async function startDrive() {
 }
 
 async function init() {
+  // The marques' module is fetched alongside the stock, not after it.
+  const marques = import('./marques.js');
   const { cars, collections, settings, previews, deliveries } = await loadSite();
   renderContact();
   if (settings.collection.intro) $('[data-collection-intro]').textContent = settings.collection.intro;
@@ -139,7 +148,7 @@ async function init() {
   // ---------------------------------------------- the marques we source
   // Their marks on paper (src/marques.js). One that is in stock filters the
   // collection to it; one that isn't asks us to find one.
-  const { MARQUES } = await import('./marques.js');
+  const { MARQUES } = await marques;
   const strip = $('[data-marques]');
   const marqueStock = marque => pool.filter(car => !car.preview && FOR_SALE.includes(car.status) && marque.makes.includes(car.make));
   const markup = (marque, copy) => {
@@ -452,21 +461,23 @@ function runMarques(strip) {
   track.addEventListener('focusout', event => { if (!track.contains(event.relatedTarget)) rest(); });
 }
 // Cards are unveiled a row at a time as they come into view: the tile wipes
-// open from the top while the car settles into it.
+// open from the top while the car settles into it. The wipe starts at speed
+// and settles (expo.out): an ease-in-out wipe left the tile empty for its
+// first half second, so the cars seemed to arrive late.
 let batches = [];
 function animateCards(cards) {
   batches.forEach(trigger => trigger.kill());
   batches = [];
   if (reduced || !cards.length) return;
-  gsap.set(cards, { autoAlpha: 0, y: 36 });
+  gsap.set(cards, { autoAlpha: 0, y: 28 });
   batches = ScrollTrigger.batch(cards, {
-    start: 'top 94%', once: true,
+    start: 'top 96%', once: true, interval: .05,
     onEnter: batch => {
-      gsap.to(batch, { autoAlpha: 1, y: 0, duration: 1.1, ease: 'expo.out', stagger: .08, clearProps: 'transform,opacity,visibility' });
+      gsap.to(batch, { autoAlpha: 1, y: 0, duration: .9, ease: 'expo.out', stagger: .06, overwrite: 'auto', clearProps: 'transform,opacity,visibility' });
       batch.forEach((card, i) => {
         const visual = card.querySelector('.vehicle-visual'), image = visual.querySelector('img');
-        gsap.fromTo(visual, { clipPath: 'inset(0% 0% 100% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.3, ease: 'expo.inOut', delay: i * .08, clearProps: 'clipPath' });
-        gsap.fromTo(image, { scale: 1.14 }, { scale: 1, duration: 1.8, ease: 'expo.out', delay: i * .08 + .15, clearProps: 'transform' });
+        gsap.fromTo(visual, { clipPath: 'inset(0% 0% 100% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1, ease: 'expo.out', delay: i * .06, clearProps: 'clipPath' });
+        gsap.fromTo(image, { scale: 1.1 }, { scale: 1, duration: 1.5, ease: 'expo.out', delay: i * .06, clearProps: 'transform' });
       });
     },
   });

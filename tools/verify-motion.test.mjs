@@ -223,9 +223,8 @@ test('about: the camera drifts continuously',()=>{
     for(let i=1;i<=4000;i++) assert(distance(path(i/4000).position,path((i-1)/4000).position)<.02,'No camera jump');
   }
 });
-test('every car in the film, About and the lineup carries a front and a rear plate on its body, facing out',()=>{
-  // The collection drive's cars wear none (fleet-drive.js removes them all).
-  const plated=new Set([filmVehicles.first,...Object.values(aboutVehicles),...lineupVehicles]);
+test('every car in the film, About, the lineup and both collection drives carries a front and a rear plate on its body, facing out',()=>{
+  const plated=new Set([filmVehicles.first,...Object.values(aboutVehicles),...lineupVehicles,...fleetVehicles.map(v=>v.id),...lightsVehicles.map(v=>v.id)]);
   for(const [id,parts] of Object.entries(vehicleParts).filter(([id])=>plated.has(id))) {
     const [width,height,length]=parts.size;
     assert.equal(parts.plates?.length,2,`${id} needs a front and a rear plate`);
