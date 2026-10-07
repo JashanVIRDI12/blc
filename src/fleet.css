@@ -1,0 +1,104 @@
+/* The collection drive (fleet-drive.js): a seamless white stage, five cars
+   driving towards the visitor, large, from a camera near their own height;
+   the words in a bar along the foot of the stage, beneath the cars, over a
+   hairline. Without WebGL the stills stand in. */
+.fleet{position:relative;height:100svh;min-height:480px;overflow:hidden;color:#141413;background:#fff}
+.fleet-stage{position:absolute;inset:0}
+.fleet-stage canvas{position:absolute;inset:0;display:block;width:100%;height:100%;opacity:0;transition:opacity 1.2s var(--ease)}
+.fleet-stage.is-rendered canvas{opacity:1}
+.fleet-fallback{position:absolute;left:0;right:0;top:calc(var(--header-height) + 4vh);bottom:clamp(190px,30vh,280px);display:flex;justify-content:center;align-items:center;padding:0 3%;transition:opacity .9s var(--ease)}
+.fleet-stage.is-rendered .fleet-fallback{opacity:0;pointer-events:none}
+.fleet-fallback img{width:21%;max-width:360px;margin:0 -2%;object-fit:contain}
+.fleet-fallback img:nth-child(3){position:relative;z-index:1;width:26%;max-width:440px}
+.fleet-fallback img:nth-child(2),.fleet-fallback img:nth-child(4){width:23%}
+
+/* The words, in a bar beneath the cars: the headline at the left, the line
+   and the actions at the right. Each line rises out of its own mask. */
+.fleet-copy{position:absolute;left:var(--gutter);right:var(--gutter);bottom:clamp(18px,3.6vh,44px);z-index:3;display:flex;align-items:flex-end;justify-content:space-between;gap:20px 56px;padding:24px 0 0;text-align:left;pointer-events:none}
+.fleet-copy:before{content:'';position:absolute;left:0;right:0;top:0;height:1px;background:rgba(17,17,17,.13);transform:scaleX(var(--rule,1));transform-origin:left}
+.fleet-copy a,.fleet-copy button{pointer-events:auto}
+.fleet-copy-head{min-width:0}
+.fleet-copy-side{flex:none;display:grid;justify-items:end;gap:18px;max-width:430px;text-align:right}
+.fleet-eyebrow{display:flex;align-items:center;gap:14px;margin:0;font:600 12px/1.4 var(--font-text);letter-spacing:.16em;text-transform:uppercase;color:#84502c}
+.fleet-rule{display:block;width:34px;height:1px;background:linear-gradient(90deg,var(--gold-lo),var(--gold-hi));transform-origin:left}
+.fleet h2{margin-top:14px;font-size:clamp(36px,min(4.6vw,8.4vh),78px);line-height:.98;letter-spacing:-.035em;color:#101010}
+.fleet h2 em{color:#93662e}
+.fleet-note{max-width:44ch;margin:0;font-size:14.5px;line-height:1.62;color:#5f5b55}
+.fleet-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:12px 26px}
+.fleet-button{display:inline-flex;align-items:center;gap:14px;min-height:52px;padding:0 26px;font:600 13.5px/1 var(--font-text);letter-spacing:.04em;color:#fff;background:#111;border-radius:999px;transition:background-color .4s,gap .5s var(--ease)}
+.fleet-button:hover{gap:20px;background:#000}
+.fleet-link{padding-bottom:4px;font:600 13px/1.2 var(--font-text);letter-spacing:.03em;color:#141413;background:linear-gradient(#93662e,#93662e) 0 100%/100% 1px no-repeat;transition:background-size .5s var(--ease)}
+.fleet-link:hover{background-size:40% 1px}
+/* Wide screens set the headline on one line. */
+@media(min-width:1101px){
+  .fleet:not(.fleet--stage) h2 .fl-line{display:inline-block;vertical-align:top}
+  .fleet:not(.fleet--stage) h2 .fl-line+.fl-line{margin-left:.22em}
+}
+@media(max-height:640px){.fleet:not(.fleet--stage) .fleet-note{display:none}}
+/* The home page's four stills, side by side. */
+.fleet:not(.fleet--stage) .fleet-fallback img:nth-child(n){width:24%;max-width:400px;margin:0 -1.2%}
+
+@media(max-width:760px){
+  .fleet-copy{display:grid;justify-items:start;gap:18px;padding-top:18px}
+  .fleet-copy-side{justify-items:start;gap:16px;text-align:left}
+  .fleet h2{font-size:clamp(36px,10vw,48px)}
+  .fleet-note{font-size:13.5px}
+  .fleet-actions{justify-content:flex-start;gap:12px 22px}
+  .fleet-button{min-height:48px;padding:0 22px}
+  .fleet-fallback{bottom:clamp(250px,40vh,330px)}
+  .fleet-fallback img{width:30%;margin:0 -6%}
+  .fleet-fallback img:nth-child(1),.fleet-fallback img:nth-child(5){display:none}
+}
+
+/* Dust in the air (dust.js), behind and in front of the cars. */
+.fleet-stage .fleet-dust{opacity:1;pointer-events:none;transition:none}
+.fleet-stage .fleet-dust--back{z-index:0}
+.fleet-stage .fleet-dust--front{z-index:1}
+
+/* The stage: the head of the collection page. The title stands like a wall
+   behind the parked cars, which cover the lower half of its letters (the
+   canvas is transparent); the words and the actions sit beneath them, as on
+   the home page, over a hairline that fills with gold while the cars load. --stage-shift (set
+   by fleet-drive.js) shares out spare height above the title and above the
+   words; --sway-x/y follow a fine pointer. */
+.fleet--stage{--word-size:min(14.9vw,31svh);height:100svh;min-height:620px;max-height:1240px}
+.fleet-word{position:absolute;left:0;right:0;top:calc(var(--header-height) + clamp(14px,3.4vh,48px) + var(--stage-shift,0px));z-index:0;display:grid;justify-items:center;margin:0;padding:0;text-align:center;color:#121110;pointer-events:none;user-select:none;-webkit-user-select:none}
+.fleet-word-the{margin-bottom:calc(var(--word-size) * .03);font:italic 400 clamp(19px,min(2vw,3.6svh),34px)/1 var(--font-display);letter-spacing:-.01em;color:#93662e}
+.fleet-word-main{display:block;padding-top:.06em;font:350 var(--word-size)/.86 var(--font-display);letter-spacing:-.035em;text-transform:uppercase;white-space:nowrap;
+  -webkit-mask-image:linear-gradient(180deg,#000 52%,rgba(0,0,0,.18) 100%);mask-image:linear-gradient(180deg,#000 52%,rgba(0,0,0,.18) 100%);
+  transform:translate3d(calc(var(--sway-x,0) * 10px),calc(var(--sway-y,0) * 5px),0)}
+.fleet-word .ch{display:inline-block;will-change:transform}
+.fleet--stage .fleet-stage canvas:not(.fleet-dust){z-index:1}
+/* Stills (reduced motion, or no WebGL): the same group, in front of the
+   title, centred in the height the cars would take. */
+.fleet--stage.is-static{--stage-shift:clamp(0px,(100svh - 720px) / 2,110px)}
+.fleet--stage .fleet-fallback{top:calc(var(--header-height) + clamp(14px,3.4vh,48px) + var(--stage-shift,0px) + var(--word-size) * .74);bottom:auto;z-index:1;align-items:flex-start;padding:0 1%;opacity:0;pointer-events:none}
+.fleet--stage.is-static .fleet-fallback{opacity:1}
+.fleet--stage .fleet-fallback img{position:relative;width:25%;max-width:none;margin:0 -3.6%}
+.fleet--stage .fleet-fallback img:nth-child(1),.fleet--stage .fleet-fallback img:nth-child(5){width:23%;margin-top:-1.5%}
+.fleet--stage .fleet-fallback img:nth-child(2),.fleet--stage .fleet-fallback img:nth-child(4){z-index:1;margin-top:1.6%}
+.fleet--stage .fleet-fallback img:nth-child(3){z-index:2;width:31%;max-width:none;margin-top:4.2%}
+
+.fleet--stage .fleet-copy{bottom:clamp(18px,3.4vh,40px);padding-top:22px}
+.fleet-progress{position:absolute;left:0;right:0;top:0;z-index:1;height:1px;background:linear-gradient(90deg,var(--gold-lo),var(--gold-hi));transform:scaleX(var(--loaded,0));transform-origin:left;transition:transform .5s var(--ease),opacity 1.2s var(--ease) .4s}
+.fleet--stage:has(.is-rendered) .fleet-progress,.fleet--stage.is-static .fleet-progress{transform:scaleX(1);opacity:0}
+.fleet-line{margin:0;font:400 clamp(24px,2.15vw,34px)/1.08 var(--font-display);letter-spacing:-.018em;color:#111}
+.fleet-line em{color:#93662e}
+.fleet--stage .fleet-note{max-width:52ch;margin:10px 0 0;font-size:14.5px;line-height:1.6}
+.fleet--stage .fleet-actions{flex:none;margin:0 0 2px;justify-content:flex-end}
+.fleet--stage .fleet-link{cursor:pointer}
+
+@media(max-width:760px){
+  .fleet--stage{--word-size:min(14.6vw,13svh);min-height:600px}
+  .fleet-word{top:calc(var(--header-height) + 18px + var(--stage-shift,0px))}
+  .fleet-word-the{font-size:17px;margin-bottom:2px}
+  .fleet-line{font-size:25px}
+  .fleet--stage .fleet-note{font-size:13.5px;margin-top:8px}
+  .fleet--stage .fleet-actions{justify-content:flex-start;gap:12px 22px}
+  .fleet--stage.is-static{--stage-shift:clamp(0px,(100svh - 640px) / 3,90px)}
+  .fleet--stage .fleet-fallback{padding:0}
+  .fleet--stage .fleet-fallback img:nth-child(1),.fleet--stage .fleet-fallback img:nth-child(5){display:none}
+  .fleet--stage .fleet-fallback img:nth-child(2),.fleet--stage .fleet-fallback img:nth-child(4){width:46%;margin:0 -11%}
+  .fleet--stage .fleet-fallback img:nth-child(3){width:56%;margin:9% -11% 0}
+}
+@media(prefers-reduced-motion:reduce){.fleet-word-main{transform:none}}

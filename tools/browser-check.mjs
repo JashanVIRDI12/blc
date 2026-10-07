@@ -3,7 +3,7 @@
 import assert from 'node:assert/strict';
 import fs from 'node:fs/promises';
 import { aboutAnchor, aboutMarks } from '../src/about-storyboard.js';
-import { filmVehicles, showcase } from '../src/config.js';
+import { filmVehicles, showcase, fleetVehicles } from '../src/config.js';
 const base=process.env.FORMA_SITE_URL || 'http://127.0.0.1:5174';
 const debug=process.env.FORMA_CDP_URL || 'http://127.0.0.1:9222';
 const out=process.env.FORMA_REVIEW_DIR || '/tmp/baba-review';
@@ -37,11 +37,11 @@ async function checkAbout(mobile) {
   const prefix=mobile?'mobile':'desktop';
   // Navigation lands where both cars have stopped and the introduction is set.
   await waitFor('window.__about?.snapshot().ready');
-  await evaluate(`document.querySelector('${mobile?'#mobile-menu':'.desktop-nav'} a[href="#about"]').click()`);await delay(1800);
+  await evaluate(`document.querySelector('${mobile?'#mobile-menu':'.desktop-nav'} a[href$="#about"]').click()`);await delay(1800);
   await waitFor(`Math.abs(window.__aboutProgress-${aboutAnchor})<.002 && window.__about.snapshot().rendered`);await delay(400);
   const state=await evaluate('({about:window.__about.snapshot(),background:getComputedStyle(document.querySelector("#about")).backgroundColor,copy:document.querySelector(".brand-copy").getBoundingClientRect().toJSON(),stage:document.querySelector("#about .brand-visual").getBoundingClientRect().toJSON(),set:getComputedStyle(document.querySelector(".brand-signoff")).opacity,header:document.querySelector(".site-header").classList.contains("is-practical"),sections:[...document.querySelectorAll("main section")].map(n=>n.id),width:document.documentElement.scrollWidth,controls:document.querySelectorAll("button[data-engine],button[data-sound],button[data-orbit]").length})');
   assert.equal(state.background,'rgb(255, 255, 255)');assert.equal(state.about.background,'#ffffff');assert.equal(state.controls,0,'Remove the ignition and orbit system');
-  assert.deepEqual(state.sections,['home','inventory','about','standard','sell'],'The film, then the collection, then About Baba');
+  assert.deepEqual(state.sections,['home','fleet','inventory','about','india'],'The film, the collection drive, the featured cars, About Baba, then Across India');
   assert(state.about.pinned,'The About stage is pinned while the cars are parked');assert(state.header,'The header is in its white practical style');
   assert.deepEqual(state.about.vehicles.map(v=>v.id).sort(),Object.keys(aboutMarks).sort(),'The X7 and the Defender drive in');
   for(const v of state.about.vehicles) assert(Math.hypot(...v.position.map((c,i)=>c-aboutMarks[v.id][i]))<.01,`${v.id} is parked on its mark`);
@@ -104,34 +104,69 @@ try {
   assert.deepEqual(pose(reversed.vehicles),pose(parked.vehicles),'Reverse scrolling must restore wheel and body poses');
   reversed.vehicles.forEach((v,i)=>v.lights.rearGlows.forEach((g,k)=>assert(Math.abs(g-parked.vehicles[i].lights.rearGlows[k])<.005,'Reverse scrolling must restore the lamps')));
   assert.equal(reversed.vehicles.length,1,'The film inspects one car');assert.deepEqual(reversed.vehicles[0].scale,[1,1,1]);
+  // Skipping the film lands on the collection drive: five cars parked, the
+  // words set, each car named and linked.
   await evaluate('document.querySelector("#skip-film").click()');await delay(1800);
-  const layout=await evaluate('({cinemaBottom:document.querySelector(".cinema").getBoundingClientRect().bottom, inventoryTop:document.querySelector("#inventory").getBoundingClientRect().top, header:document.querySelector(".site-header").getBoundingClientRect().bottom, cards:document.querySelectorAll(".vehicle-card").length, width:document.documentElement.scrollWidth})');
-  // The collection follows the film directly; what remains of the film sits under the header.
-  assert(layout.cinemaBottom<=layout.inventoryTop+1&&layout.cinemaBottom<=layout.header+1,'Pinned car scene must finish before inventory');assert.equal(layout.cards,showcase.length);
+  await waitFor('window.__fleet?.snapshot().ready');await delay(600);
+  const fleet=await evaluate('({snap:window.__fleet.snapshot(),cinemaBottom:document.querySelector(".cinema").getBoundingClientRect().bottom,fleetTop:document.querySelector("#fleet").getBoundingClientRect().top,header:document.querySelector(".site-header").getBoundingClientRect().bottom,light:document.querySelector(".site-header").classList.contains("is-light"),labels:document.querySelectorAll(".fleet-label").length})');
+  assert(fleet.cinemaBottom<=fleet.fleetTop+1&&fleet.cinemaBottom<=fleet.header+1,'Pinned car scene must finish before the collection drive');
+  assert.deepEqual(fleet.snap.vehicles.map(v=>v.id),fleetVehicles.filter(v=>v.id!=='landcruiser').map(v=>v.id),'The cars wait in the dark, the Land Cruiser not among them');
+  assert(fleet.snap.words,'The words are set once the cars park');assert(fleet.light,'The header is pale over the white stage');
+  assert.equal(fleet.labels,0,'The cars carry no names or links');
+  await shot('desktop-fleet');
+  await evaluate('document.querySelector(\'.fleet-link[href="#inventory"]\').click()');await delay(1800);
+  const layout=await evaluate('({cards:document.querySelectorAll("#vehicle-grid .vehicle-card").length, width:document.documentElement.scrollWidth})');
+  assert.equal(layout.cards,showcase.length);
   await shot('desktop-inventory');
-  await evaluate('document.querySelector("#vehicle-search").value="No such vehicle";document.querySelector("#vehicle-search").dispatchEvent(new Event("input"))');
-  assert(await evaluate('!document.querySelector("#no-results").hidden'));
-  await evaluate('document.querySelector("#reset-filters").click();document.querySelector("#make-filter").value="BMW";document.querySelector("#make-filter").dispatchEvent(new Event("change"))');
-  assert.equal(await evaluate('document.querySelectorAll(".vehicle-card").length'),1);
-  await evaluate('document.querySelector(".vehicle-visual").click()');
-  assert(await evaluate('document.querySelector("#vehicle-dialog").open'));
-  assert(await evaluate('document.querySelector("#vehicle-details").textContent.includes("Not supplied")'));
-  await shot('vehicle-details');
-  await evaluate('document.querySelector("#vehicle-enquire").click()');
+  // Each featured car opens its own page; the full collection is a page of its own.
+  assert(await evaluate('[...document.querySelectorAll("#vehicle-grid .vehicle-link")].every(a=>a.getAttribute("href").startsWith("/car/?id="))'));
+  assert(await evaluate('!!document.querySelector(\'#inventory a[href="/collection/"]\')'));
+  await evaluate('document.querySelector(\'#inventory [data-subject="Help me find my next car"]\').click()');
   assert(await evaluate('document.querySelector("#enquiry-dialog").open'));
-  assert(await evaluate('document.querySelector("#enquiry-subject").value.includes("BMW")'));
+  assert(await evaluate('document.querySelector("#enquiry-subject").value.includes("Help me find")'));
   const connected=await evaluate('(async()=>{const {dealer}=await import("/src/config.js");return Boolean(dealer.enquiryEndpoint);})()');
   if(!connected){
     await evaluate('(()=>{const f=document.querySelector("#enquiry-dialog form");f.elements.name.value="Browser Review";f.elements.phone.value="9999999999";f.requestSubmit();})()');
-    assert(await evaluate('document.querySelector("#enquiry-dialog .form-result").textContent.includes("nothing has been sent")'));
-    assert(await evaluate('document.querySelector("#enquiry-dialog pre").textContent.includes("BMW")'));
+    // Without an endpoint the enquiry is prepared here: to share by WhatsApp or email when the dealership has them, or to save.
+    assert(await evaluate('/nothing has been sent|Choose how you would like to share it/.test(document.querySelector("#enquiry-dialog .form-result").textContent)'));
+    assert(await evaluate('document.querySelector("#enquiry-dialog pre").textContent.includes("Help me find")'));
   }
-  await evaluate('document.querySelector("#enquiry-dialog").close();document.querySelector("#reset-filters").click()');
+  await evaluate('document.querySelector("#enquiry-dialog").close()');
   if(!connected){
     await evaluate('(()=>{const f=document.querySelector("#valuation-form");for(const [k,v]of Object.entries({vehicle:"Review vehicle",registration:"TEST 0000",kilometres:"42000",name:"Browser Review",phone:"9999999999"}))f.elements[k].value=v;f.requestSubmit();})()');
     assert(await evaluate('document.querySelector("#valuation-form pre").textContent.includes("Kilometres: 42000")'));
   }
-  console.log('PASS desktop: the film car, door-close/departure to the threshold, reversal, scene boundary, filters, vehicle dialog, enquiries and valuation.');
+  console.log('PASS desktop: the film car, door-close/departure to the threshold, reversal, scene boundary, the collection drive, featured cars, enquiries and valuation.');
+  // The collection page: every car, filters that answer at once, and each car's page.
+  await send('Page.navigate',{url:`${base}/collection/`});await delay(400);
+  await waitFor('!document.querySelector("[data-grid]").hasAttribute("aria-busy")');
+  assert.equal(await evaluate('document.querySelectorAll("[data-grid] .vehicle-card").length'),showcase.length);
+  assert.equal(await evaluate('document.documentElement.scrollWidth'),1440,'No horizontal overflow');
+  // The collection drive opens the page: the five cars park before the title, each named and linked.
+  await waitFor('window.__fleet?.snapshot().ready && window.__fleet.snapshot().progress>=.66');await delay(600);
+  const hero=await evaluate('({snap:window.__fleet.snapshot(),labels:document.querySelectorAll(".fleet-label").length})');
+  assert(hero.snap.view.startsWith('stage'),'The collection page opens with the stage drive');
+  assert.deepEqual(hero.snap.vehicles.map(v=>v.id),fleetVehicles.map(v=>v.id),'Five cars park before the title');
+  assert.equal(hero.labels,0,'The cars carry no names or links');
+  await shot('desktop-collection-drive');
+  await shot('desktop-collection');
+  await evaluate('document.querySelector(\'[data-key="make"][data-value="BMW"]\').click()');
+  assert.equal(await evaluate('document.querySelectorAll("[data-grid] .vehicle-card").length'),showcase.filter(item=>item.make==='BMW').length);
+  assert(await evaluate('location.search.includes("make=BMW")'),'Filters live in the address');
+  await evaluate('document.querySelector("[data-search]").value="No such vehicle";document.querySelector("[data-search]").dispatchEvent(new Event("input"))');await delay(300);
+  assert(await evaluate('!document.querySelector("[data-empty]").hidden'));
+  await evaluate('document.querySelector("[data-clear-filters]").click()');
+  assert.equal(await evaluate('document.querySelectorAll("[data-grid] .vehicle-card").length'),showcase.length);
+  await send('Page.navigate',{url:`${base}/car/?id=x7`});await delay(400);
+  await waitFor('document.querySelector("#car").classList.contains("is-ready")');
+  assert(await evaluate('document.querySelector("[data-name]").textContent==="X7"'));
+  await evaluate('document.querySelector("[data-enquire-car]").click()');
+  assert(await evaluate('document.querySelector("#enquiry-subject").value.includes("BMW X7")'));
+  await shot('desktop-car');
+  await send('Page.navigate',{url:`${base}/car/?id=no-such-car`});await delay(400);
+  await waitFor('!document.querySelector("[data-missing]").hidden');
+  assert.deepEqual(errors,[],'No browser exceptions on the collection and car pages');
+  console.log('PASS collection page, filters, car page, enquiry and missing car.');
   }
   await send('Emulation.setDeviceMetricsOverride',{width:390,height:844,deviceScaleFactor:1,mobile:true});
   await send('Emulation.setTouchEmulationEnabled',{enabled:true});
@@ -152,7 +187,7 @@ try {
   await checkAbout(true);
   assert(await evaluate('document.querySelector("#mobile-menu").hidden'),'The menu closes after navigating');
   await evaluate('document.querySelector(".menu-toggle").click()');
-  await evaluate('document.querySelector(\'#mobile-menu a[href="#inventory"]\').click()');await delay(1200);
+  await evaluate('document.querySelector(\'#mobile-menu a[href="#contact"]\').click()');await delay(1200);
   assert(await evaluate('document.querySelector("#mobile-menu").hidden'));await shot('mobile-inventory');
   assert.equal(await evaluate('document.documentElement.scrollWidth'),390);
   console.log('PASS mobile: camera shots, navigation, inventory and overflow.');

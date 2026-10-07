@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#ffffff" />
+  <meta name="description" content="The Baba Luxury Cars collection: hand-picked, inspected pre-owned luxury SUVs and saloons in New Delhi. Filter by body, budget and make, or ask us to find the car you have in mind." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
+  <link rel="preload" href="/fonts/newsreader-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <title>The Collection — Baba Luxury Cars</title>
+</head>
+<body class="inner-page theme-light">
+  <a class="skip-link" href="#browse">Skip to the cars</a>
+<!-- @include header.html -->
+  <main id="top">
+    <section class="fleet fleet--stage" id="collection-hero" aria-labelledby="collection-title">
+      <div class="fleet-stage">
+        <h1 id="collection-title" class="fleet-word" aria-label="The Baba Collection"><span class="fleet-word-the" aria-hidden="true">The Baba</span><span class="fleet-word-main" aria-hidden="true">Collection</span></h1>
+        <div class="fleet-fallback" aria-hidden="true"><img data-src="/stills/landcruiser.webp" alt="" /><img data-src="/stills/defender-fleet.webp" alt="" /><img data-src="/stills/sclass.webp" alt="" /><img data-src="/stills/gls.webp" alt="" /><img data-src="/stills/x7-fleet.webp" alt="" /></div>
+        <canvas role="img" aria-label="Five cars from the collection drive out of the white and park in front of the title: a Toyota Land Cruiser 300, a Land Rover Defender 110, a Mercedes-Maybach S 580, a Mercedes-Benz GLS 580 and a BMW X7."></canvas>
+      </div>
+      <div class="fleet-copy">
+        <i class="fleet-progress" aria-hidden="true"></i>
+        <div class="fleet-copy-text">
+          <p class="fleet-line">Every car, <em>chosen with care.</em></p>
+          <p class="fleet-note" data-collection-intro>Hand-picked, inspected and photographed by us. Filter by body, budget or make, or let us find the one you have in mind.</p>
+        </div>
+        <div class="fleet-actions"><a class="fleet-button" href="#browse" data-magnetic>Browse the cars <span aria-hidden="true">↓</span></a><button type="button" class="fleet-link" data-enquire data-subject="Please help me find a particular car">Ask us to find one</button></div>
+      </div>
+    </section>
+
+    <ul class="c-promises" aria-label="How Baba works">
+      <li><b>01</b><span>Carefully selected cars</span></li>
+      <li><b>02</b><span>Transparent documentation</span></li>
+      <li><b>03</b><span>Finance assistance</span></li>
+      <li><b>04</b><span>Pan-India buying and selling</span></li>
+    </ul>
+
+    <nav class="marques" data-marques aria-label="The marques we source" hidden></nav>
+
+    <section class="c-browse" id="browse" aria-labelledby="browse-title">
+      <div class="c-section-head c-browse-head"><div><p class="eyebrow">The cars</p><h2 id="browse-title" data-browse-title>All cars.</h2></div><dl class="c-stats" data-stats hidden></dl></div>
+      <div class="browse-bar" data-browse-bar>
+        <div class="body-tabs" role="group" aria-label="Body style" data-body-tabs><span class="tab-indicator" aria-hidden="true"></span></div>
+        <div class="browse-tools">
+          <label class="browse-search"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="10.5" cy="10.5" r="6.5"/><path d="m16 16 5 5"/></svg><span class="sr-only">Search the collection</span><input type="search" data-search placeholder="Make, model or year" autocomplete="off" enterkeyhint="search" /></label>
+          <button type="button" class="tool-button" data-open-filters aria-haspopup="dialog"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h10M18 7h2M4 17h4M12 17h8"/><circle cx="16" cy="7" r="2"/><circle cx="10" cy="17" r="2"/></svg>Filters<span class="tool-count" data-filter-count hidden></span></button>
+          <label class="tool-select"><span class="sr-only">Sort the collection</span><select data-sort>
+            <option value="recommended">Recommended</option>
+            <option value="newest">Newest arrivals</option>
+            <option value="price-asc">Price: low to high</option>
+            <option value="price-desc">Price: high to low</option>
+            <option value="year">Year: newest first</option>
+            <option value="km">Least driven first</option>
+          </select></label>
+          <div class="view-toggle" role="group" aria-label="Layout">
+            <button type="button" data-view="grid" aria-pressed="true" aria-label="Grid"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="4" width="6.5" height="6.5"/><rect x="13.5" y="4" width="6.5" height="6.5"/><rect x="4" y="13.5" width="6.5" height="6.5"/><rect x="13.5" y="13.5" width="6.5" height="6.5"/></svg></button>
+            <button type="button" data-view="list" aria-pressed="false" aria-label="List"><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="6" height="5"/><rect x="4" y="14" width="6" height="5"/><path d="M13.5 6.5h7M13.5 9h4.5M13.5 15.5h7M13.5 18h4.5"/></svg></button>
+          </div>
+        </div>
+      </div>
+      <div class="browse-status">
+        <p class="result-count" data-result-count role="status" aria-live="polite"></p>
+        <div class="filter-tokens" data-tokens></div>
+        <button type="button" class="shortlist-toggle" data-shortlist-toggle aria-pressed="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z"/></svg>Shortlist <span data-shortlist-count>0</span></button>
+      </div>
+      <div class="vehicle-grid c-grid" data-grid aria-busy="true"><div class="vehicle-card is-skeleton" aria-hidden="true"></div><div class="vehicle-card is-skeleton" aria-hidden="true"></div><div class="vehicle-card is-skeleton" aria-hidden="true"></div></div>
+      <div class="empty-state" data-empty hidden><h3 data-empty-title>A little more specific?</h3><p data-empty-text>No car matches all of those filters. Try fewer, or tell us what you have in mind and we’ll look for it.</p><div class="collection-actions"><button type="button" class="outline-button" data-clear-filters>Clear filters</button><button type="button" class="outline-button" data-enquire data-subject="Help me find my next car">Let us find it</button></div></div>
+    </section>
+
+    <section class="c-sold band-dark" data-sold aria-labelledby="sold-title" hidden>
+      <div class="ds-head">
+        <div><p class="eyebrow">Recently delivered</p><h2 id="sold-title">Now with<br><em>their new owners.</em></h2></div>
+        <p class="ds-count"><span class="ds-number" data-sold-count>0</span><span class="ds-count-label">cars<br>handed over</span></p>
+      </div>
+      <div class="ds-stage" data-sold-stage><ul class="ds-ring" data-sold-ring aria-label="Cars handed over, and their handovers"></ul></div>
+      <div class="ds-foot" aria-hidden="true"><span class="ds-index" data-sold-index></span><span class="ds-track"><i data-sold-progress></i></span><span class="ds-hint">Scroll or drag</span></div>
+    </section>
+
+    <section class="c-source section-pad" aria-labelledby="source-title">
+      <p class="eyebrow">Not in the collection?</p>
+      <h2 id="source-title">Tell us the car.<br><em>We’ll look for it.</em></h2>
+      <p class="intro">The make, the model, a colour, a budget. Share what you have in mind, and we’ll come back to you with what we can find.</p>
+      <a class="ink-button" href="/concierge/#brief" data-magnetic>Describe the car you want</a>
+    </section>
+<!-- @include footer.html -->
+  </main>
+
+  <dialog id="filters-dialog" class="filters-dialog" aria-labelledby="filters-title">
+    <button class="dialog-close" data-close aria-label="Close filters">×</button>
+    <p class="eyebrow">Refine</p>
+    <h2 id="filters-title">Filters</h2>
+    <div class="filter-groups" data-filter-groups></div>
+    <div class="filters-actions"><button type="button" class="text-link" data-clear-filters>Clear all</button><button type="button" class="ink-button" data-apply-filters>Show <span data-live-count>0</span></button></div>
+  </dialog>
+<!-- @include dialogs.html -->
+  <script type="module" src="/src/collection-page.js"></script>
+</body>
+</html>

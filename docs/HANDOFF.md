@@ -12,7 +12,11 @@ About Baba is a pinned white stage. The BMW X7 (in navy metallic) and the Defend
 
 ## Client data
 
-No verified stock records, dealership contact details or enquiry endpoint were supplied. The collection therefore contains labelled showcase previews, with no invented prices, mileage or ownership history. Update `src/config.js` with approved contact information and actual inventory before public launch.
+No verified stock records, dealership contact details or enquiry endpoint were supplied. The collection therefore contains labelled showcase previews, with no invented prices, mileage or ownership history. Before launch, connect Supabase and enter the real stock and contact details in the admin portal (`/admin/`); see `docs/ADMIN.md`.
+
+The site now has a collection page (`/collection/`), a page for each car (`/car/?id=…`) and the admin portal. Until Supabase is connected, the admin works in a browser-only preview mode.
+
+The collection page opens with the collection drive. The Land Cruiser 300, the Defender 110 (in Carpathian Grey), the Maybach S 580, the GLS 580 and the X7 drive out of the white as the page loads. They park in front of a wall-high *COLLECTION*, covering the lower part of its letters, with dust drifting in the light and lifted by their tyres. The same five cars, Defender included, drive in on the home page.
 
 Forms currently prepare a copyable/downloadable enquiry and explicitly state that nothing has been sent. An email/WhatsApp contact enables visitor-initiated sharing; an optional POST endpoint enables online delivery. See `docs/INVENTORY.md` and `src/forms.js`.
 

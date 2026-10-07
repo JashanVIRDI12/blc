@@ -1,0 +1,421 @@
+import * as THREE from 'three';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { ScrollSmoother } from 'gsap/ScrollSmoother';
+import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
+import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
+import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
+import { loadCar } from './car.js';
+import { models } from './models.js';
+import { vehicleParts } from './vehicle-parts.js';
+import { showcase, lightsVehicles } from './config.js';
+import { createCameraPath } from './camera-path.js';
+import { interval, smooth } from './motion.js';
+import { lightsMarks, lightsCamera, lightsLogo, LIGHTS, bayLevel, roomLevel, lampLevel } from './lights-on-storyboard.js';
+import { carCorners, fitFrame, frameCamera } from './about-framing.js';
+import { createRenderDensity } from './render-density.js';
+import { createDust } from './dust.js';
+import { createStudioOutput } from './studio-output.js';
+gsap.registerPlugin(ScrollTrigger);
+
+const PINNED = 2.2; // viewport heights the section stays pinned
+const TALL = matchMedia('(max-width: 760px), (max-aspect-ratio: 4/5)');
+const DARK = [10, 10, 11], WHITE = [255, 255, 255];
+// Broad softboxes reveal the bodywork without lifting the black background.
+// Each bay's overhead light still follows the original scroll storyboard.
+const LIGHT = {
+  exposure: 1.02, environment: .85, environmentDark: .22, rotation: Math.PI * 1.5,
+  hemisphere: .32, hemisphereDark: .08, key: .7, keyDark: .1,
+  fill: 1.4, fillDark: .85, rim: 1.6, rimDark: 1.1,
+  panelDark: 4.2, panelLit: 2.1, pool: .32, beam: .2, flare: .5,
+  shadow: .58, signGlow: .32,
+};
+
+// Keep colour maps and data maps in their authored colour spaces. Mipmaps
+// and anisotropic filtering resolve small and oblique texture detail;
+// compressed textures retain their supplied mip chain.
+function filterTexture(texture, anisotropy) {
+  texture.anisotropy = anisotropy;
+  texture.magFilter = THREE.LinearFilter;
+  if (texture.generateMipmaps || texture.mipmaps.length > 1) texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.needsUpdate = true;
+}
+
+// The audited headlamp marks are approximate. Seat each small glare on
+// the actual light-guide mesh, so it cannot float in front of the grille.
+function lampAnchors(car, headlamps) {
+  const anchors = headlamps.map(position => new THREE.Vector3(...position));
+  const points = anchors.map(anchor => anchor.clone());
+  const distances = anchors.map(() => .4 ** 2);
+  const point = new THREE.Vector3();
+  car.root.updateMatrixWorld(true);
+  car.root.traverse(node => {
+    if (!node.isMesh || ![node.material].flat().some(material => material.name === car.spec.drl)) return;
+    const vertices = node.geometry.attributes.position;
+    for (let vertex = 0; vertex < vertices.count; vertex++) {
+      point.fromBufferAttribute(vertices, vertex).applyMatrix4(node.matrixWorld);
+      anchors.forEach((anchor, i) => {
+        const distance = point.distanceToSquared(anchor);
+        if (distance < distances[i]) { distances[i] = distance; points[i].copy(point); }
+      });
+    }
+  });
+  return points;
+}
+
+// "Lights on" (lights-on-storyboard.js), the home page's collection: the
+// cars parked in the dark, only their headlamps lit, their beams on the
+// floor; the camera tracks along them and a light comes up over each as it
+// passes, throwing a pool of light round it; then the whole studio comes up,
+// the room turns white, the camera swings back to see them all, and the words
+// rise into their bar beneath them. The scroll is the only clock, lights and
+// all, so reversing replays it exactly. The cars are only a picture: they
+// carry no names and open nothing. Models load
+// in the background; until then, and without WebGL, the section keeps its
+// stills. Throws when WebGL is unavailable.
+export function createLightsOn(section, { reduced = false } = {}) {
+  const stage = section.querySelector('.fleet-stage');
+  const canvas = stage.querySelector('canvas');
+  const copy = section.querySelector('.fleet-copy');
+  const header = document.querySelector('.site-header');
+  const context = canvas.getContext('webgl2', { antialias: true, alpha: true, powerPreference: 'high-performance' });
+  if (!context) throw new Error('WebGL 2 is unavailable.');
+  // RGBA16F filtering is core in WebGL 2; the 32-bit float filtering
+  // extension is not required. Both render-target extensions allow 16F.
+  const hdr = Boolean(context.getExtension('EXT_color_buffer_float') || context.getExtension('EXT_color_buffer_half_float'));
+  if (!hdr) throw new Error('Floating-point studio lighting is unavailable.');
+  // MSAA resolves before tone mapping. SMAA filters remaining edges in
+  // linear light without a temporal history that could ghost on scroll.
+  const renderer = new THREE.WebGLRenderer({ canvas, context, antialias: true, alpha: true });
+  const anisotropy = Math.min(innerWidth <= 760 ? 8 : 16, renderer.capabilities.getMaxAnisotropy());
+  const output = createStudioOutput(renderer, { mobile: innerWidth <= 760 });
+  renderer.outputColorSpace = THREE.SRGBColorSpace;
+  renderer.toneMapping = THREE.NeutralToneMapping;
+  renderer.toneMappingExposure = LIGHT.exposure;
+  renderer.setClearColor('#000000', 0);
+  if (!THREE.UniformsLib.LTC_FLOAT_1) RectAreaLightUniformsLib.init();
+  section.classList.add('is-drive', 'is-lights');
+
+  const scene = new THREE.Scene();
+  const pmrem = new THREE.PMREMGenerator(renderer);
+  pmrem.compileEquirectangularShader();
+  const room = new RoomEnvironment();
+  let environment = pmrem.fromScene(room, .04);
+  room.dispose();
+  scene.environment = environment.texture;
+  let disposed = false;
+  const studio = new EXRLoader().loadAsync('/env/studio-1k.exr').then(texture => {
+    if (disposed) { texture.dispose(); return; }
+    const next = pmrem.fromEquirectangular(texture);
+    texture.dispose();
+    environment.dispose(); environment = next;
+    scene.environment = next.texture; scene.environmentRotation.y = LIGHT.rotation;
+  }).catch(error => console.warn('Studio light unavailable; keeping the room.', error)).finally(() => pmrem.dispose());
+  const hemisphere = new THREE.HemisphereLight('#ffffff', '#a59c8c', 0);
+  const key = new THREE.DirectionalLight('#fff4e6', 0);
+  key.position.set(-6, 10, 12);
+  const fill = new THREE.RectAreaLight('#fff5e8', 0, 18, 6);
+  const rim = new THREE.RectAreaLight('#e6efff', 0, 18, 3);
+  scene.add(hemisphere, key, fill, rim);
+  const camera = new THREE.PerspectiveCamera(30, 1, .5, 160);
+  const dust = reduced ? null : createDust(stage, { scene: canvas });
+
+  // Soft sprites drawn once: a round pool, a headlamp's flare, its beam.
+  const sprite = (width, height, draw) => { const c = document.createElement('canvas'); c.width = width; c.height = height; draw(c.getContext('2d'), width, height); const t = new THREE.CanvasTexture(c); t.colorSpace = THREE.SRGBColorSpace; filterTexture(t, anisotropy); return t; };
+  const radial = (stops) => sprite(256, 256, (g, w, h) => { const r = g.createRadialGradient(w / 2, h / 2, 0, w / 2, h / 2, w / 2); stops.forEach(([at, color]) => r.addColorStop(at, color)); g.fillStyle = r; g.fillRect(0, 0, w, h); });
+  const poolTexture = radial([[0, 'rgba(255,240,214,1)'], [.35, 'rgba(255,232,200,.55)'], [.7, 'rgba(255,225,190,.14)'], [1, 'rgba(255,225,190,0)']]);
+  const flareTexture = radial([[0, 'rgba(255,255,255,1)'], [.08, 'rgba(236,244,255,.95)'], [.25, 'rgba(200,220,255,.32)'], [.6, 'rgba(170,200,255,.06)'], [1, 'rgba(170,200,255,0)']]);
+  // A headlamp's throw on the floor, drawn pixel by pixel: a cone that
+  // widens away from the lamp, soft at its edges, fading as it goes.
+  const beamTexture = sprite(128, 256, (g, w, h) => {
+    const image = g.createImageData(w, h);
+    for (let y = 0; y < h; y++) for (let x = 0; x < w; x++) {
+      const v = y / (h - 1), u = Math.abs(x / (w - 1) * 2 - 1), spread = .14 + .86 * v;
+      const side = Math.max(0, 1 - u / spread), across = side * side * (3 - 2 * side);
+      const along = Math.min(1, v / .06) * (1 - v) ** 1.8;
+      const i = (y * w + x) * 4;
+      image.data.set([226, 236, 255, Math.round(255 * across * along)], i);
+    }
+    g.putImageData(image, 0, 0);
+  });
+  const glow = (texture, extra = {}) => new THREE.MeshBasicMaterial({ map: texture, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false, ...extra });
+
+  // The Baba Luxury Car sign on the back wall, lit from behind: the gold mark
+  // and a warm glow on the wall around it. It glows in the dark from the
+  // start; once the room is white the glow is lost in the light and the mark
+  // stands on its own.
+  const sign = new THREE.Group();
+  const signGlow = glow(radial([[0, 'rgba(255,190,110,.75)'], [.4, 'rgba(255,170,90,.2)'], [1, 'rgba(255,170,90,0)']]));
+  const signMark = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0, depthWrite: false, toneMapped: false, color: new THREE.Color(1, 1, 1) });
+  const ASPECT = 1200 / 376;
+  const markPlane = new THREE.Mesh(new THREE.PlaneGeometry(1, 1 / ASPECT), signMark);
+  const glowPlane = new THREE.Mesh(new THREE.PlaneGeometry(1.9, 3 / ASPECT), signGlow);
+  glowPlane.position.z = -.02; glowPlane.renderOrder = 0; markPlane.renderOrder = 1;
+  sign.add(glowPlane, markPlane);
+  scene.add(sign);
+  new THREE.TextureLoader().loadAsync('/brand/baba-luxury-car.png').then(texture => {
+    if (disposed) { texture.dispose(); return; }
+    texture.colorSpace = THREE.SRGBColorSpace; filterTexture(texture, anisotropy);
+    textures.push(texture);
+    signMark.map = texture; signMark.needsUpdate = true;
+    invalidate();
+  }).catch(error => console.warn('The sign is unavailable.', error));
+  const placeSign = () => {
+    const { position, width, yaw } = lightsLogo[view];
+    sign.position.set(...position); sign.rotation.y = yaw; sign.scale.setScalar(width);
+  };
+
+  const ids = lightsVehicles.map(entry => entry.id);
+  const paths = Object.fromEntries(Object.entries(lightsCamera).map(([name, frames]) => [name, createCameraPath(frames)]));
+  let view = TALL.matches ? 'tall' : 'wide', marks = lightsMarks(view);
+  const vehicles = new Map(), textures = [poolTexture, flareTexture, beamTexture];
+  // Each car's own light: an overhead panel and the pool it throws.
+  const bays = new Map(ids.map(id => {
+    const panel = new THREE.RectAreaLight('#fff3e2', 0, 3, 5.6);
+    const pool = new THREE.Mesh(new THREE.PlaneGeometry(9, 9), glow(poolTexture));
+    pool.rotation.x = -Math.PI / 2; pool.renderOrder = 0;
+    scene.add(panel, pool);
+    return [id, { panel, pool }];
+  }));
+  const playhead = { progress: 0 };
+  let size = { w: 1, h: 1 }, fit = { zoom: 1, offset: [0, 0] };
+  let active = false, ready = false, rendered = false, dirty = true, raf = 0, dark = null;
+  const density = createRenderDensity({ mobile: innerWidth <= 760 });
+  let ratio = density.ratio(innerWidth, innerHeight);
+
+  function place() {
+    marks = lightsMarks(view);
+    placeSign();
+    // Rotate the softboxes with the bays; car, sign and camera positions
+    // continue to come exclusively from the existing storyboard.
+    const rotation = new THREE.Matrix4().makeRotationY(marks[ids[0]].yaw);
+    fill.position.set(-4.5, 5, 7).applyMatrix4(rotation); fill.lookAt(0, .8, 0);
+    rim.position.set(5.5, 4, -5).applyMatrix4(rotation); rim.lookAt(0, 1, 0);
+    for (const [id, bay] of bays) {
+      const { position: [x, , z], yaw } = marks[id];
+      bay.panel.position.set(x, 4.6, z);
+      bay.panel.up.set(Math.sin(yaw), 0, Math.cos(yaw));
+      bay.panel.lookAt(x, 0, z);
+      bay.pool.position.set(x, .005, z);
+      const car = vehicles.get(id);
+      if (car) { car.holder.position.set(x, 0, z); car.holder.rotation.y = yaw; }
+    }
+  }
+  place();
+
+  function invalidate() { dirty = true; if (!raf && active && ready && !disposed && !document.hidden) raf = requestAnimationFrame(draw); }
+  function draw(now) {
+    raf = 0;
+    if (!dirty || !active || !ready || disposed) return;
+    dirty = false;
+    if (density.slow(now) && density.step(size.w, size.h)) { ratio = density.ratio(size.w, size.h); applySize(); }
+    output.render(scene, camera);
+    if (!rendered) { rendered = true; stage.classList.add('is-rendered'); }
+  }
+  function applySize() {
+    renderer.setPixelRatio(ratio); renderer.setSize(size.w, size.h, false);
+    output.setSize(canvas.width, canvas.height);
+  }
+
+  // The last frame: the cars as large as the space between the header
+  // and the words' bar allows, a little below its middle.
+  function layout() {
+    if (disposed) return;
+    const wanted = TALL.matches ? 'tall' : 'wide';
+    if (wanted !== view) { view = wanted; place(); }
+    size = { w: canvas.clientWidth || innerWidth, h: canvas.clientHeight || innerHeight };
+    ratio = density.ratio(size.w, size.h); applySize();
+    const { w, h } = size, tall = view === 'tall';
+    const boxes = ids.map(id => carCorners(marks[id], vehicleParts[id].size));
+    const shot = paths[view](LIGHTS.anchor);
+    const region = { left: w * (tall ? .03 : .035), right: w * (tall ? .97 : .965), top: header.offsetHeight + h * (tall ? .02 : .035), bottom: copy.offsetTop - (tall ? h * .025 : Math.min(40, h * .05)) };
+    fit = fitFrame({ shot, width: w, height: h, region, boxes });
+    const spare = region.bottom - fit.bounds.bottom;
+    if (spare > 8) fit = fitFrame({ shot, width: w, height: h, region: { ...region, top: fit.bounds.top + spare * .65 }, boxes, align: 'top' });
+    render();
+  }
+
+  // Everything the light does at a playhead.
+  const lamp = new THREE.Vector3();
+  function light(p) {
+    const roomUp = roomLevel(p), lamps = lampLevel(p);
+    const mix = (a, b) => a + (b - a) * roomUp;
+    scene.environmentIntensity = mix(LIGHT.environmentDark, LIGHT.environment);
+    hemisphere.intensity = mix(LIGHT.hemisphereDark, LIGHT.hemisphere);
+    key.intensity = mix(LIGHT.keyDark, LIGHT.key);
+    fill.intensity = mix(LIGHT.fillDark, LIGHT.fill);
+    rim.intensity = mix(LIGHT.rimDark, LIGHT.rim);
+    ids.forEach((id, i) => {
+      const bay = bays.get(id), own = bayLevel(p, i), level = Math.max(own, roomUp);
+      bay.panel.intensity = level * mix(LIGHT.panelDark, LIGHT.panelLit);
+      bay.pool.material.opacity = own * LIGHT.pool * (1 - roomUp);
+      const entry = vehicles.get(id);
+      if (!entry) return;
+      entry.beams.forEach(beam => { beam.material.opacity = LIGHT.beam * Math.max(0, 1 - roomUp * 2.2); });
+      // A lamp glares only towards the camera it faces; seen from the side
+      // it dims, as a real one does.
+      const yaw = marks[id].yaw;
+      entry.flares.forEach(flare => {
+        flare.getWorldPosition(lamp);
+        const facing = (Math.sin(yaw) * (camera.position.x - lamp.x) + Math.cos(yaw) * (camera.position.z - lamp.z)) / Math.hypot(camera.position.x - lamp.x, camera.position.z - lamp.z);
+        const f = Math.min(1, Math.max(0, (facing - .55) / .3));
+        flare.material.opacity = lamps * LIGHT.flare * f * f * (3 - 2 * f);
+      });
+      entry.shadow.opacity = LIGHT.shadow * Math.max(.22, roomUp, own * .7);
+      entry.car.setHeadlights(.25 + lamps * .75);
+    });
+    // The sign: lit throughout, its glow fading as the room comes up.
+    signMark.opacity = signMark.map ? 1 : 0;
+    signGlow.opacity = LIGHT.signGlow * (1 - roomUp);
+    // The room itself, from black to the white of the page, and the header
+    // with it.
+    const tone = roomUp ** 1.4;
+    section.style.backgroundColor = `rgb(${DARK.map((c, i) => Math.round(c + (WHITE[i] - c) * tone)).join(',')})`;
+    const isDark = roomUp < .5;
+    if (isDark !== dark) { dark = isDark; section.classList.toggle('is-dark', dark); document.dispatchEvent(new CustomEvent('stage:tone')); }
+  }
+
+  // The words: the bar's hairline draws, the lines rise out of their masks,
+  // then the action.
+  const words = gsap.timeline({ paused: true, defaults: { ease: 'expo.out' } })
+    .fromTo(copy, { '--rule': 0 }, { '--rule': 1, duration: 1.4, ease: 'expo.inOut' }, 0)
+    .fromTo(copy.querySelector('.fleet-rule'), { scaleX: 0 }, { scaleX: 1, duration: 1.1 }, .15)
+    .fromTo(copy.querySelectorAll('.fleet-eyebrow'), { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: .9 }, .05)
+    .fromTo(copy.querySelectorAll('.fl-line > span'), { yPercent: 135, autoAlpha: 0 }, { yPercent: 0, autoAlpha: 1, duration: 1.25, stagger: .09 }, .1)
+    .fromTo(copy.querySelectorAll('.fleet-note, .fleet-actions'), { autoAlpha: 0, y: 18 }, { autoAlpha: 1, y: 0, duration: 1, stagger: .08 }, .42);
+  let wordsShown = false;
+  const showWords = on => { if (on === wordsShown) return; wordsShown = on; on ? words.timeScale(1).play() : words.timeScale(1.8).reverse(); };
+
+  function render() {
+    if (disposed) return;
+    const p = playhead.progress;
+    // The camera's own framing while it tracks; the fitted frame as it
+    // swings back to see them all.
+    const t = smooth(interval(p, LIGHTS.room[0], LIGHTS.anchor));
+    frameCamera(camera, paths[view](p), size.w, size.h, { zoom: 1 + (fit.zoom - 1) * t, offset: fit.offset.map(v => v * t) });
+    light(p);
+    showWords(p >= LIGHTS.words);
+    invalidate();
+    if (import.meta.env.DEV) window.__fleetProgress = p;
+  }
+
+  const pin = ScrollTrigger.create({ trigger: section, start: 'top top', end: () => `+=${innerHeight * PINNED}`, pin: true, anticipatePin: 1, invalidateOnRefresh: true });
+  const timeline = gsap.timeline({
+    scrollTrigger: {
+      trigger: section, start: 'top bottom', end: () => `+=${innerHeight * (1 + PINNED) + section.offsetHeight}`,
+      scrub: .7, invalidateOnRefresh: true,
+      onToggle: self => { active = self.isActive; if (active) invalidate(); },
+      onRefresh: self => { active = self.isActive; layout(); },
+    },
+  }).to(playhead, { progress: 1, duration: 1, ease: 'none', onUpdate: render });
+  const scrollPosition = progress => { const st = timeline.scrollTrigger; return st.start + (st.end - st.start) * progress; };
+  function scrollTo(progress = LIGHTS.anchor, instant = false) {
+    const smoother = ScrollSmoother.get(), y = scrollPosition(progress);
+    if (smoother) smoother.scrollTo(y, !instant); else window.scrollTo({ top: y, behavior: instant ? 'instant' : 'smooth' });
+  }
+
+  const nextFrame = () => new Promise(resolve => requestAnimationFrame(() => resolve()));
+  async function load() {
+    const loader = new THREE.TextureLoader();
+    await Promise.all(lightsVehicles.map(async ({ id, paint }) => {
+      const item = showcase.find(entry => entry.id === id);
+      const spec = { ...models[id], partMap: { ...vehicleParts[id], plates: [] } };
+      const [car, shadowTexture] = await Promise.all([loadCar(spec, paint ?? item.paint, { invalidate }), loader.loadAsync(spec.shadow)]);
+      textures.push(shadowTexture);
+      if (disposed) return;
+      filterTexture(shadowTexture, anisotropy);
+      const filtered = new Set();
+      car.root.traverse(node => {
+        if (!node.isMesh) return;
+        for (const material of [node.material].flat()) {
+          // Dither the final display values, not the low light HDR values.
+          if (hdr) material.dithering = false;
+          for (const value of Object.values(material)) {
+            if (!value?.isTexture || filtered.has(value)) continue;
+            filtered.add(value); filterTexture(value, anisotropy);
+          }
+          // Three's derivative-based geometric roughness and the paint's
+          // subpixel flake filtering stay active. Give lacquer a small
+          // roughness floor as well, so tiny highlights remain stable.
+          if (material.clearcoat > 0) material.clearcoatRoughness = Math.max(material.clearcoatRoughness, .07);
+        }
+      });
+      const holder = new THREE.Group();
+      const shadow = new THREE.MeshBasicMaterial({ color: '#2a251e', alphaMap: shadowTexture, transparent: true, opacity: 0, depthWrite: false, dithering: !hdr });
+      const ground = new THREE.Mesh(new THREE.PlaneGeometry(3.6, 6.8), shadow);
+      ground.rotation.x = -Math.PI / 2; ground.position.y = .004; ground.renderOrder = 1;
+      // Headlamps: a flare at each lamp, and its beam on the floor ahead.
+      const { headlamps, size: [, , length] } = vehicleParts[id];
+      const flares = lampAnchors(car, headlamps).map(position => { const flare = new THREE.Sprite(new THREE.SpriteMaterial({ map: flareTexture, transparent: true, opacity: 0, depthWrite: false, blending: THREE.AdditiveBlending, toneMapped: false })); flare.position.copy(position); flare.position.z += .025; flare.scale.setScalar(.45); flare.renderOrder = 4; return flare; });
+      const beams = headlamps.map(([x]) => { const beam = new THREE.Mesh(new THREE.PlaneGeometry(3.2, 7.5), glow(beamTexture)); beam.rotation.x = -Math.PI / 2; beam.position.set(x * 1.15, .007, length / 2 + 3.55); beam.renderOrder = 0; return beam; });
+      holder.add(car.root, ground, ...flares, ...beams);
+      car.setCabinLight(.55);
+      car.root.traverse(node => { if (node.isRectAreaLight) node.visible = false; });
+      vehicles.set(id, { car, holder, shadow, flares, beams });
+      scene.add(holder);
+    }));
+    if (disposed) return;
+    place();
+    render();
+    await studio;
+    if (disposed) return;
+    // The shaders and textures a little at a time, so nothing stalls.
+    const toneMapping = renderer.toneMapping;
+    if (hdr) renderer.toneMapping = THREE.NoToneMapping;
+    try {
+      for (const { holder } of vehicles.values()) {
+        await renderer.compileAsync(holder, camera, scene);
+        await nextFrame();
+        if (disposed) return;
+      }
+    } finally {
+      renderer.toneMapping = toneMapping;
+    }
+    ready = true; invalidate();
+  }
+  const loaded = load().catch(error => { console.error('The lights-on drive is unavailable; keeping the stills.', error); section.classList.remove('is-dark'); });
+
+  const resizeObserver = new ResizeObserver(() => { if (!disposed) layout(); });
+  resizeObserver.observe(canvas); resizeObserver.observe(copy);
+  const onVisible = () => { if (!document.hidden) invalidate(); };
+  document.addEventListener('visibilitychange', onVisible);
+  const onLost = event => { event.preventDefault(); ready = false; stage.classList.remove('is-rendered'); };
+  canvas.addEventListener('webglcontextlost', onLost);
+  layout();
+
+  const api = {
+    loaded,
+    scrollTo,
+    snapshot: () => ({
+      ready, rendered, active, progress: playhead.progress, view, dark,
+      vehicles: ids.filter(id => vehicles.has(id)).map(id => ({ id, position: vehicles.get(id).holder.position.toArray() })),
+      lights: ids.map((id, i) => +bayLevel(playhead.progress, i).toFixed(3)),
+      words: wordsShown, pinned: pin.isActive,
+      quality: { ...output.quality, anisotropy, pixelRatio: ratio },
+    }),
+    setProgress(p) { playhead.progress = p; render(); },
+    dispose() {
+      disposed = true; cancelAnimationFrame(raf);
+      words.kill(); pin.kill(true); timeline.scrollTrigger?.kill(); timeline.kill();
+      resizeObserver.disconnect(); document.removeEventListener('visibilitychange', onVisible);
+      canvas.removeEventListener('webglcontextlost', onLost);
+      section.classList.remove('is-drive', 'is-lights', 'is-dark'); stage.classList.remove('is-rendered');
+      section.style.removeProperty('background-color');
+      gsap.set(copy.querySelectorAll('.fleet-rule, .fleet-eyebrow, .fl-line > span, .fleet-note, .fleet-actions'), { clearProps: 'all' });
+      copy.style.removeProperty('--rule');
+      dust?.dispose();
+      const geometries = new Set(), materials = new Set();
+      scene.traverse(o => { if (o.geometry) geometries.add(o.geometry); if (o.material) [o.material].flat().forEach(m => materials.add(m)); });
+      materials.forEach(m => { Object.values(m).forEach(v => { if (v?.isTexture) v.dispose(); }); m.dispose(); });
+      geometries.forEach(g => g.dispose()); textures.forEach(t => t.dispose());
+      output.dispose(); environment.dispose(); renderer.dispose();
+      document.dispatchEvent(new CustomEvent('stage:tone'));
+      if (import.meta.env.DEV) delete window.__fleet;
+    },
+  };
+  if (import.meta.env.DEV) window.__fleet = {
+    snapshot: api.snapshot, setProgress: api.setProgress, scrollTo: p => scrollTo(p, true),
+    tune(values) { Object.assign(LIGHT, values); renderer.toneMappingExposure = LIGHT.exposure; scene.environmentRotation.y = LIGHT.rotation; render(); return { ...LIGHT }; },
+  };
+  return api;
+}

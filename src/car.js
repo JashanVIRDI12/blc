@@ -18,6 +18,8 @@ const WHEELS = ["Wheel_FL", "Wheel_FR", "Wheel_RL", "Wheel_RR"];
 const FINISH = {
   metallic: { metalness: 0.6, roughness: 0.32 },
   solid: { metalness: 0.0, roughness: 0.34, specularIntensity: 0.4 },
+  // A matte ("Frozen") finish: satin lacquer, no gloss coat.
+  matte: { metalness: 0.45, roughness: 0.5, clearcoat: 0.12, clearcoatRoughness: 0.5 },
 };
 
 const easeOpen = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);

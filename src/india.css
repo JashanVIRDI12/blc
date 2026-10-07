@@ -1,0 +1,114 @@
+/* Across India: a scroll-led atlas, with real handovers alongside it. */
+.india{position:relative;color:var(--ivory);background:#080809;isolation:isolate;overflow:clip}
+.india:before{content:'';position:absolute;inset:0;z-index:-1;pointer-events:none;background:radial-gradient(ellipse at 76% 47%,#a6753320,transparent 53%)}
+.india-story{position:relative;display:grid;gap:30px;padding:calc(var(--header-height) + 40px) var(--gutter) 40px}
+.india-heading{display:flex;align-items:flex-end;justify-content:space-between;gap:32px}
+.india .eyebrow{font-size:10px;letter-spacing:.22em;color:#be995f}
+.india h2{margin:14px 0 0;font-size:clamp(60px,7.1vw,112px);line-height:.93;letter-spacing:-.045em;white-space:nowrap;color:#f0ece3}
+.india h2 em{font-weight:350;color:#d5b27b}
+.india-intro{max-width:42ch;margin:0 0 4px;font:400 13px/1.85 var(--font-text);color:#a4a09a}
+.india-journey-grid{min-height:0;display:grid;grid-template-columns:minmax(260px,.8fr) minmax(0,1.5fr);align-items:stretch;gap:clamp(40px,5vw,90px)}
+.india-gallery{align-self:center;width:100%;max-width:390px;min-width:0}
+.india-gallery[hidden]{display:none}
+.india.has-no-photos .india-journey-grid{grid-template-columns:1fr}
+.india.has-no-photos .india-map{max-width:900px;margin:auto;width:100%}
+.journey-gallery-head{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:14px}
+.journey-gallery-head p,.journey-gallery-head span{margin:0;font:500 10px/1.5 var(--font-text);letter-spacing:.18em;text-transform:uppercase;color:#b6a389}
+.journey-gallery-head span{color:#8c857c;font-variant-numeric:tabular-nums;letter-spacing:.08em}
+.journey-gallery-figure{margin:0}
+.journey-gallery-frame{position:relative;width:100%;aspect-ratio:1/1;overflow:hidden;background:#111112;border:1px solid #d8b57929;box-shadow:0 26px 70px #0006}
+.journey-slide{position:absolute;inset:0;display:block;visibility:hidden;opacity:0;pointer-events:none;transform:translateX(10px);transition:opacity .55s ease,transform .7s cubic-bezier(.22,1,.36,1),visibility .55s;outline-offset:-5px}
+.journey-slide.is-active{visibility:visible;opacity:1;pointer-events:auto;transform:translateX(0)}
+.journey-slide img{display:block;width:100%;height:100%;object-fit:contain}
+.journey-photo-open{position:absolute;right:12px;bottom:12px;display:flex;gap:12px;align-items:center;padding:9px 12px;background:#080809dc;border:1px solid #ffffff23;backdrop-filter:blur(12px);font:500 11px/1.4 var(--font-text);letter-spacing:.02em;color:#f0ece3;transition:background .3s}
+.journey-photo-open svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:1.2}
+.journey-slide:hover .journey-photo-open{background:#080809}
+.india-gallery.is-opening .journey-photo-open{opacity:.5}
+.journey-gallery-caption{display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding-top:18px}
+.journey-gallery-caption p{margin:0;font:500 9px/1.5 var(--font-text);letter-spacing:.17em;text-transform:uppercase;color:#b6a389}
+.journey-gallery-caption h3{margin:5px 0 0;font:400 clamp(26px,2.4vw,36px)/1.06 var(--font-display);letter-spacing:-.025em;color:#f0ece3}
+.journey-gallery-caption .journey-gallery-note{margin-top:9px;font:400 10px/1.6 var(--font-text);letter-spacing:0;text-transform:none;color:#8e8b85}
+.journey-gallery-arrows{flex:none;display:flex;gap:5px;margin-top:4px}
+.journey-gallery-arrows button{display:grid;place-items:center;width:36px;height:36px;border:1px solid #d8b5792e;border-radius:50%;background:transparent;color:#d5b27b;font:300 20px/1 var(--font-text);cursor:pointer;transition:background .25s,border-color .25s}
+.journey-gallery-arrows button:hover{background:#d5b27b12;border-color:#d5b27b80}
+.journey-gallery-thumbs{position:relative;display:flex;gap:9px;margin-top:18px;overflow-x:auto;scrollbar-width:thin;scrollbar-color:#9d7b474d transparent;padding:3px 0 6px}
+.journey-gallery-thumbs button{position:relative;flex:0 0 calc((100% - 18px)/3);height:56px;overflow:hidden;border:1px solid transparent;background:#181616;cursor:pointer;opacity:.45;transition:opacity .3s,border-color .3s;padding:0}
+.journey-gallery-thumbs button[aria-pressed=true],.journey-gallery-thumbs button:hover{opacity:1;border-color:#d5b27b}
+.journey-gallery-thumbs img{display:block;width:100%;height:100%;object-fit:cover;object-position:center 50%}
+.journey-gallery-thumbs span{position:absolute;inset:auto 0 0;padding:5px 4px;background:linear-gradient(transparent,#000d);font:500 10px/1.3 var(--font-text);color:#fff;text-overflow:ellipsis;white-space:nowrap;overflow:hidden}
+.journey-lightbox-caption{position:absolute;bottom:20px;left:64px;right:64px;text-align:center;font:400 13px/1.6 var(--font-text);color:#e4ddd1;pointer-events:none}
+.pswp{--pswp-bg:#080809;--pswp-icon-color:#e7d2ae;--pswp-icon-color-secondary:#080809;--pswp-icon-stroke-color:#080809}
+.india-map{position:relative;min-width:0;display:flex;flex-direction:column}
+.india-map-stage{position:relative;flex:1;min-height:430px;isolation:isolate}
+.india-map canvas{position:absolute;inset:0;display:block;width:100%;height:100%;touch-action:pan-y}
+.india-map-overline{position:absolute;z-index:1;top:0;left:0;right:0;display:flex;justify-content:space-between;gap:20px;margin:0;font:500 9px/1.5 var(--font-text);letter-spacing:.17em;text-transform:uppercase;color:#a79882;pointer-events:none}
+.india-map-overline span{color:#716b63}
+.india-map-tools{display:flex;justify-content:space-between;align-items:center;gap:12px 20px;padding:13px 0 0;border-top:1px solid #d5b27b23}
+.india-map-hint{margin:0;font:400 11px/1.6 var(--font-text);color:#a19a90;letter-spacing:.02em}
+.india-hint-touch{display:none}
+.india-map-tools select{max-width:100%;min-width:0;width:auto;margin:0;padding:9px 30px 9px 12px;border:1px solid #d5b27b2e;border-radius:0;font:500 11px/1.5 var(--font-text);color:#d7d1c7;background:#101010;color-scheme:dark;cursor:pointer}
+.india :focus-visible{outline:2px solid #d5b27b;outline-offset:4px}
+.india-foot{display:flex;align-items:center;justify-content:space-between;gap:32px;padding-top:22px;border-top:1px solid #d5b27b23}
+.india-origin{display:flex;align-items:center;gap:14px}
+.india-origin>i{flex:none;width:6px;height:6px;background:#d5b27b;border-radius:50%;box-shadow:0 0 14px #d5b27b50}
+.india-origin p{margin:0;font:500 8px/1.5 var(--font-text);letter-spacing:.16em;text-transform:uppercase;color:#8e8271}
+.india-origin strong{display:block;margin-top:6px;font:400 14px/1.5 var(--font-text);color:#c8c1b6}
+.india-stats{display:flex;gap:clamp(28px,3.5vw,56px);margin:0}
+.india-stats>div{display:flex;align-items:center;gap:12px;flex-direction:row-reverse}
+.india-stats dt{max-width:70px;font:500 8px/1.55 var(--font-text);letter-spacing:.12em;text-transform:uppercase;color:#8b857c}
+.india-stats dd{margin:0;font:350 34px/1 var(--font-display);font-variant-numeric:lining-nums tabular-nums;color:#ddd5c8}
+.india-scroll-cue{display:flex;align-items:center;gap:16px;font:500 8px/1.5 var(--font-text);letter-spacing:.1em;text-transform:uppercase;color:#a79882}
+.india-scroll-cue i{display:block;width:56px;height:1px;transform-origin:left;background:linear-gradient(90deg,#d5b27b var(--journey-progress,0%),#d5b27b29 var(--journey-progress,0%))}
+.india-card{position:absolute;z-index:2;left:10px;top:10px;width:230px;max-width:calc(100% - 20px);margin:0;border:1px solid #d5b27b45;background:#151311ed;backdrop-filter:blur(14px);box-shadow:0 16px 48px #0008;visibility:hidden;opacity:0;pointer-events:none;transition:opacity .2s ease,visibility .2s;max-height:calc(100% - 20px);overflow:auto;overscroll-behavior:contain}
+.india-card.is-visible{visibility:visible;opacity:1;pointer-events:auto}
+.india-card-photo{display:none;aspect-ratio:16/10;background:#211e19}
+.india-card.has-photo:not(.is-handover) .india-card-photo{display:block}
+.india-card-photo img{display:block;width:100%;height:100%;object-fit:cover}
+.india-card-copy{padding:18px}
+.india-card-kicker{margin:0 24px 8px 0;font:500 8px/1.5 var(--font-text);letter-spacing:.15em;text-transform:uppercase;color:#d5b27b}
+.india-card h3{margin:0;font:400 27px/1.12 var(--font-display);letter-spacing:-.02em;color:#f0ece3;overflow-wrap:anywhere}
+.india-card-meta,.india-card-caption{margin:10px 0 0;font:400 10px/1.65 var(--font-text);color:#a4a09a}
+.india-card-caption:empty{display:none}
+.india-card-car{display:block;margin-top:14px;padding-top:12px;border-top:1px solid #d5b27b2b;font:500 10px/1.6 var(--font-text);color:#d5b27b;text-decoration:none}
+.india-card-car[hidden]{display:none}
+.india-card-car:hover{text-decoration:underline;text-underline-offset:4px}
+.india-card-close{position:absolute;right:5px;top:5px;z-index:1;display:grid;place-items:center;width:32px;height:32px;padding:0;border:1px solid #ffffff24;border-radius:50%;background:#100e0cde;color:#eee7da;font:300 22px/1 var(--font-text);cursor:pointer}
+@media(min-width:1001px) and (min-height:800px){
+  .india-story{height:100svh;grid-template-rows:auto minmax(0,1fr) auto;gap:clamp(20px,2.6vh,32px);padding-top:calc(var(--header-height) + 25px);padding-bottom:28px}
+  .india-map-stage{min-height:0}
+  .india-gallery{max-width:min(390px,39vh)}
+}
+@media(max-width:1000px),(max-height:799px){
+  .india-story{padding-top:110px}
+  .india-map-stage{min-height:560px}
+  .india-scroll-cue{display:none}
+}
+@media(max-width:760px){
+  .india-story{gap:30px;padding:100px var(--gutter) 40px}
+  .india-heading{display:block}
+  .india h2{font-size:clamp(50px,13.5vw,92px);margin-top:16px}
+  .india-intro{max-width:46ch;margin-top:22px;font-size:12px;line-height:1.8}
+  .india-journey-grid{display:flex;flex-direction:column;gap:46px}
+  .india-map{order:0}
+  .india-gallery{order:1;max-width:440px;align-self:center}
+  .india-map-stage{min-height:0;height:clamp(350px,103vw,640px);margin:0 -12px}
+  .india-map-overline{left:12px;right:12px;font-size:7px}
+  .india-map-overline span{max-width:100px;text-align:right}
+  .india-map-tools{gap:10px}
+  .india-map-hint{font-size:9px;max-width:110px}
+  .india-map-tools select{font-size:10px;max-width:190px}
+  .journey-gallery-caption h3{font-size:32px}
+  .journey-gallery-arrows button{width:42px;height:42px}
+  .journey-gallery-thumbs button{height:64px}
+  .journey-gallery-head p{font-size:9px}
+  .india-foot{display:grid;gap:22px;padding-top:26px}
+  .india-stats{gap:30px;justify-content:space-between}
+  .india-stats>div{display:block}
+  .india-stats dt{max-width:80px;font-size:8px}
+  .india-stats dd{margin-top:6px;font-size:32px}
+  .india-origin strong{font-size:13px}
+  .india-card{width:218px}
+  .journey-lightbox-caption{left:20px;right:20px;font-size:12px}
+}
+@media(hover:none){.india-hint-hover{display:none}.india-hint-touch{display:inline}.india-card-close{width:40px;height:40px}}
+@media(prefers-reduced-motion:reduce){.india-card,.journey-slide{transition:none}.india-scroll-cue{display:none}}

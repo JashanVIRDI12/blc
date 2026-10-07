@@ -312,4 +312,57 @@ export const models = {
       defender_lamp_lens: { color: 0xe8eef2, metalness: 0, roughness: 0.05 },
     },
   },
+
+  // The collection drive's cars (tools/prep-fleet.mjs; src/fleet-drive.js).
+  // Seen from 15 m and more on a white stage, so only the paint, glass, lamps
+  // and tyres are restyled; the rest keeps its authored finish.
+  // Mercedes-Maybach S 580: the Maybach two-tone, its upper tone as authored.
+  sclass: {
+    url: "/models/sclass.glb",
+    shadow: "/models/sclass-shadow.jpg",
+    still: "/stills/sclass.webp",
+    paint: "sclass_paint",
+    openings: {},
+    ambient: {},
+    parts: {
+      sclass_paint_upper: { color: 0xb59a68, metalness: 0.75, roughness: 0.3, clearcoat: 1, clearcoatRoughness: 0.03 },
+      sclass_glass: GLASS,
+      sclass_tail_lens: { color: 0x7a0a12, emissive: 0x3c0308, emissiveIntensity: 0.4, metalness: 0, roughness: 0.08, clearcoat: 1, transparent: true, opacity: 0.85 },
+      sclass_tyre: { color: 0x151515, metalness: 0, roughness: 0.88 },
+      sclass_tyre_wall: { color: 0x1a1a1a, metalness: 0, roughness: 0.82 },
+    },
+  },
+  // BMW i7 M70 xDrive, converted from the supplied FBX (tools/fbx-to-glb.py).
+  i7: {
+    url: "/models/i7.glb",
+    shadow: "/models/i7-shadow.jpg",
+    still: "/stills/i7.webp",
+    paint: "i7_paint",
+    openings: {},
+    ambient: {},
+    parts: {
+      i7_glass: GLASS,
+      i7_lamp_lens: { color: 0xe8eef2, metalness: 0, roughness: 0.05, transparent: true, opacity: 0.35 },
+      i7_tail: { color: 0x7a0a12, emissive: 0x5a0408, emissiveIntensity: 0.6, metalness: 0, roughness: 0.1, clearcoat: 1 },
+      i7_drl: { color: 0xf4f7ff, emissive: 0xdfe8ff, emissiveIntensity: 0.6, roughness: 0.2 },
+      i7_tyre: { color: 0x151515, metalness: 0, roughness: 0.88 },
+      i7_tyre_wall: { color: 0x181818, metalness: 0, roughness: 0.8 },
+      // The M70's wheels: dark, polished alloy.
+      i7_rim: { color: 0x2c2e31, metalness: 0.85, roughness: 0.24 },
+    },
+  },
+  // Toyota Land Cruiser 300.
+  landcruiser: {
+    url: "/models/landcruiser.glb",
+    shadow: "/models/landcruiser-shadow.jpg",
+    still: "/stills/landcruiser.webp",
+    paint: "lc_paint",
+    openings: {},
+    ambient: {},
+    parts: {
+      lc_glass: GLASS,
+      lc_lamp_lens: { color: 0xe8eef2, metalness: 0, roughness: 0.05, transparent: true, opacity: 0.35 },
+      lc_tail_lens: { color: 0x7a0a12, emissive: 0x3c0308, emissiveIntensity: 0.4, metalness: 0, roughness: 0.08, clearcoat: 1, transparent: true, opacity: 0.85 },
+    },
+  },
 };

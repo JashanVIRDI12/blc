@@ -1,0 +1,96 @@
+/* The light pages (the collection and each car): white and ivory paper, ink
+   type, the logo's gold kept for small accents, and black bands for rhythm.
+   Cards, forms and dialogs follow; the footer stays black. */
+.theme-light{
+  --paper:#fff;
+  --ivory-paper:#f6f4ef;
+  --ink:#111;
+  --ink-2:#2b2926;
+  --muted:#6a655d;
+  --muted-2:#8c877e;
+  --hair:rgba(17,17,17,.1);
+  --hair-2:rgba(17,17,17,.18);
+  --gold-ink:#93662e;
+  --tile:radial-gradient(120% 95% at 50% 12%,#fff 0%,#f2efe9 52%,#e5e1d9 100%);
+  color:var(--ink);
+  background:var(--paper);
+}
+.theme-light ::selection{background:rgba(196,136,58,.24);color:var(--ink)}
+.theme-light :focus-visible{outline-color:var(--gold-ink)}
+.theme-light main{background:var(--paper)}
+.theme-light .eyebrow{color:var(--gold-ink)}
+.theme-light .intro{color:var(--muted)}
+.theme-light .text-link{color:var(--ink);background-image:linear-gradient(var(--gold-ink),var(--gold-ink))}
+.theme-light .outline-button{color:var(--ink);border-color:var(--hair-2);border-radius:999px}
+.theme-light .outline-button:hover{border-color:var(--ink);background-color:transparent}
+/* Black bands within the white. */
+.band-dark{color:var(--ivory);background:#0b0b0c}
+.theme-light .site-footer{color:var(--ivory)}
+
+/* The ink button: the one thing to do next, on paper. */
+.ink-button{position:relative;display:inline-flex;align-items:center;justify-content:center;gap:14px;min-height:54px;padding:0 28px;font:600 13.5px/1 var(--font-text);letter-spacing:.04em;color:#fff;background:#111;border-radius:999px;transition:background-color .4s,gap .5s var(--ease)}
+.ink-button:hover{gap:20px;background:#000}
+.ink-link{display:inline-flex;align-items:center;padding:8px 0 6px;font:600 13px/1.2 var(--font-text);letter-spacing:.03em;color:var(--ink);background:linear-gradient(var(--gold-ink),var(--gold-ink)) 0 100%/100% 1px no-repeat;transition:background-size .5s var(--ease)}
+.ink-link:hover{background-size:40% 1px}
+
+/* Header: white glass from the start. Over the black menu it turns light. */
+.menu-open .site-header.is-light{color:var(--ivory)}
+.menu-open .site-header.is-light .menu-toggle i{background:var(--ivory)}
+.menu-open .site-header.is-light .enquire-link{color:var(--ivory)}
+.theme-light .site-header.is-light .enquire-link{border-radius:999px}
+.theme-light .site-header:before{background:var(--hair)}
+.theme-light .site-header.is-light{background:rgba(255,255,255,.95);-webkit-backdrop-filter:blur(18px) saturate(1.4);backdrop-filter:blur(18px) saturate(1.4)}
+.menu-open.theme-light .site-header.is-light{background:transparent;-webkit-backdrop-filter:none;backdrop-filter:none}
+
+/* Cards on paper: each car on a pale studio tile with a soft contact shadow. */
+.theme-light .vehicle-visual{background:var(--tile)}
+.theme-light .vehicle-visual:before{left:14%;right:14%;bottom:8%;height:16%;background:radial-gradient(closest-side,rgba(40,32,22,.22),transparent)}
+.theme-light .vehicle-visual:after{opacity:.75}
+.theme-light .glare{background-image:linear-gradient(-45deg,transparent 60%,rgba(255,255,255,.6) 70%,transparent 85%)}
+.theme-light .vehicle-card .make{color:var(--gold-ink)}
+.theme-light .vehicle-name{color:var(--ink)}
+.theme-light .vehicle-name small,.theme-light .vehicle-card .availability{color:var(--muted)}
+.theme-light .vehicle-meta{color:var(--muted);border-top-color:var(--hair)}
+.theme-light .vehicle-meta span+span:before{background:var(--gold-ink)}
+.theme-light .vehicle-keyspecs{border-top-color:var(--hair)}
+.theme-light .vehicle-keyspecs .dt{color:var(--muted-2)}
+.theme-light .vehicle-keyspecs .dd{color:var(--ink)}
+.theme-light .vehicle-price{color:var(--ink)}
+.theme-light .vehicle-price.is-quiet{color:var(--muted)}
+.theme-light .vehicle-note{color:var(--ink-2)}
+.theme-light .view-vehicle{color:var(--ink);background-image:linear-gradient(var(--gold-ink),var(--gold-ink))}
+.theme-light .car-badge{color:var(--ink);background:rgba(255,255,255,.92);border-color:var(--hair);border-radius:999px;padding:7px 12px}
+.theme-light .car-badge[data-tone=new]{color:#fff;background:#111;border-color:#111}
+.theme-light .car-badge[data-tone=coming_soon]{color:var(--gold-ink);border-color:rgba(147,102,46,.45)}
+.theme-light .car-badge[data-tone=reserved]{color:var(--ink-2);border-style:dashed;border-color:var(--hair-2)}
+.theme-light .car-badge[data-tone=sold]{color:#fff;background:#111;border-color:#111}
+.theme-light .car-badge[data-tone=preview]{padding:0;color:var(--muted-2);background:none;border:0;border-radius:0}
+.theme-light .shortlist-button{color:var(--ink);background:rgba(255,255,255,.9);border-color:var(--hair)}
+.theme-light .shortlist-button:hover{border-color:var(--hair-2)}
+.theme-light .shortlist-button[aria-pressed=true]{color:#a5732f;border-color:rgba(165,115,47,.5)}
+.theme-light .vehicle-card.is-skeleton{background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.7) 50%,transparent 70%) 0 0/250% 100%,var(--tile);opacity:1}
+/* …and in a black band, light type around the same tiles. */
+.theme-light .band-dark .vehicle-name,.theme-light .band-dark .vehicle-price,.theme-light .band-dark .vehicle-keyspecs .dd,.theme-light .band-dark .vehicle-note{color:var(--ivory)}
+.theme-light .band-dark .vehicle-card .make{color:var(--gold)}
+.theme-light .band-dark .vehicle-name small,.theme-light .band-dark .vehicle-meta,.theme-light .band-dark .vehicle-card .availability,.theme-light .band-dark .vehicle-keyspecs .dt,.theme-light .band-dark .vehicle-price.is-quiet{color:var(--steel)}
+.theme-light .band-dark .vehicle-meta,.theme-light .band-dark .vehicle-keyspecs{border-top-color:var(--graphite)}
+
+/* Empty states. */
+.theme-light .empty-state p{color:var(--muted)}
+
+/* Forms and dialogs on paper. */
+.theme-light dialog{color:var(--ink);background:#fff;box-shadow:0 50px 120px -30px rgba(0,0,0,.4)}
+.theme-light dialog::backdrop{background:rgba(24,20,16,.36)}
+.theme-light .dialog-close{color:var(--muted)}
+.theme-light .dialog-close:hover{color:var(--ink)}
+.theme-light .editorial-form label{color:var(--muted)}
+.theme-light .editorial-form input:not([type=checkbox]),.theme-light .editorial-form textarea{color:var(--ink);border-bottom-color:var(--hair-2);background-image:linear-gradient(var(--gold-ink),var(--gold-ink))}
+.theme-light .editorial-form ::placeholder{color:#aaa59c}
+.theme-light .editorial-form .choice-label{color:var(--ink)}
+.theme-light .form-intro,.theme-light .form-policy,.theme-light .optional{color:var(--muted)}
+.theme-light .form-result{border-top-color:var(--hair)}
+.theme-light .form-result pre{color:var(--ink-2);background:var(--ivory-paper);border-color:var(--hair)}
+.theme-light .privacy-dialog p:not(.eyebrow){color:var(--muted)}
+.theme-light .editorial-form .solid-button{color:#fff;background:#111;box-shadow:none;border-radius:999px}
+.theme-light .editorial-form .solid-button:hover{background:#000}
+@media(max-width:760px){.theme-light dialog:after{background:#d8d4cc}}

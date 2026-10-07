@@ -6,7 +6,7 @@ import { PerspectiveCamera, Vector3 } from 'three';
 import { journeys, cameraFrames, mobileCameraFrames, wipes, doorProgress, bonnetProgress, lookAroundWeight, moments } from '../src/storyboard.js';
 import { aboutJourneys, aboutMarks, aboutCamera, aboutAnchor, aboutTurn, aboutTurnWeight } from '../src/about-storyboard.js';
 import { carCorners, fitFrame, frameCamera, freeRegion, screenBounds } from '../src/about-framing.js';
-import { filmVehicles, aboutVehicles, lineupVehicles } from '../src/config.js';
+import { filmVehicles, aboutVehicles, lineupVehicles, fleetVehicles } from '../src/config.js';
 import { slots, stagePoints, lineupCamera, carouselShot, lineupReveal, orbitLimits, orbitShot, maxElevation } from '../src/lineup.js';
 import { vehicleParts } from '../src/vehicle-parts.js';
 import { showroomRoom } from '../src/showroom-room.js';
@@ -223,8 +223,10 @@ test('about: the camera drifts continuously',()=>{
     for(let i=1;i<=4000;i++) assert(distance(path(i/4000).position,path((i-1)/4000).position)<.02,'No camera jump');
   }
 });
-test('every car carries a front and a rear plate on its body, facing out',()=>{
-  for(const [id,parts] of Object.entries(vehicleParts)) {
+test('every car in the film, About and the lineup carries a front and a rear plate on its body, facing out',()=>{
+  // The collection drive's cars wear none (fleet-drive.js removes them all).
+  const plated=new Set([filmVehicles.first,...Object.values(aboutVehicles),...lineupVehicles]);
+  for(const [id,parts] of Object.entries(vehicleParts).filter(([id])=>plated.has(id))) {
     const [width,height,length]=parts.size;
     assert.equal(parts.plates?.length,2,`${id} needs a front and a rear plate`);
     const [front,rear]=parts.plates;
@@ -345,4 +347,68 @@ test('collection: the cars appear, and the film car takes its slot, only while t
       for(let q=0;q<=appears+.01;q+=.002) assert(!sees(path(q),aspect,corners),`${name}: ${id} would be seen appearing at ${q.toFixed(3)}`);
     }
   }
+});
+
+// The collection drive (src/fleet-storyboard.js).
+import { fleetMarks, fleetJourneys, fleetViews } from '../src/fleet-storyboard.js';
+test('collection drive: five cars set off line abreast and park apart, the leader last',()=>{
+  for(const view of fleetViews) {
+    const marks=fleetMarks(view), journeys=fleetJourneys(view);
+    assert.deepEqual(Object.keys(marks),fleetVehicles.map(v=>v.id));
+    const starts=new Set(Object.values(journeys).map(j=>j.points[0][2]));
+    assert.equal(starts.size,1,`${view}: every car starts on the same line`);
+    const ids=Object.keys(marks);
+    for(let i=0;i<ids.length;i++) for(let k=i+1;k<ids.length;k++) {
+      const [a,b]=[ids[i],ids[k]], [wa,,la]=vehicleParts[a].size, [wb,,lb]=vehicleParts[b].size;
+      const apartX=Math.abs(marks[a][0]-marks[b][0])-(wa+wb)/2, apartZ=Math.abs(marks[a][2]-marks[b][2])-(la+lb)/2;
+      assert(apartX>.2||apartZ>.2,`${view}: ${a} and ${b} park clear of each other`);
+    }
+    const leader=ids.reduce((best,id)=>marks[id][2]>marks[best][2]?id:best);
+    assert.equal(Math.max(...Object.values(journeys).map(j=>j.end)),journeys[leader].end,`${view}: the leader comes to rest last`);
+  }
+});
+
+// Lights on, the home page's collection (src/lights-on-storyboard.js).
+import { lightsMarks, lightsCamera, lightsViews, LIGHTS, bayLevel, roomLevel } from '../src/lights-on-storyboard.js';
+import { lightsVehicles } from '../src/config.js';
+const bayFootprint = (mark, [width, , length]) => {
+  const c = Math.cos(mark.yaw), s = Math.sin(mark.yaw), [x, , z] = mark.position;
+  return [[-1, -1], [1, -1], [1, 1], [-1, 1]].map(([u, v]) => [x + u * width / 2 * c + v * length / 2 * s, z - u * width / 2 * s + v * length / 2 * c]);
+};
+// Separating axes: two rectangles on the floor are apart by `gap` metres
+// along some edge normal of either.
+const bayApart = (a, b, gap) => [a, b].some(poly => poly.some((p, i) => {
+  const q = poly[(i + 1) % poly.length], n = [q[1] - p[1], p[0] - q[0]], len = Math.hypot(...n);
+  const proj = pts => pts.map(([x, z]) => (x * n[0] + z * n[1]) / len);
+  const [pa, pb] = [proj(a), proj(b)];
+  return Math.min(...pb) - Math.max(...pa) > gap || Math.min(...pa) - Math.max(...pb) > gap;
+}));
+test('lights on: the cars (no Land Cruiser) park side by side, apart, in both views', () => {
+  for (const view of lightsViews) {
+    const marks = lightsMarks(view), ids = Object.keys(marks);
+    assert.deepEqual(ids, lightsVehicles.map(v => v.id));
+    assert(!ids.includes('landcruiser'));
+    for (let i = 0; i < ids.length; i++) for (let k = i + 1; k < ids.length; k++) {
+      assert(bayApart(bayFootprint(marks[ids[i]], vehicleParts[ids[i]].size), bayFootprint(marks[ids[k]], vehicleParts[ids[k]].size), .4), `${view}: ${ids[i]} and ${ids[k]} park clear of each other`);
+    }
+  }
+});
+test('lights on: the camera never comes within two metres of a car', () => {
+  for (const view of lightsViews) {
+    const path = createCameraPath(lightsCamera[view]), marks = lightsMarks(view);
+    for (let p = 0; p <= 1; p += .002) {
+      const [x, , z] = path(p).position;
+      for (const [id, mark] of Object.entries(marks)) {
+        const cam = [[x - .01, z - .01], [x + .01, z - .01], [x + .01, z + .01], [x - .01, z + .01]];
+        assert(bayApart(cam, bayFootprint(mark, vehicleParts[id].size), 2), `${view}: camera too near the ${id} at ${p.toFixed(3)}`);
+      }
+    }
+  }
+});
+test('lights on: each light comes up in turn with the scroll, steadily, before the studio', () => {
+  for (let i = 1; i < LIGHTS.panels.length; i++) assert(LIGHTS.panels[i] > LIGHTS.panels[i - 1]);
+  assert(LIGHTS.panels.at(-1) < LIGHTS.room[0] && LIGHTS.room[1] <= LIGHTS.anchor && LIGHTS.words <= LIGHTS.anchor);
+  // Never a flicker: every light only ever rises with the scroll.
+  LIGHTS.panels.forEach((_, i) => { let before = 0; for (let p = 0; p <= 1; p += .001) { const v = bayLevel(p, i); assert(v >= before - 1e-9, `light ${i} dips at ${p.toFixed(3)}`); before = v; } assert.equal(bayLevel(LIGHTS.room[0], i), 1); });
+  assert.equal(roomLevel(LIGHTS.anchor), 1); assert.equal(roomLevel(LIGHTS.panels[0]), 0);
 });

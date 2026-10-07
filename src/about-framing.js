@@ -48,13 +48,17 @@ export function freeRegion(view, width, height, copy, header) {
 }
 
 // Fit the lens and offset so `boxes` fill `region` (pixels in a width ×
-// height frame) as far as their shape allows, centred in it. Narrowing the
-// lens scales the picture about its centre, so this is exact for one pose.
-export function fitFrame({ shot, width, height, region, boxes }) {
+// height frame) as far as their shape allows, centred in it, or hung from
+// its top edge (`align: 'top'`). Narrowing the lens scales the picture about
+// its centre, so this is exact for one pose. `bounds` is where the boxes land.
+export function fitFrame({ shot, width, height, region, boxes, align = 'centre' }) {
   const camera = frameCamera(new PerspectiveCamera(shot.fov, width / height, .1, 500), shot, width, height);
   const b = screenBounds(camera, boxes, width, height);
   const zoom = MathUtils.clamp(Math.min((region.right - region.left) / (b.right - b.left), (region.bottom - region.top) / (b.bottom - b.top)), .3, 3);
+  const scaled = v => (v - .5) * zoom + .5;
   const cx = width / 2 + ((b.left + b.right) / 2 - width / 2) * zoom;
   const cy = height / 2 + ((b.top + b.bottom) / 2 - height / 2) * zoom;
-  return { zoom, offset: [((region.left + region.right) / 2 - cx) / width, ((region.top + region.bottom) / 2 - cy) / height] };
+  const offset = [((region.left + region.right) / 2 - cx) / width, align === 'top' ? (region.top - scaled(b.top / height) * height) / height : ((region.top + region.bottom) / 2 - cy) / height];
+  const bounds = { left: scaled(b.left / width) * width + offset[0] * width, right: scaled(b.right / width) * width + offset[0] * width, top: scaled(b.top / height) * height + offset[1] * height, bottom: scaled(b.bottom / height) * height + offset[1] * height };
+  return { zoom, offset, bounds };
 }

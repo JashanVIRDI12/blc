@@ -1,39 +1,76 @@
 import { dealer } from './config.js';
-import { safeURL } from './inventory.js';
+import { safeURL } from './util.js';
+import { live, supabase } from './data.js';
+
+// With Supabase connected, every enquiry and valuation lands in the admin's
+// inbox (the enquiries table: visitors may add one, never read any).
+export async function saveEnquiry(type, data) {
+  const { name, phone, email, interest, message, ...details } = data;
+  const response = await fetch(`${supabase.url}/rest/v1/enquiries`, {
+    method: 'POST',
+    headers: { apikey: supabase.key, Authorization: `Bearer ${supabase.key}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
+    body: JSON.stringify({ kind: ['valuation', 'concierge'].includes(type) ? type : 'enquiry', name: name || null, phone: phone || null, email: email || null, subject: interest || (type === 'valuation' ? `Valuation: ${details.vehicle || 'a car'}` : null), message: message || null, car: new URLSearchParams(location.search).get('id') || null, details, page: `${location.pathname}${location.search}`.slice(0, 300) }),
+    signal: AbortSignal.timeout(15000),
+  });
+  if (!response.ok) throw new Error(`Enquiry not saved (${response.status})`);
+}
 
 export function setupForms() {
   const enquiry = document.querySelector('#enquiry-dialog');
-  const hasContact = Boolean(dealer.whatsapp || dealer.email);
+  // Contact details can arrive after the page (from the admin's settings), so
+  // they are read when used, and renderContact() sets them out again.
+  const hasContact = () => Boolean(dealer.whatsapp || dealer.email);
   function openEnquiry(subject = '') {
     document.querySelector('#enquiry-subject').value = subject;
     const result = enquiry.querySelector('.form-result'); result.hidden = true; result.replaceChildren();
     enquiry.showModal();
   }
-  document.querySelectorAll('[data-enquire]').forEach(button => button.addEventListener('click', () => openEnquiry(button.dataset.subject || '')));
+  document.querySelectorAll('[data-enquire]').forEach(button => button.addEventListener('click', event => { if (button.matches('a')) event.preventDefault(); openEnquiry(button.dataset.subject || ''); }));
   document.querySelectorAll('dialog').forEach(dialog => {
     dialog.querySelector('[data-close]').addEventListener('click', () => dialog.close());
     dialog.addEventListener('click', event => { if (event.target !== dialog) return; const r = dialog.getBoundingClientRect(); if (event.clientX<r.left || event.clientX>r.right || event.clientY<r.top || event.clientY>r.bottom) dialog.close(); });
   });
   document.querySelector('#privacy-button').addEventListener('click', () => document.querySelector('#privacy-dialog').showModal());
-  if (dealer.enquiryEndpoint) document.querySelector('#privacy-delivery').textContent = 'When you submit an enquiry, the details you enter are sent to the dealership to respond to your request. They are not saved in this browser.';
-  else if (hasContact) document.querySelector('#privacy-delivery').textContent = 'Your enquiry is prepared in this browser. You choose whether to share it using the dealership’s email or WhatsApp contact. It is not sent automatically.';
   const contactDetails = document.querySelector('#contact-details');
-  const addContact = (text, href) => { const element = document.createElement(href ? 'a' : 'span'); element.textContent = text; if(href) element.href = href; contactDetails.append(element); };
-  if (dealer.phone) addContact(dealer.phone, `tel:${dealer.phone.replace(/[^+\d]/g,'')}`);
-  if (dealer.email) addContact(dealer.email, `mailto:${dealer.email}`);
-  if (dealer.address) addContact(dealer.address);
+  function renderContact() {
+    if (live) document.querySelector('#privacy-delivery').textContent = 'When you submit an enquiry, the details you enter are sent securely to Baba Luxury Cars, so we can get back to you. They are used only for your request.';
+    else if (dealer.enquiryEndpoint) document.querySelector('#privacy-delivery').textContent = 'When you submit an enquiry, the details you enter are sent to the dealership to respond to your request. They are not saved in this browser.';
+    else if (hasContact()) document.querySelector('#privacy-delivery').textContent = 'Your enquiry is prepared in this browser. You choose whether to share it using the dealership’s email or WhatsApp contact. It is not sent automatically.';
+    contactDetails.replaceChildren();
+    const addContact = (text, href) => { const element = document.createElement(href ? 'a' : 'span'); element.textContent = text; if(href) element.href = href; contactDetails.append(element); };
+    if (dealer.phone) addContact(dealer.phone, `tel:${dealer.phone.replace(/[^+\d]/g,'')}`);
+    if (dealer.whatsapp) addContact('WhatsApp', `https://wa.me/${dealer.whatsapp.replace(/\D/g,'')}`);
+    if (dealer.email) addContact(dealer.email, `mailto:${dealer.email}`);
+    if (dealer.address) addContact(dealer.address);
+    if (dealer.hours) addContact(dealer.hours);
+    if (dealer.enquiryEndpoint || live) document.querySelectorAll('[data-lead-form]').forEach(form => { form.querySelector('[data-submit-label]').textContent = form.dataset.leadForm === 'valuation' ? 'Request a valuation' : 'Send enquiry'; });
+  }
+  renderContact();
 
   document.querySelectorAll('[data-lead-form]').forEach(form => {
     const submit = form.querySelector('[type=submit]');
-    if (dealer.enquiryEndpoint) form.querySelector('[data-submit-label]').textContent = form.dataset.leadForm === 'valuation' ? 'Request a valuation' : 'Send enquiry';
+    // A field people never see: forms that fill it are robots.
+    const trap = Object.assign(document.createElement('input'), { type: 'text', name: 'company', tabIndex: -1, autocomplete: 'off' });
+    trap.className = 'form-trap'; trap.setAttribute('aria-hidden', 'true');
+    form.prepend(trap);
     form.addEventListener('submit', async event => {
       event.preventDefault();
       if (!form.reportValidity()) return;
       const type = form.dataset.leadForm;
-      const data = Object.fromEntries(new FormData(form));
+      const { company, ...data } = Object.fromEntries(new FormData(form));
       const result = form.querySelector('.form-result'); result.hidden = false; result.replaceChildren();
       const heading = document.createElement('p'); result.append(heading);
-      if (dealer.enquiryEndpoint) {
+      if (live) {
+        submit.disabled = true; heading.textContent = 'Sending your enquiry…';
+        try {
+          if (!company) await saveEnquiry(type, data);
+          heading.textContent = type === 'valuation' ? 'Thank you. Your car’s details have reached us, and we’ll call you about its valuation shortly.' : 'Thank you. Your enquiry has reached us, and we’ll get back to you shortly.';
+          if (dealer.whatsapp) { const link = document.createElement('a'); link.className = 'text-link'; link.textContent = 'Or message us on WhatsApp now'; link.href = `https://wa.me/${dealer.whatsapp.replace(/\D/g, '')}`; link.target = '_blank'; link.rel = 'noopener'; const actions = document.createElement('div'); actions.className = 'result-actions'; actions.append(link); result.append(actions); }
+          form.reset(); form.dispatchEvent(new Event('input')); result.focus(); return;
+        } catch {
+          heading.textContent = 'We couldn’t send this just now. Your details are still here: share them below, or try again.';
+        } finally { submit.disabled = false; }
+      } else if (dealer.enquiryEndpoint) {
         submit.disabled = true; heading.textContent = 'Sending your enquiry…';
         try {
           const endpoint = safeURL(dealer.enquiryEndpoint);
@@ -45,7 +82,7 @@ export function setupForms() {
           heading.textContent = 'We couldn’t send this enquiry. Your details are still here. Please try again, or save the enquiry below.';
         } finally { submit.disabled = false; }
       } else {
-        heading.textContent = hasContact ? 'Your enquiry is ready. Choose how you would like to share it.' : 'Your enquiry is ready to save. Online delivery is not connected yet, so nothing has been sent.';
+        heading.textContent = hasContact() ? 'Your enquiry is ready. Choose how you would like to share it.' : 'Your enquiry is ready to save. Online delivery is not connected yet, so nothing has been sent.';
       }
       const labels = {vehicle:'Vehicle',registration:'Registration',kilometres:'Kilometres',name:'Name',phone:'Phone',exchange:'Exchange',interest:'Interested in',message:'Message'};
       const draft = [`${dealer.name} — ${type==='valuation'?'Valuation enquiry':'Vehicle enquiry'}`, '', ...Object.entries(data).filter(([,v])=>String(v).trim()).map(([key,value])=>`${labels[key] || key}: ${key==='exchange'?'Yes':String(value).trim()}`)].join('\n');
@@ -62,5 +99,5 @@ export function setupForms() {
       result.focus();
     });
   });
-  return { openEnquiry };
+  return { openEnquiry, renderContact };
 }

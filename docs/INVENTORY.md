@@ -1,6 +1,6 @@
 # Publishing dealership data
 
-`src/config.js` is the single data entry point. Empty contact fields are not displayed. Use approved dealership details and actual stock records.
+Cars, collections, the home page's picks and contact details are published from the admin portal (`/admin/`) into Supabase; see [ADMIN.md](ADMIN.md). The fields below are the same there (the admin's forms set them). Without Supabase, `src/config.js` is the data entry point. Empty contact fields are not displayed. Use approved dealership details and actual stock records.
 
 ## Dealership
 
@@ -35,7 +35,11 @@ The endpoint must validate input, apply its own abuse controls and return a succ
 | `owners` | Verified number of owners |
 | `fuel`, `transmission`, `location` | Published descriptive values |
 | `price` | Numeric INR asking price; displayed with Indian currency formatting |
-| `available` | `false` excludes the record from available stock |
+| `status` | `available`, `reserved`, `coming_soon`, `sold` or `hidden` (in `config.js`, `available: false` still means sold) |
+| `featured` | Shown in the home page's Featured collection, in `featured_rank` order |
+| `collections` | Slugs of the curated collections the car belongs to |
+| `photos` | Photo URLs; the first is the cover |
+| `variant`, `colour`, `registration`, `note`, `highlights`, `description`, `specs` | Shown on the card and the car's page when present |
 | `model3d` | Optional prepared model ID to connect verified values to the film |
 | `inspection` | Optional record, described below |
 

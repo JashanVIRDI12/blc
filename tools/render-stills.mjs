@@ -1,6 +1,7 @@
 // Render the actual configured showcase cars through the local Chrome CDP
 // session. No Playwright installation is needed. See README for launch steps.
-// STILLS=gls npm run stills renders only the listed showcase IDs.
+// STILLS=gls npm run stills renders only the listed showcase IDs; FLEET=1
+// renders the collection drive's repainted cars (<id>-fleet.webp).
 import { mkdir } from 'node:fs/promises';
 import sharp from 'sharp';
 const base=process.env.FORMA_SITE_URL || 'http://127.0.0.1:5174';
@@ -12,7 +13,7 @@ let sequence=0;const pending=new Map();
 socket.addEventListener('message',event=>{const m=JSON.parse(event.data);if(m.id){pending.get(m.id)?.(m);pending.delete(m.id);}});
 const send=(method,params={})=>new Promise((resolve,reject)=>{const id=++sequence;pending.set(id,m=>m.error?reject(m.error):resolve(m.result));socket.send(JSON.stringify({id,method,params}));});
 try {
-  const only=process.env.STILLS?`?only=${encodeURIComponent(process.env.STILLS)}`:'';
+  const only=process.env.FLEET?'?fleet':process.env.STILLS?`?only=${encodeURIComponent(process.env.STILLS)}`:'';
   await send('Page.navigate',{url:`${base}/tools/stills.html${only}`});
   let stills;
   for(let i=0;i<240;i++){

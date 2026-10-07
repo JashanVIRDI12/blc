@@ -43,4 +43,24 @@ export const vehicleParts = {
     supports: { engine: false, bonnet: false, cabin: false },
     engineEvidence: [],
   },
+  // The collection drive's cars, measured by tools/prep-fleet.mjs. They wear
+  // no plates: they are only seen in the white collection drive.
+  sclass: {
+    wheels, doors: [], bonnet: null, tailgate: null, bodyMaterial: 'sclass_paint',
+    headlamps: [[.7, .72, 2.6], [-.7, .72, 2.6]], taillamps: [[.75, .8, -2.65], [-.75, .8, -2.65]],
+    wheelbase: 3.384, track: 1.629, wheelRadius: .367, size: [2.105, 1.543, 5.469],
+    plates: [], supports: { engine: false, bonnet: false, cabin: false }, engineEvidence: [],
+  },
+  i7: {
+    wheels, doors: [], bonnet: null, tailgate: null, bodyMaterial: 'i7_paint',
+    headlamps: [[.7, .81, 2.6], [-.7, .81, 2.6]], taillamps: [[.75, .97, -2.6], [-.75, .97, -2.6]],
+    wheelbase: 3.184, track: 1.629, wheelRadius: .38, size: [2.193, 1.527, 5.391],
+    plates: [], supports: { engine: false, bonnet: false, cabin: false }, engineEvidence: [],
+  },
+  landcruiser: {
+    wheels, doors: [], bonnet: null, tailgate: null, bodyMaterial: 'lc_paint',
+    headlamps: [[.72, 1.0, 2.4], [-.72, 1.0, 2.4]], taillamps: [[.78, 1.19, -2.3], [-.78, 1.19, -2.3]],
+    wheelbase: 2.815, track: 1.61, wheelRadius: .408, size: [2.173, 1.887, 4.985],
+    plates: [], supports: { engine: false, bonnet: false, cabin: false }, engineEvidence: [],
+  },
 };

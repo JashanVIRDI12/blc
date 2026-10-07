@@ -13,15 +13,19 @@
     <script type="module">
       // Renders the showcase cars on a transparent background for fallbacks.
       // Driven by tools/render-stills.mjs; not part of the site. `?only=gls,x7`
-      // renders just those.
+      // renders just those; `?fleet` renders the collection drive's repainted
+      // cars instead, as `<id>-fleet`.
       import * as THREE from "three";
       import { EXRLoader } from "three/addons/loaders/EXRLoader.js";
       import { loadCar } from "/src/car.js";
       import { models } from "/src/models.js";
-      import { showcase } from "/src/config.js";
+      import { showcase, fleetVehicles } from "/src/config.js";
       import { vehicleParts } from "/src/vehicle-parts.js";
-      const only = new URLSearchParams(location.search).get("only")?.split(",");
-      const entries = showcase.filter(item => !only || only.includes(item.id)).map(item => ({ ...item, model3d: item.id }));
+      const params = new URLSearchParams(location.search);
+      const only = params.get("only")?.split(",");
+      const entries = params.has("fleet")
+        ? fleetVehicles.filter(item => item.paint).map(item => ({ ...item, model3d: item.id, key: `${item.id}-fleet` }))
+        : showcase.filter(item => !only || only.includes(item.id)).map(item => ({ ...item, model3d: item.id }));
 
       const renderer = new THREE.WebGLRenderer({ canvas: c, antialias: true, alpha: true, preserveDrawingBuffer: true });
       renderer.setPixelRatio(1);
@@ -44,7 +48,8 @@
 
       const out = {};
       for (const entry of entries) {
-        if (out[entry.model3d]) continue;
+        const key = entry.key ?? entry.model3d;
+        if (out[key]) continue;
         const spec = { ...models[entry.model3d], partMap: vehicleParts[entry.model3d] };
         const car = await loadCar(spec, entry.paint, { invalidate() {} });
         const shadow = new THREE.Mesh(
@@ -55,7 +60,7 @@
         const holder = new THREE.Group().add(shadow, car.root);
         scene.add(holder);
         renderer.render(scene, camera);
-        out[entry.model3d] = renderer.domElement.toDataURL("image/png");
+        out[key] = renderer.domElement.toDataURL("image/png");
         scene.remove(holder);
       }
       window.__stills = out;

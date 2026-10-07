@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="A car from the Baba Luxury Cars collection: photographs, specification and history, and a viewing whenever you are ready." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
+  <link rel="preload" href="/fonts/newsreader-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <title>Baba Luxury Cars</title>
+</head>
+<body class="inner-page theme-light">
+  <a class="skip-link" href="#car">Skip to the car</a>
+<!-- @include header.html -->
+  <main id="top">
+    <article class="v-page" id="car" aria-busy="true" aria-labelledby="car-title">
+      <nav class="v-crumbs" aria-label="Breadcrumb"><a href="/collection/">Collection</a><a data-crumb-group hidden></a><span aria-current="page" data-crumb-name></span></nav>
+      <div class="v-layout">
+        <div class="v-gallery">
+          <div class="v-stage-wrap">
+            <div class="v-stage" data-stage tabindex="0" aria-roledescription="carousel" aria-label="Photographs"></div>
+            <button type="button" class="v-arrow v-arrow--prev" data-prev aria-label="Previous photograph" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
+            <button type="button" class="v-arrow v-arrow--next" data-next aria-label="Next photograph" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
+            <span class="v-counter" data-counter hidden></span>
+            <span class="car-badge" data-badge hidden></span>
+          </div>
+          <div class="v-thumbs" data-thumbs hidden></div>
+        </div>
+        <aside class="v-panel" aria-label="Price and enquiry">
+          <p class="eyebrow" data-make></p>
+          <h1 id="car-title" data-name></h1>
+          <p class="v-variant" data-variant hidden></p>
+          <p class="plate-chip plate-chip--panel" data-plate hidden><i aria-hidden="true"></i><span></span></p>
+          <p class="v-price" data-price></p>
+          <p class="v-note" data-note hidden></p>
+          <dl class="v-facts" data-facts></dl>
+          <div class="v-actions" data-actions>
+            <button type="button" class="ink-button" data-enquire-car>Arrange a viewing</button>
+            <div class="v-contact"><a class="outline-button" data-whatsapp target="_blank" rel="noopener" hidden>WhatsApp</a><a class="outline-button" data-call hidden>Call</a></div>
+            <div class="v-secondary"><span data-save></span><button type="button" class="text-link" data-share>Share this car</button></div>
+            <a class="v-concierge-link" href="#concierge" data-concierge-link hidden><span class="v-concierge-spark" aria-hidden="true"></span><span><b>Make it yours</b>Modifications and anything else, arranged by Baba Concierge</span><i aria-hidden="true">↓</i></a>
+          </div>
+          <p class="v-sold-note" data-sold-note hidden>This car is now with its new owner. Tell us what you’re looking for and we’ll find you one like it.</p>
+          <p class="v-preview-note" data-preview-note hidden>This is a showcase model, not a live stock listing. Enquire about current availability, and we’ll share the price, history and inspection records of a car like it.</p>
+        </aside>
+      </div>
+      <div class="v-details">
+        <section class="v-section" data-highlights hidden aria-labelledby="highlights-title"><h2 id="highlights-title" class="v-heading">Highlights</h2><ul class="v-highlights"></ul></section>
+        <section class="v-section" data-overview hidden aria-labelledby="overview-title"><h2 id="overview-title" class="v-heading">About this car</h2><div class="v-description"></div></section>
+        <section class="v-section" data-specs hidden aria-labelledby="specs-title"><h2 id="specs-title" class="v-heading">Specification</h2><p class="v-source" data-specs-source hidden>Manufacturer figures for the model.</p><dl class="v-specs"></dl></section>
+        <section class="v-section" data-inspection hidden aria-labelledby="inspection-title"><h2 id="inspection-title" class="v-heading">Inspection and history</h2><ul class="v-checks"></ul></section>
+        <section class="v-section v-standard" aria-labelledby="standard-title"><h2 id="standard-title" class="v-heading">The Baba standard</h2><ol><li><b>The car, in detail.</b> Bodywork, mechanical condition, interior and tyres, with time to ask.</li><li><b>The story, made clear.</b> Ownership, service records and mileage history, before you decide.</li><li><b>The next step, together.</b> A viewing, a test drive or an exchange, at your pace.</li></ol><a class="text-link" href="/#standard">Our standard, in full</a></section>
+      </div>
+      <section class="v-concierge" id="concierge" data-concierge hidden aria-labelledby="concierge-title">
+        <div class="v-concierge-head">
+          <p class="eyebrow">Baba Concierge</p>
+          <h2 id="concierge-title">Make it <em>yours.</em></h2>
+          <p class="v-concierge-intro" data-concierge-intro></p>
+          <p class="v-concierge-more">Looking for a different car altogether? <a class="ink-link" href="/concierge/">We’ll source any car, from a Bentley to a Rolls-Royce</a></p>
+        </div>
+        <div class="v-concierge-body">
+          <div class="v-concierge-menu" data-concierge-menu></div>
+          <aside class="v-sheet" data-sheet aria-label="Your request">
+            <div class="v-sheet-head"><span class="v-sheet-photo"><img data-sheet-photo alt="" /></span><div><small>Your build sheet</small><b data-sheet-car></b></div><span class="v-sheet-count" data-sheet-count aria-live="polite">0</span></div>
+            <ol class="v-sheet-list" data-sheet-list></ol>
+            <p class="v-sheet-empty" data-sheet-empty>Choose from the list, or tell us anything else below.</p>
+            <label class="v-sheet-field">Anything else<textarea data-sheet-note rows="3" maxlength="1200" placeholder="Matte black wheels, a roof tent, a particular number plate…"></textarea></label>
+            <div class="v-sheet-contact" data-sheet-contact hidden><label class="v-sheet-field">Your name<input data-sheet-name maxlength="80" autocomplete="name" placeholder="Full name" /></label><label class="v-sheet-field">Phone<input data-sheet-phone type="tel" maxlength="22" autocomplete="tel" placeholder="Your number" /></label></div>
+            <div class="v-sheet-actions"><a class="ink-button v-sheet-whatsapp" data-sheet-whatsapp target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5 5.6 16A7.8 7.8 0 1 1 8.4 18.6z"/><path d="M9 9.5c.3 2.4 2.6 4.8 5.2 5.2l1-1.2-1.6-1-1 .8a4 4 0 0 1-2.2-2.2l.8-1-1-1.6z"/></svg>WhatsApp the concierge</a><button type="button" class="outline-button" data-sheet-send hidden>Request a call back</button></div>
+            <p class="v-sheet-result" data-sheet-result role="status" hidden></p>
+            <p class="v-sheet-small">Nothing is booked yet: the work, the price and the timing are agreed with you first.</p>
+          </aside>
+        </div>
+      </section>
+    </article>
+
+    <section class="v-similar section-pad band-dark" data-similar hidden aria-labelledby="similar-title">
+      <div class="c-section-head"><p class="eyebrow">You may also like</p><h2 id="similar-title">Similar cars.</h2></div>
+      <div class="vehicle-grid" data-similar-grid></div>
+      <div class="collection-bottom"><p>See every car we have.</p><a class="outline-button" href="/collection/">The full collection</a></div>
+    </section>
+
+    <section class="v-missing section-pad" data-missing hidden aria-labelledby="missing-title">
+      <p class="eyebrow">No longer listed</p>
+      <h1 id="missing-title">This car has<br><em>found its owner.</em></h1>
+      <p class="intro">It may have been sold, or its link may have changed. The rest of the collection is a step away, and we can look for one like it.</p>
+      <div class="collection-actions"><a class="ink-button" href="/collection/">See the collection</a><button class="outline-button" data-enquire data-subject="Please help me find a car">Ask us to find one</button></div>
+    </section>
+<!-- @include footer.html -->
+  </main>
+
+  <div class="v-dock" data-dock hidden><div><span class="v-dock-name" data-dock-name></span><span class="v-dock-price" data-dock-price></span></div><button type="button" class="ink-button ink-button--light" data-dock-enquire>Enquire</button></div>
+
+  <dialog id="photo-dialog" class="photo-dialog" aria-label="Photographs">
+    <button class="dialog-close" data-close aria-label="Close photographs">×</button>
+    <figure><img data-lightbox-image alt="" /><figcaption data-lightbox-caption></figcaption></figure>
+    <button type="button" class="v-arrow v-arrow--prev" data-lightbox-prev aria-label="Previous photograph"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6"/></svg></button>
+    <button type="button" class="v-arrow v-arrow--next" data-lightbox-next aria-label="Next photograph"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 18l6-6-6-6"/></svg></button>
+  </dialog>
+<!-- @include dialogs.html -->
+  <script type="module" src="/src/vehicle-page.js"></script>
+</body>
+</html>
