@@ -1,250 +1,176 @@
-// Across India: where Baba's cars have gone. An atlas of India in fine dots
-// (india-atlas.js, three.js) with gold routes from the showroom in Paschim
-// Vihar to every destination; beside it an index of the destinations, a
-// panel that tells the chosen one, the figures, and a strip of real handover
-// photographs. The section scrolls like any other: nothing is pinned. It
-// assembles once as it comes into view, then the atlas leans gently with the
-// scroll. An SVG of the same map stands in at once, and for good without WebGL.
+// Across India: the figures that say how far Baba's cars go, and the
+// handover photographs themselves. No map, no tally of places: the cars go
+// to almost every state, and the photographs say the rest.
+//
+// The photographs ride a gentle arc that drifts on by itself, after React
+// Bits' Circular Gallery, built in the DOM rather than WebGL so any photo host
+// works and every photograph stays a real, focusable link: the cards dip and
+// lean towards the edges, the picture inside each shifts against its frame,
+// a drag (or a swipe) throws the strip with inertia and settles a photograph
+// in the middle, and the page's own scroll speed hurries it a little. It runs
+// only while on screen. With reduced motion it is a plain row that scrolls.
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { SplitText } from 'gsap/SplitText';
+import { Draggable } from 'gsap/Draggable';
+import { InertiaPlugin } from 'gsap/InertiaPlugin';
 import PhotoSwipeLightbox from 'photoswipe/lightbox';
 import 'photoswipe/style.css';
-import { dots, outline, project, viewBox } from './india-map.js';
-import { ORIGIN, findPlace, readPlaces, stateCode } from './places.js';
-import { carName, carURL, FOR_SALE } from './data.js';
+import { figures, deliveryPhotos } from './config.js';
 import { escapeHTML, safeImage, thumbImage } from './util.js';
-gsap.registerPlugin(ScrollTrigger);
+gsap.registerPlugin(ScrollTrigger, SplitText, Draggable, InertiaPlugin);
 
-const grouping = new Intl.NumberFormat('en-IN');
-const km = ([lat1, lng1], [lat2, lng2]) => {
-  const r = Math.PI / 180, a = Math.sin((lat2 - lat1) * r / 2) ** 2 + Math.cos(lat1 * r) * Math.cos(lat2 * r) * Math.sin((lng2 - lng1) * r / 2) ** 2;
-  return 6371 * 2 * Math.asin(Math.min(1, Math.sqrt(a)));
-};
-const samePlace = (a, b) => a && b && km(a.at, b.at) < 1;
-const two = n => String(n).padStart(2, '0');
-const distanceText = j => `${grouping.format(Math.round(j.km / 10) * 10)} km`;
-const coordinates = ([lat, lng]) => `${Math.abs(lat).toFixed(2)}° ${lat < 0 ? 'S' : 'N'} · ${Math.abs(lng).toFixed(2)}° ${lng < 0 ? 'W' : 'E'}`;
+const DRIFT = 28;      // px per second the strip drifts on its own
+const BEND = 2.2;      // the arc's radius, in gallery widths: larger is flatter
+const LEAN = .42;      // how much of the arc's slope each card leans with
+const PARALLAX = .06;  // how far a picture shifts in its frame, per px from the middle
 
-export function createAcrossIndia(section, { settings, deliveries = [], cars = [], reduced = false }) {
+export function createAcrossIndia(section, { deliveries = [], reduced = false } = {}) {
   const $ = selector => section.querySelector(selector);
-  const stage = $('[data-india-stage]'), canvas = $('[data-india-canvas]'), pinLayer = $('[data-india-pins]');
-  const list = $('[data-india-list]'), panel = $('[data-india-panel]'), panelBody = $('[data-panel-body]');
-  const india = settings.india || {};
-  $('[data-india-intro]').textContent = india.intro || '';
-
-  // ------------------------------------------------------------ the places
-  // The places in Settings, and every place a handover photograph names.
-  const { places } = readPlaces(india.places);
-  const photographs = deliveries.filter(delivery => safeImage(delivery.photo));
-  const handovers = photographs.map((delivery, index) => ({ ...delivery, index, place: findPlace(delivery.city) }));
-  for (const { place } of handovers) if (place && !places.some(other => samePlace(other, place))) places.push(place);
-  const stock = cars.filter(car => !car.preview && car.status !== 'hidden');
-  // A state registration is useful context, not evidence that a particular
-  // car went to this city; only a photograph says a car was delivered there.
-  const journeys = places.filter((place, i) => places.findIndex(other => samePlace(other, place)) === i).map(place => {
-    const photo = handovers.find(delivery => samePlace(delivery.place, place));
-    const code = stateCode(place.name);
-    const local = code ? stock.filter(car => String(car.registration).trim().toUpperCase().startsWith(code)).sort((a, b) => FOR_SALE.includes(b.status) - FOR_SALE.includes(a.status)) : [];
-    return { name: photo?.place.name || place.name, at: place.at, km: km(ORIGIN.at, place.at), photo, local, code };
-  }).filter(j => j.km >= 60).sort((a, b) => a.km - b.km);
-  handovers.forEach(delivery => { delivery.journey = delivery.place ? journeys.findIndex(j => samePlace(j, delivery.place)) : -1; });
-
-  // ------------------------------------------------------------- the index
-  $('[data-india-count]').textContent = two(journeys.length);
-  list.innerHTML = journeys.map((j, i) => `<li><button type="button" class="india-place" data-place="${i}" aria-pressed="false">
-      <span class="india-place-index">${two(i + 1)}</span><span class="india-place-name">${escapeHTML(j.name)}</span>
-      <span class="india-place-km">${j.photo ? '<i class="india-place-photo" aria-label="Handover photograph"></i>' : ''}${distanceText(j)}</span>
-    </button></li>`).join('');
-  const items = [...list.querySelectorAll('[data-place]')];
-
-  // ------------------------------------------------------------- the figures
-  const sold = stock.filter(car => car.status === 'sold').length;
-  const onSale = stock.filter(car => FOR_SALE.includes(car.status)).length;
-  const delivered = Number(String(india.delivered || '').replace(/[^\d]/g, '')) || 0;
-  const longest = journeys.at(-1);
-  const stats = [
-    [journeys.length + 1, 'Cities and states', ''],
-    ...(delivered ? [[delivered, 'Cars delivered', /\+\s*$/.test(String(india.delivered)) ? '+' : '']] : sold ? [[sold, 'Recently delivered', '']] : []),
-    ...(longest ? [[Math.round(longest.km / 10) * 10, `Our longest journey, to ${longest.name}`, ' km']] : []),
-    ...(onSale ? [[onSale, 'On sale today', '']] : []),
-  ];
-  $('[data-india-stats]').innerHTML = `<div class="india-origin"><dt>Every journey starts here</dt><dd>Paschim Vihar, New Delhi</dd></div>`
-    + stats.map(([value, label, suffix]) => `<div><dt>${escapeHTML(label)}</dt><dd><span data-count="${value}">${grouping.format(value)}</span>${suffix}</dd></div>`).join('');
-  const counters = [...section.querySelectorAll('[data-count]')];
-
-  // ------------------------------------------------------------- the panel
-  const panelPhoto = $('[data-panel-photo]'), panelImage = panelPhoto.querySelector('img');
-  const fields = { coords: $('[data-panel-coords]'), number: $('[data-panel-number]'), kicker: $('[data-panel-kicker]'), name: $('[data-panel-name]'), meta: $('[data-panel-meta]'), caption: $('[data-panel-caption]'), car: $('[data-panel-car]') };
-  panelImage.addEventListener('error', () => { panelPhoto.hidden = true; });
-  function fill(i) {
-    const j = journeys[i];
-    fields.coords.textContent = coordinates(j ? j.at : ORIGIN.at);
-    fields.number.textContent = j ? two(i + 1) : '';
-    if (!j) {
-      fields.kicker.textContent = 'Every journey starts here';
-      fields.name.textContent = 'Paschim Vihar';
-      fields.meta.textContent = journeys.length ? `New Delhi · ${journeys.length} destinations and counting` : 'New Delhi';
-      fields.caption.textContent = journeys.length ? 'Choose a destination to see where our cars have gone.' : '';
-      panelPhoto.hidden = true; fields.car.hidden = true;
-      return;
-    }
-    const car = j.local[0];
-    fields.kicker.textContent = j.photo ? 'Delivered here' : car ? `Registered in ${j.code}` : 'Within our reach';
-    fields.name.textContent = j.name;
-    fields.meta.textContent = `${distanceText(j)} from Paschim Vihar`;
-    fields.caption.textContent = j.photo?.caption || '';
-    panelPhoto.hidden = !j.photo;
-    if (j.photo) { panelImage.src = thumbImage(j.photo.photo); panelImage.alt = j.photo.caption || `A Baba Luxury Cars handover in ${j.name}`; }
-    fields.car.hidden = !car;
-    if (car) { fields.car.href = carURL(car); fields.car.textContent = `${carName(car)} · ${FOR_SALE.includes(car.status) ? 'View the car' : 'Sold'} ↗`; }
-    else fields.car.removeAttribute('href');
-  }
-  let shownInPanel = null, panelSwap;
-  function showPanel(i) {
-    if (i === shownInPanel) return;
-    shownInPanel = i;
-    panelSwap?.kill();
-    if (reduced) { fill(i); return; }
-    panelSwap = gsap.timeline()
-      .to(panelBody, { autoAlpha: 0, y: 6, duration: .16, ease: 'power2.in' })
-      .add(() => fill(i))
-      .to(panelBody, { autoAlpha: 1, y: 0, duration: .5, ease: 'expo.out' });
-  }
-  fill(-1); shownInPanel = -1;
-
-  // ------------------------------------------------------- the stand-in map
-  // The same map as an SVG, drawn at once: the dots, the coast, the routes
-  // as flat arcs and the points. It gives way to the atlas when that is
-  // ready, and stays where WebGL is unavailable.
-  const [vw, vh] = viewBox.slice(2);
-  const home = project(ORIGIN.at);
-  const flatRoute = j => { const [x, y] = project(j.at), mx = (home[0] + x) / 2, my = (home[1] + y) / 2 - Math.hypot(x - home[0], y - home[1]) * .22; return `M${home[0].toFixed(1)} ${home[1].toFixed(1)}Q${mx.toFixed(1)} ${my.toFixed(1)} ${x.toFixed(1)} ${y.toFixed(1)}`; };
-  $('[data-india-fallback]').innerHTML = `<svg viewBox="0 0 ${vw} ${vh}" preserveAspectRatio="xMidYMid meet">
-      <path class="india-svg-dots" d="${dots}"/><path class="india-svg-coast" d="${outline}"/>
-      ${journeys.map((j, i) => `<path class="india-svg-route" data-route="${i}" d="${flatRoute(j)}"/>`).join('')}
-      ${journeys.map((j, i) => { const [x, y] = project(j.at); return `<circle class="india-svg-point" data-point="${i}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="5"/>`; }).join('')}
-      <circle class="india-svg-home" cx="${home[0].toFixed(1)}" cy="${home[1].toFixed(1)}" r="7"/>
-    </svg>`;
-  const svgRoutes = [...section.querySelectorAll('[data-route]')], svgPoints = [...section.querySelectorAll('[data-point]')];
-
-  // --------------------------------------------------------------- the pins
-  // Names on the atlas, in the page's own type: crisp at any density, and
-  // each one a way in. Where names would collide (the cities crowd round
-  // Delhi), the chosen one and the farther ones win; the index lists them all.
-  pinLayer.innerHTML = `<span class="india-pin india-pin--home"><b>Paschim Vihar</b></span>`
-    + journeys.map((j, i) => `<button type="button" class="india-pin" data-pin="${i}" tabindex="-1">${escapeHTML(j.name)}</button>`).join('');
-  const homePin = pinLayer.querySelector('.india-pin--home'), pins = [...pinLayer.querySelectorAll('[data-pin]')];
-  // Sizes are read here, on resize and once the type has loaded, never while
-  // drawing: a read after the frame's writes would force a layout each frame.
-  let widths = [], homeWidth = 0, stageSize = { w: 1, h: 1 };
-  const measurePins = () => {
-    widths = pins.map(pin => pin.offsetWidth); homeWidth = homePin.offsetWidth;
-    stageSize = { w: stage.clientWidth, h: stage.clientHeight };
-    placed = '';
-  };
-
-  // --------------------------------------------------------------- choosing
-  let atlas = null, hovered = -1, selected = -1, focus = -1, placed = '';
-  function setFocus() {
-    const next = hovered >= 0 ? hovered : selected;
-    if (next === focus) return;
-    focus = next;
-    items.forEach((item, i) => { item.classList.toggle('is-active', i === focus); item.setAttribute('aria-pressed', String(i === selected)); });
-    pins.forEach((pin, i) => pin.classList.toggle('is-active', i === focus));
-    section.classList.toggle('has-focus', focus >= 0);
-    svgRoutes.forEach((route, i) => route.classList.toggle('is-on', i === focus));
-    svgPoints.forEach((point, i) => point.classList.toggle('is-on', i === focus));
-    strip?.querySelectorAll('[data-journey]').forEach(card => card.classList.toggle('is-on', focus >= 0 && Number(card.dataset.journey) === focus));
-    // overwrite 'auto': only an earlier focus tween gives way, never the
-    // intro's, which tweens the same routes' other values.
-    atlas?.routes.forEach((route, i) => gsap.to(route, { focus: i === focus ? 1 : 0, duration: reduced ? 0 : .6, ease: 'expo.out', overwrite: 'auto', onUpdate: atlas.request }));
-    showPanel(focus);
-    placePins();
-  }
-  const hover = i => { hovered = i; setFocus(); };
-  const choose = i => { selected = i === selected ? -1 : i; hovered = -1; setFocus(); };
-  list.addEventListener('click', event => { const item = event.target.closest('[data-place]'); if (item) choose(Number(item.dataset.place)); });
-  list.addEventListener('pointerover', event => { const item = event.target.closest('[data-place]'); if (item && event.pointerType !== 'touch') hover(Number(item.dataset.place)); });
-  list.addEventListener('pointerleave', () => hover(-1));
-  list.addEventListener('focusin', event => { const item = event.target.closest('[data-place]'); if (item) hover(Number(item.dataset.place)); });
-  list.addEventListener('focusout', event => { if (!list.contains(event.relatedTarget)) hover(-1); });
-  pinLayer.addEventListener('click', event => { const pin = event.target.closest('[data-pin]'); if (pin) { event.stopPropagation(); choose(Number(pin.dataset.pin)); } });
-  const onKey = event => { if (event.key === 'Escape' && selected >= 0 && !document.querySelector('.pswp--open')) { selected = -1; setFocus(); } };
-  document.addEventListener('keydown', onKey);
-
-  // On the atlas itself: the nearest point within reach of the pointer.
-  const nearest = (event, reach) => {
-    if (!atlas) return -1;
-    const rect = canvas.getBoundingClientRect(), x = event.clientX - rect.left, y = event.clientY - rect.top;
-    let best = -1, closest = reach;
-    journeys.forEach((j, i) => { const p = atlas.screen(i), d = Math.hypot(p.x - x, p.y - y); if (d < closest) { closest = d; best = i; } });
-    return best;
-  };
-  stage.addEventListener('pointermove', event => {
-    if (event.pointerType === 'touch' || event.target.closest('.india-panel')) return;
-    const i = event.target.closest('[data-pin]') ? Number(event.target.closest('[data-pin]').dataset.pin) : nearest(event, 26);
-    stage.classList.toggle('is-pointing', i >= 0);
-    if (i !== hovered) hover(i);
-  });
-  stage.addEventListener('pointerleave', () => { stage.classList.remove('is-pointing'); hover(-1); });
-  stage.addEventListener('click', event => {
-    if (event.target.closest('.india-panel, [data-pin]')) return;
-    const i = nearest(event, event.pointerType === 'touch' ? 34 : 26);
-    if (i >= 0) choose(i); else if (selected >= 0) choose(selected);
-  });
-
-  // When the atlas has moved (or a route has landed, or the focus changed),
-  // the names follow their points. Unchanged frames, the routes' lights
-  // running, touch nothing.
-  const boxes = [], last = new Map();
-  const set = (element, transform, hidden) => {
-    const before = last.get(element);
-    if (before?.transform !== transform) element.style.transform = transform;
-    if (before?.hidden !== hidden) element.classList.toggle('is-hidden', hidden);
-    last.set(element, { transform, hidden });
-  };
-  function placePins() {
-    if (!atlas) return;
-    const { view, routes } = atlas;
-    const key = `${view.elevation.toFixed(4)}|${view.lean.toFixed(4)}|${view.intro > .5}|${focus}|${routes.filter(route => route.shown > .6).length}|${stageSize.w}x${stageSize.h}`;
-    if (key === placed) return;
-    placed = key;
-    const { w: width, h: height } = stageSize;
-    boxes.length = 0;
-    const place = (x, y, w, priority) => {
-      // Right of the point, or left of it near the right edge.
-      const left = x + 12 + w > width - 8 ? x - 12 - w : x + 12;
-      const box = [left - 4, y - 11, left + w + 4, y + 11];
-      const clear = box[0] > 4 && box[2] < width - 4 && box[1] > 4 && box[3] < height - 4 && !boxes.some(o => box[0] < o[2] && box[2] > o[0] && box[1] < o[3] && box[3] > o[1]);
-      if (clear || priority) boxes.push(box);
-      return { transform: `translate3d(${left.toFixed(1)}px,${(y - 11).toFixed(1)}px,0)`, shown: clear || priority };
-    };
-    const origin = atlas.screen(-1), home = place(origin.x, origin.y, homeWidth, true);
-    set(homePin, home.transform, view.intro < .5);
-    const order = journeys.map((_, i) => i).sort((a, b) => (b === focus) - (a === focus) || journeys[b].km - journeys[a].km);
-    for (const i of order) {
-      const p = atlas.screen(i), landed = routes[i].shown > .6;
-      const spot = landed ? place(p.x, p.y, widths[i], i === focus) : { transform: last.get(pins[i])?.transform ?? '', shown: false };
-      set(pins[i], spot.transform, !spot.shown);
-    }
-  }
-
-  // -------------------------------------------------------- the photographs
-  const moments = $('[data-india-moments]'), strip = $('[data-india-strip]');
   const cleanups = [];
-  let lightbox = null;
-  if (photographs.length) {
-    moments.hidden = false;
-    $('[data-moments-count]').textContent = `${two(photographs.length)} ${photographs.length === 1 ? 'handover' : 'handovers'}`;
-    strip.innerHTML = handovers.map(delivery => `<li><a class="india-moment" href="${escapeHTML(safeImage(delivery.photo))}" data-photo="${delivery.index}" data-journey="${delivery.journey}" target="_blank" rel="noopener">
-        <img src="${escapeHTML(thumbImage(delivery.photo))}" alt="${escapeHTML(delivery.caption || `A Baba Luxury Cars handover${delivery.city ? ` in ${delivery.city}` : ''}`)}" loading="lazy" decoding="async" draggable="false" />
-        <span class="india-moment-copy"><b>${escapeHTML(delivery.city || 'A new owner')}</b>${delivery.caption ? `<small>${escapeHTML(delivery.caption)}</small>` : ''}</span>
-      </a></li>`).join('');
-    strip.querySelectorAll('img').forEach(image => image.addEventListener('error', () => { const full = safeImage(photographs[Number(image.closest('[data-photo]').dataset.photo)].photo); if (image.src !== full) image.src = full; }, { once: true }));
+
+  // ------------------------------------------------------------ the figures
+  // Each digit is a drum of 0-9, three times over, that rolls to its place.
+  const list = $('[data-india-figures]');
+  list.innerHTML = figures.map(({ value, suffix, label }) => `<div class="india-figure">
+      <dt>${escapeHTML(label)}</dt>
+      <dd><span class="sr-only">${escapeHTML(`${value}${suffix}`)}</span><span class="india-odo" aria-hidden="true">${String(value).split('').map(digit => `<span class="india-digit" data-digit="${digit}"><span class="india-drum">${'0123456789'.repeat(3).split('').map(n => `<span>${n}</span>`).join('')}</span></span>`).join('')}</span><span class="india-suffix" aria-hidden="true">${escapeHTML(suffix)}</span></dd>
+    </div>`).join('');
+  const drums = [...list.querySelectorAll('.india-digit')].map(digit => ({ drum: digit.firstElementChild, to: -(20 + Number(digit.dataset.digit)) / 30 * 100 }));
+
+  // ---------------------------------------------------------- the gallery
+  const gallery = $('[data-india-gallery]'), track = $('[data-india-track]'), foot = $('[data-india-foot]');
+  // Baba's own set (config.js), or else the photos uploaded in the admin.
+  const photos = deliveryPhotos.length
+    ? deliveryPhotos.map(({ city, card, full, caption }) => ({ city, caption, photo: full, card }))
+    : deliveries.filter(delivery => safeImage(delivery.photo));
+  const alt = photo => photo.caption || `A Baba Luxury Cars handover${photo.city ? `, delivered to ${photo.city}` : ''}`;
+  const card = (photo, index, copy) => `<div class="india-card" role="listitem"${copy ? ' aria-hidden="true"' : ''}>
+      <a class="india-card-frame" href="${escapeHTML(safeImage(photo.photo))}" data-photo="${index}" target="_blank" rel="noopener"${copy ? ' tabindex="-1"' : ''} aria-label="${escapeHTML(`View the photograph: ${alt(photo)}`)}">
+        <span class="india-card-shift"><img src="${escapeHTML(photo.card || thumbImage(photo.photo))}" alt="" loading="lazy" decoding="async" draggable="false" /></span>
+      </a>
+      <p class="india-card-caption"><span>Delivered to</span><b>${escapeHTML(photo.city || 'A new owner')}</b></p>
+    </div>`;
+  // A strip needs enough photographs to read as one; fewer stand still.
+  const moving = !reduced && photos.length >= 3;
+  let cards = [], size = { card: 1, span: 1, width: 1, radius: 1 }, sets = 0, lightbox = null;
+  const state = { offset: 0, speed: DRIFT, boost: 0 };
+  let dragging = false, moved = false, visible = false, hovering = false, introduced = !moving;
+
+  function build(count) {
+    sets = count;
+    track.innerHTML = Array.from({ length: count }, (_, set) => photos.map((photo, i) => card(photo, i, set > 0)).join('')).join('');
+    cards = [...track.children].map(element => ({ element, shift: element.querySelector('.india-card-shift'), rise: introduced ? 1 : 0, last: '' }));
+    track.querySelectorAll('img').forEach(image => image.addEventListener('error', () => {
+      const full = safeImage(photos[Number(image.closest('[data-photo]').dataset.photo)].photo);
+      if (image.src !== full) image.src = full;
+    }, { once: true }));
+  }
+  // Sizes are read here, on resize, never while drawing.
+  function layout() {
+    if (!photos.length) return;
+    const first = track.firstElementChild;
+    const width = gallery.clientWidth, cardWidth = first ? first.offsetWidth : 300;
+    const gap = parseFloat(getComputedStyle(track).columnGap) || 28;
+    size = { card: cardWidth, span: cardWidth + gap, width, radius: width * BEND };
+    if (!moving) return;
+    // Enough copies that the strip always overfills the screen as it wraps.
+    const wanted = Math.max(2, Math.ceil((width + size.span * 2) / (photos.length * size.span)));
+    if (wanted !== sets) { build(wanted); return layout(); }
+    render(true);
+  }
+
+  // Every card's place on the arc, from the strip's offset.
+  const total = () => cards.length * size.span;
+  const xOf = k => gsap.utils.wrap(-size.span, total() - size.span, k * size.span - state.offset);
+  // The offset at which card k stands in the middle.
+  const centred = k => k * size.span + size.card / 2 - size.width / 2;
+  function render(force = false) {
+    const { radius } = size;
+    for (let k = 0; k < cards.length; k++) {
+      const c = cards[k], x = xOf(k);
+      const from = x + size.card / 2 - size.width / 2;
+      const dip = radius - Math.sqrt(Math.max(0, radius * radius - from * from));
+      const lean = Math.asin(gsap.utils.clamp(-1, 1, from / radius)) * LEAN;
+      const transform = `translate3d(${x.toFixed(1)}px,${(dip + (1 - c.rise) * 90).toFixed(1)}px,0) rotate(${lean.toFixed(4)}rad)`;
+      if (!force && transform === c.last) continue;
+      c.last = transform;
+      c.element.style.transform = transform;
+      c.element.style.opacity = c.rise < 1 ? c.rise.toFixed(3) : '';
+      c.shift.style.transform = `translate3d(${(-from * PARALLAX).toFixed(1)}px,0,0)`;
+    }
+  }
+  function tick(time, deltaTime) {
+    if (!dragging) state.offset += (state.speed + state.boost) * Math.min(.05, deltaTime / 1000);
+    state.boost *= .94;
+    render();
+  }
+  let ticking = false;
+  const run = on => {
+    on = on && moving && !document.hidden;
+    if (on === ticking) return;
+    ticking = on;
+    if (on) gsap.ticker.add(tick); else gsap.ticker.remove(tick);
+  };
+
+  if (photos.length) {
+    gallery.hidden = false; foot.hidden = false;
+    gallery.classList.toggle('is-static', !moving);
+    build(1);
+    layout();
+    const resizer = new ResizeObserver(() => layout());
+    resizer.observe(gallery);
+    // One callback can carry several entries, oldest first: the last is current.
+    const watcher = new IntersectionObserver(entries => { visible = entries.at(-1).isIntersecting; run(visible); });
+    watcher.observe(gallery);
+    const onVisibility = () => run(visible);
+    document.addEventListener('visibilitychange', onVisibility);
+    cleanups.push(() => { resizer.disconnect(); watcher.disconnect(); document.removeEventListener('visibilitychange', onVisibility); run(false); });
+
+    if (moving) {
+      // Throw the strip; it settles with a photograph in the middle.
+      const proxy = document.createElement('div');
+      let start = 0, origin = 0;
+      const offsetAt = x => start - (x - origin);
+      const [drag] = Draggable.create(proxy, {
+        type: 'x', trigger: gallery, inertia: true, dragClickables: true, allowNativeTouchScrolling: true, minimumMovement: 6,
+        onPress() { gsap.killTweensOf(state, 'offset'); start = state.offset; origin = this.x; dragging = true; moved = false; },
+        onDrag() { moved = true; state.offset = offsetAt(this.x); },
+        onThrowUpdate() { state.offset = offsetAt(this.x); },
+        onRelease() { if (!this.tween?.isActive()) dragging = false; },
+        onThrowComplete() { dragging = false; },
+        snap: x => { const end = offsetAt(x), c = centred(0); return origin + start - (Math.round((end - c) / size.span) * size.span + c); },
+      });
+      cleanups.push(() => drag.kill());
+      // The page's own scroll speed hurries the strip along, briefly, the
+      // way the page is going.
+      const pace = ScrollTrigger.create({ trigger: gallery, start: 'top bottom', end: 'bottom top', onUpdate: self => { state.boost = gsap.utils.clamp(-220, 220, self.getVelocity() * .18); } });
+      cleanups.push(() => pace.kill());
+      // Under a fine pointer the strip comes to rest, to be looked at.
+      if (matchMedia('(hover: hover) and (pointer: fine)').matches) {
+        gallery.addEventListener('pointerenter', () => { hovering = true; gsap.to(state, { speed: 0, duration: .9, ease: 'power3.out', overwrite: 'auto' }); });
+        gallery.addEventListener('pointerleave', () => { hovering = false; gsap.to(state, { speed: DRIFT, duration: 1.6, ease: 'power2.inOut', overwrite: 'auto' }); });
+      }
+      // Keyboard: a focused photograph glides to the middle; the arrows step.
+      const glide = to => gsap.to(state, { offset: to, duration: .9, ease: 'expo.out', overwrite: 'auto' });
+      track.addEventListener('focusin', event => {
+        const k = cards.findIndex(c => c.element.contains(event.target));
+        if (k >= 0) glide(state.offset + gsap.utils.wrap(-total() / 2, total() / 2, centred(k) - state.offset));
+      });
+      gallery.addEventListener('keydown', event => {
+        const step = event.key === 'ArrowRight' ? 1 : event.key === 'ArrowLeft' ? -1 : 0;
+        if (!step) return;
+        event.preventDefault();
+        const c = centred(0);
+        glide((Math.round((state.offset - c) / size.span) + step) * size.span + c);
+      });
+    }
+
+    // A click (not the end of a drag) opens the photograph.
     lightbox = new PhotoSwipeLightbox({
       pswpModule: () => import('photoswipe'),
       bgOpacity: .97, showHideAnimationType: 'fade', showAnimationDuration: reduced ? 0 : 350, hideAnimationDuration: reduced ? 0 : 300,
-      wheelToZoom: true, loop: false,
+      wheelToZoom: true, loop: true,
       paddingFn: viewport => ({ top: 70, bottom: 64, left: viewport.x < 760 ? 16 : 64, right: viewport.x < 760 ? 16 : 64 }),
     });
     lightbox.on('uiRegister', () => lightbox.pswp.ui.registerElement({
@@ -255,124 +181,85 @@ export function createAcrossIndia(section, { settings, deliveries = [], cars = [
         pswp.on('change', update); update();
       },
     }));
+    lightbox.on('close', () => { if (moving && !hovering) gsap.to(state, { speed: DRIFT, duration: 1.6, ease: 'power2.inOut', overwrite: 'auto' }); });
     lightbox.init();
-    // PhotoSwipe fits and zooms by the real dimensions; read them on opening.
+    // PhotoSwipe fits and zooms by the real dimensions; they are read on opening.
     const sizes = new Map();
     const dimensions = i => {
       if (!sizes.has(i)) sizes.set(i, new Promise(resolve => {
         const image = new Image();
-        image.onload = () => resolve({ src: image.src, width: image.naturalWidth, height: image.naturalHeight, alt: handovers[i].caption || '', caption: [handovers[i].city, handovers[i].caption].filter(Boolean).join(' · ') });
+        image.onload = () => resolve({ src: image.src, width: image.naturalWidth, height: image.naturalHeight, alt: alt(photos[i]), caption: [photos[i].city, photos[i].caption].filter(Boolean).join(' · ') });
         image.onerror = () => { sizes.delete(i); resolve(null); };
-        image.src = safeImage(photographs[i].photo);
+        image.src = safeImage(photos[i].photo);
       }));
       return sizes.get(i);
     };
-    // A drag scrolls the strip with a fine pointer; a click opens the photograph.
-    let drag = null, dragged = false;
-    strip.addEventListener('pointerdown', event => {
-      if (event.pointerType !== 'mouse' || event.button !== 0) return;
-      drag = { x: event.clientX, left: strip.scrollLeft }; dragged = false;
-    });
-    const onDrag = event => {
-      if (!drag) return;
-      const dx = event.clientX - drag.x;
-      if (!dragged && Math.abs(dx) > 6) { dragged = true; strip.classList.add('is-dragging'); }
-      if (dragged) strip.scrollLeft = drag.left - dx;
-    };
-    const onDrop = () => { if (!drag) return; drag = null; strip.classList.remove('is-dragging'); };
-    addEventListener('pointermove', onDrag); addEventListener('pointerup', onDrop);
-    cleanups.push(() => { removeEventListener('pointermove', onDrag); removeEventListener('pointerup', onDrop); });
-    strip.addEventListener('click', async event => {
-      const card = event.target.closest('[data-photo]');
-      if (!card) return;
-      if (dragged) { event.preventDefault(); dragged = false; return; }
-      if (event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+    track.addEventListener('click', async event => {
+      const frame = event.target.closest('[data-photo]');
+      if (!frame || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       event.preventDefault();
-      const index = Number(card.dataset.photo);
-      const data = await Promise.all(photographs.map((_, i) => dimensions(i)));
-      if (!data[index]) { window.open(card.href, '_blank', 'noopener'); return; }
+      if (moved) { moved = false; return; }
+      const index = Number(frame.dataset.photo);
+      const data = await Promise.all(photos.map((_, i) => dimensions(i)));
+      if (!data[index]) { window.open(frame.href, '_blank', 'noopener'); return; }
+      gsap.to(state, { speed: 0, duration: .3, overwrite: 'auto' });
       lightbox.loadAndOpen(data.slice(0, index).filter(Boolean).length, data.filter(Boolean));
     });
-    strip.addEventListener('pointerover', event => { const card = event.target.closest('[data-journey]'); if (card && event.pointerType !== 'touch') hover(Number(card.dataset.journey)); });
-    strip.addEventListener('pointerleave', () => hover(-1));
-    const step = direction => { const card = strip.querySelector('li'); strip.scrollBy({ left: direction * (card ? card.offsetWidth + 16 : 300) * Math.max(1, Math.floor(strip.clientWidth / ((card?.offsetWidth || 300) + 16))), behavior: reduced ? 'instant' : 'smooth' }); };
-    $('[data-moments-prev]').addEventListener('click', () => step(-1));
-    $('[data-moments-next]').addEventListener('click', () => step(1));
-    const track = moments.querySelector('.india-strip-track');
-    const onStrip = () => {
-      const room = strip.scrollWidth - strip.clientWidth;
-      track.style.setProperty('--strip', room > 0 ? (strip.scrollLeft / room).toFixed(3) : '1');
-      track.style.setProperty('--strip-size', room > 0 ? (strip.clientWidth / strip.scrollWidth).toFixed(3) : '1');
-      moments.classList.toggle('is-scrollable', room > 1);
-    };
-    strip.addEventListener('scroll', onStrip, { passive: true });
-    new ResizeObserver(onStrip).observe(strip);
-    onStrip();
+    cleanups.push(() => lightbox.destroy());
   }
 
   // ----------------------------------------------------------------- motion
+  // The section assembles once as it comes into view: the title rises out of
+  // its lines, the statement line by line, the figures roll to their values
+  // and the photographs rise onto their arc, from the left.
   const lines = section.querySelectorAll('.india-line > span');
-  const reveal = section.querySelectorAll('[data-india-reveal], .india-stats > div, .india-moments');
-  let entered = reduced, atlasIntro = null, lean = null;
-  if (!reduced) {
+  const statement = $('[data-india-statement]');
+  if (reduced) drums.forEach(({ drum, to }) => gsap.set(drum, { yPercent: to }));
+  else {
     gsap.set(lines, { yPercent: 108 });
-    gsap.set([...reveal, ...items], { autoAlpha: 0, y: 16 });
-    counters.forEach(counter => { counter.textContent = '0'; });
-    ScrollTrigger.create({
-      trigger: section, start: 'top 72%', once: true,
+    gsap.set(section.querySelectorAll('[data-india-reveal], .india-figure dt, .india-suffix, .india-foot'), { autoAlpha: 0, y: 14 });
+    const split = SplitText.create(statement, {
+      type: 'lines', mask: 'lines', autoSplit: true,
+      onSplit: self => gsap.from(self.lines, { yPercent: 105, duration: 1.5, ease: 'expo.out', stagger: .1, scrollTrigger: { trigger: statement, start: 'top 88%', once: true } }),
+    });
+    cleanups.push(() => split.revert());
+    const head = ScrollTrigger.create({
+      trigger: section, start: 'top 70%', once: true,
+      onEnter: () => gsap.timeline({ defaults: { ease: 'expo.out' } })
+        .to(lines, { yPercent: 0, duration: 1.6, stagger: .1 }, 0)
+        .to(section.querySelectorAll('[data-india-reveal]'), { autoAlpha: 1, y: 0, duration: 1.2, clearProps: 'transform' }, .1),
+    });
+    // Odometer: every drum spins through its digits and comes to rest, each
+    // a beat after the one before, like a counter settling.
+    const counts = ScrollTrigger.create({
+      trigger: list, start: 'top 88%', once: true,
       onEnter: () => {
-        entered = true;
-        gsap.timeline({ defaults: { ease: 'expo.out' } })
-          .to(lines, { yPercent: 0, duration: 1.5, stagger: .1 }, 0)
-          .to(reveal, { autoAlpha: 1, y: 0, duration: 1.2, stagger: .07, clearProps: 'transform' }, .2)
-          .to(items, { autoAlpha: 1, y: 0, duration: 1, stagger: .035, clearProps: 'transform' }, .55);
-        counters.forEach((counter, i) => gsap.to({ v: 0 }, { v: Number(counter.dataset.count), duration: 2.2, delay: .6 + i * .12, ease: 'power3.out', onUpdate() { counter.textContent = grouping.format(Math.round(this.targets()[0].v)); } }));
-        playAtlas();
+        const timeline = gsap.timeline({ defaults: { ease: 'expo.out' } })
+          .to(section.querySelectorAll('.india-figure dt'), { autoAlpha: 1, y: 0, duration: 1.1, stagger: .08, clearProps: 'transform' }, .1);
+        drums.forEach(({ drum, to }, i) => timeline.fromTo(drum, { yPercent: 0 }, { yPercent: to, duration: 2.4, ease: 'expo.inOut' }, .05 + i * .07));
+        timeline.to(section.querySelectorAll('.india-suffix'), { autoAlpha: 1, y: 0, duration: 1, stagger: .08, clearProps: 'transform' }, 1.5);
       },
     });
-  }
-  // The atlas assembles once, when the section is first in view (or at once,
-  // if it arrives after that); each name appears as its route lands.
-  function playAtlas() {
-    if (!atlas || atlasIntro) return;
-    atlasIntro = atlas.intro();
+    cleanups.push(() => { head.kill(); counts.kill(); });
+    if (photos.length) {
+      const rise = ScrollTrigger.create({
+        trigger: gallery, start: 'top 85%', once: true,
+        onEnter: () => {
+          gsap.to(foot, { autoAlpha: 1, y: 0, duration: 1.2, delay: .6, ease: 'expo.out', clearProps: 'transform' });
+          if (!moving) return;
+          // The photographs rise onto the arc in the order they stand.
+          introduced = true;
+          const order = cards.map((c, k) => [c, xOf(k)]).sort((a, b) => a[1] - b[1]).map(([c]) => c);
+          gsap.to(order, { rise: 1, duration: 1.6, ease: 'expo.out', stagger: .07, onUpdate: () => render(true) });
+        },
+      });
+      cleanups.push(() => rise.kill());
+    }
   }
 
-  // ------------------------------------------------------------- the atlas
-  let disposeAtlas = () => {}, visible = false, disposed = false;
-  const watcher = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; atlas?.loop(visible); });
-  watcher.observe(stage);
-  const onVisibility = () => atlas?.loop(visible && !document.hidden);
-  document.addEventListener('visibilitychange', onVisibility);
-  if ('WebGL2RenderingContext' in window) {
-    import('./india-atlas.js').then(({ createAtlas }) => {
-      if (disposed) return;
-      atlas = createAtlas(canvas, { origin: ORIGIN.at, destinations: journeys, reduced });
-      const off = atlas.onRender(placePins);
-      document.fonts.ready.then(() => { measurePins(); atlas?.request(); });
-      measurePins();
-      section.classList.add('has-atlas');
-      if (entered) playAtlas();
-      // The atlas leans a few degrees as the page scrolls past it.
-      if (!reduced) lean = gsap.fromTo(atlas.view, { lean: -.075 }, { lean: .075, ease: 'none', onUpdate: atlas.request, scrollTrigger: { trigger: section, start: 'top bottom', end: 'bottom top', scrub: .9 } });
-      atlas.loop(visible);
-      focus = -2; setFocus();
-      disposeAtlas = () => { off(); lean?.scrollTrigger?.kill(); lean?.kill(); atlasIntro?.kill(); atlas.dispose(); atlas = null; };
-    }).catch(error => { atlas = null; section.classList.remove('has-atlas'); console.error('The atlas is unavailable; keeping the map.', error); });
-  }
-  const resizer = new ResizeObserver(() => { measurePins(); atlas?.request(); });
-  resizer.observe(stage);
-
-  if (import.meta.env.DEV) window.__india = {
-    journeys: () => journeys.map(j => ({ name: j.name, km: Math.round(j.km), photo: Boolean(j.photo), local: j.local.length })),
-    state: () => ({ atlas: Boolean(atlas), entered, focus, selected, hovered, view: atlas ? { elevation: atlas.view.elevation, lean: atlas.view.lean, reveal: atlas.view.reveal, intro: atlas.view.intro } : null, pins: pins.filter(pin => !pin.classList.contains('is-hidden')).length, shown: atlas?.routes.map(route => +route.shown.toFixed(2)) }),
-    choose,
-  };
+  if (import.meta.env.DEV) window.__india = { state: () => ({ photos: photos.length, cards: cards.length, sets, moving, offset: state.offset, speed: state.speed, ticking, introduced }) };
   return {
-    refresh: () => atlas?.request(),
-    dispose() {
-      disposed = true; disposeAtlas(); watcher.disconnect(); resizer.disconnect(); lightbox?.destroy(); cleanups.forEach(cleanup => cleanup());
-      document.removeEventListener('keydown', onKey); document.removeEventListener('visibilitychange', onVisibility);
-    },
+    refresh: () => layout(),
+    dispose() { cleanups.forEach(cleanup => cleanup()); },
   };
 }

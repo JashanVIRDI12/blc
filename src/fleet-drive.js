@@ -194,7 +194,9 @@ export function createFleetDrive(section, { reduced = false, onProgress } = {}) 
   const swaying = () => Math.abs(sway.toX - sway.x) + Math.abs(sway.toY - sway.y) > 1e-4;
   function stepSway() {
     sway.x += (sway.toX - sway.x) * .07; sway.y += (sway.toY - sway.y) * .07;
-    section.style.setProperty('--sway-x', sway.x.toFixed(4)); section.style.setProperty('--sway-y', sway.y.toFixed(4));
+    // Straight onto the title: a custom property on the section restyled the
+    // whole stage every frame the pointer moved.
+    if (wordLine) wordLine.style.transform = `translate3d(${(sway.x * 10).toFixed(2)}px,${(sway.y * 5).toFixed(2)}px,0)`;
     dust?.point(sway.x, sway.y);
     render();
   }

@@ -46,10 +46,10 @@ export const defaultSettings = {
   home: { title: 'Featured collection.', intro: 'Distinctive cars. Carefully considered.\nEnquire for current availability.', limit: 3, choose: 'priciest' },
   collection: { intro: 'Every car here has been chosen, inspected and photographed by us. Filter by body, budget or make, or let us find the one you have in mind.' },
   listing: { showSold: true, newDays: 21, ...LISTING_DEFAULTS },
-  // The home page's "Across India" map. `places`: the cities and states it
-  // shows, comma or line separated (src/places.js); places on delivery
-  // photos are added. `delivered`: a total to show (empty shows the cars
-  // marked Sold).
+  // The settings of the home page's former "Across India" map (places, an
+  // introduction, a delivered total). The section now shows the handover
+  // photographs and the figures in config.js instead; these are kept so
+  // saved settings still load, and are not shown.
   india: {
     intro: 'From our showroom in Paschim Vihar, cars come and go across the country: bought from owners from Gujarat to Odisha, delivered from Jammu & Kashmir to Andhra Pradesh.',
     places: 'Jammu & Kashmir, Himachal Pradesh, Chandigarh, Dehradun, Rudrapur, Rajasthan, Ahmedabad, Raipur, Jamshedpur, Bhubaneswar, Andhra Pradesh',
