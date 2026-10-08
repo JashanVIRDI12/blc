@@ -31,8 +31,9 @@ export const lightsMarks = view => Object.fromEntries(lightsVehicles.map(({ id }
 // The Baba Luxury Car sign, lit on the back wall behind the cars: its centre,
 // its width in metres, and the way it faces (towards the last frame's camera).
 export const lightsLogo = {
-  wide: { position: [0, 3.05, -12], width: 8.6, yaw: 0 },
-  tall: { position: [2.2, 3.3, -9.7], width: 5.6, yaw: Math.atan2(-6 - 2.2, 23 + 9.7) },
+  // Small and high, so it reads above the roofs in every frame.
+  wide: { position: [0, 3.75, -12], width: 5.4, yaw: 0 },
+  tall: { position: [2.2, 3.85, -9.7], width: 4.2, yaw: Math.atan2(-6 - 2.2, 23 + 9.7) },
 };
 
 // When things happen: each car's light comes up over `rise` as the camera

@@ -141,11 +141,7 @@ p{text-wrap:pretty}
 .eyebrow:before{content:'';flex:none;width:34px;height:1px;background:linear-gradient(90deg,var(--gold-lo),var(--gold-hi));transform-origin:left;transform:scaleX(var(--eyebrow-rule,1))}
 .intro{font-size:17px;line-height:1.72;color:var(--steel);max-width:38ch;margin-top:26px}
 
-/* Featured collection: each car on a lit plinth, like a vitrine at night. */
-.collection{position:relative;background:var(--reflection),var(--obsidian)}
-.collection-heading{display:grid;gap:22px;margin-bottom:44px}
-.collection-heading .intro{margin:0}
-.collection-status{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:12px 16px;padding:20px 0 30px;border-top:1px solid var(--graphite);font-size:13px;color:var(--steel)}
+/* Vehicle cards: each car on a lit plinth, like a vitrine at night. */
 .vehicle-grid{display:grid;gap:60px}
 .vehicle-card{position:relative;min-width:0}
 .vehicle-link{display:block;color:inherit}
@@ -200,18 +196,12 @@ p{text-wrap:pretty}
 /* Placeholders hold the room while the stock loads. */
 .vehicle-card.is-skeleton{aspect-ratio:4/4.2;background:linear-gradient(100deg,transparent 30%,rgba(239,233,222,.04) 50%,transparent 70%) 0 0/250% 100%,var(--vitrine);opacity:.5;animation:shimmer 1.6s linear infinite}
 @keyframes shimmer{to{background-position:-250% 0,0 0}}
-/* Cards rise into place as they come into view (cards.js reveal). */
-.vehicle-card.is-pending{opacity:0;transform:translateY(28px)}
-.vehicle-card.is-revealed{transition:opacity .8s var(--ease),transform 1s var(--ease)}
 .collection-actions{display:flex;flex-wrap:wrap;gap:12px}
-.collection-status .text-link{padding:0 0 4px;font-size:13px}
 .empty-state{padding:64px 0;text-align:center}
 .empty-state h3{font-size:34px;margin-bottom:12px}
 .empty-state p{max-width:38ch;margin:0 auto 20px;color:var(--steel)}
 .collection-bottom{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:18px;margin-top:72px;padding-top:28px;border-top:1px solid var(--graphite);color:var(--steel)}
 @media(min-width:761px){
-  .collection-heading{grid-template-columns:1fr auto;align-items:end;margin-bottom:56px}
-  .collection-heading .intro{text-align:right}
   .vehicle-grid{grid-template-columns:repeat(2,1fr);gap:56px 28px}
 }
 @media(min-width:1101px){

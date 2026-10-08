@@ -1,0 +1,195 @@
+/* The featured collection (inventory.js, featured-stage.js). Black paint,
+   the dealership's own photographs shown whole and square, ivory names in the
+   display face; gold only for the make, the price and the line that marks the
+   car in view. Wide screens present the cars one at a time on a pinned stage;
+   phones, tall screens and reduced motion show them as cards whose rows line
+   up across the grid. */
+.featured{position:relative;padding:var(--space) var(--gutter) clamp(72px,9vw,128px);color:var(--ivory);background:var(--reflection),var(--obsidian)}
+.ft-mask{display:block;overflow:hidden;padding-bottom:.1em;margin-bottom:-.1em}
+.ft-line{display:block}
+
+/* The head: the title, and the introduction beside it. */
+.ft-head{display:grid;gap:20px 64px;margin-bottom:clamp(48px,5.4vw,80px)}
+.featured h2{margin:0;font:300 clamp(48px,7.2vw,120px)/.94 var(--font-display);letter-spacing:-.04em;color:#f2ede4}
+.ft-intro{max-width:36ch;margin:0;font-size:15.5px;line-height:1.7;color:var(--steel)}
+@media(min-width:761px){
+  .ft-head{grid-template-columns:minmax(0,1fr) auto;align-items:end}
+  .ft-intro{margin-bottom:.5em;text-align:right}
+}
+
+/* The words about a car, on a card and on the stage alike: the make and the
+   price on one line, the name beneath, then the figures over a hairline. */
+.ft-card-top{display:flex;justify-content:space-between;align-items:baseline;gap:16px;margin:0}
+.ft-make{font:600 12.5px/1.3 var(--font-text);letter-spacing:.06em;color:var(--gold)}
+.ft-price{font:400 22px/1 var(--font-display);font-variant-numeric:lining-nums;color:var(--gold-hi);white-space:nowrap}
+.ft-price.is-quiet{font:500 13px/1.3 var(--font-text);color:var(--steel)}
+.ft-name{margin:10px 0 0;font:400 clamp(32px,2.9vw,42px)/1.02 var(--font-display);letter-spacing:-.022em;font-variant-numeric:lining-nums;color:var(--ivory);text-wrap:balance}
+.ft-name i{font-weight:300;color:var(--steel)}
+.ft-name a{color:inherit}
+.ft-facts{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:14px;margin:20px 0 0;padding-top:16px;border-top:1px solid var(--graphite)}
+.ft-facts:empty{padding:0;border:0}
+.ft-facts dt{font:500 11.5px/1.3 var(--font-text);letter-spacing:.02em;color:var(--steel-dim)}
+.ft-facts dd{margin:6px 0 0;font:400 19px/1.15 var(--font-display);font-variant-numeric:lining-nums;color:var(--ivory);white-space:nowrap}
+.ft-avail{display:block;font-size:13.5px;color:var(--steel)}
+.ft-note{margin:14px 0 0;font:italic 300 16.5px/1.4 var(--font-display);color:#cfc8bb}
+.ft-note:empty{margin:0}
+
+/* Cards. Each is a subgrid five rows tall, so a card whose name runs to two
+   lines, or that has no note, keeps its figures level with its neighbours'. */
+/* The grid's own rows carry no gap (a subgrid would take it between its
+   rows); each card's padding spaces one row of cards from the next. */
+.ft-grid{display:grid;grid-template-columns:minmax(0,1fr);gap:0 28px}
+@media(min-width:640px){.ft-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(min-width:1101px){.ft-grid{grid-template-columns:repeat(3,minmax(0,1fr));column-gap:36px}}
+.ft-card{position:relative;display:grid;grid-template-rows:subgrid;grid-row:span 5;row-gap:0;min-width:0;padding-bottom:clamp(56px,7vw,88px)}
+.ft-card .ft-card-top{margin-top:24px}
+/* The whole card opens the car; the name carries the link. */
+.ft-card .ft-name a:after{content:'';position:absolute;inset:0 0 clamp(56px,7vw,88px);z-index:3}
+.ft-card .ft-name a:focus-visible{outline:0}
+.ft-card .ft-name a:focus-visible:after{outline:1px solid var(--gold);outline-offset:8px}
+.ft-card.is-skeleton{display:block;grid-row:auto;aspect-ratio:1/1.3;background:linear-gradient(100deg,transparent 30%,rgba(239,233,222,.04) 50%,transparent 70%) 0 0/250% 100%,var(--vitrine);opacity:.5;animation:shimmer 1.6s linear infinite}
+
+/* A photograph, square and whole, on the dark vitrine; the coachline along
+   its foot. */
+.ft-card-photo,.ft-photo{display:block;overflow:hidden;background:var(--vitrine)}
+.ft-card-photo{position:relative;aspect-ratio:1}
+.ft-card-photo:after{content:'';position:absolute;left:0;right:0;bottom:0;z-index:2;height:1px;background:var(--coachline);opacity:.7}
+.ft-card-photo>img:first-child,.ft-photo>img:first-child{display:block;width:100%;height:100%;object-fit:cover}
+.ft-card-photo>img:first-child{transition:transform 1.2s var(--ease)}
+@media(hover:hover){
+  .ft-card:hover .ft-card-photo>img:first-child{transform:scale(1.03)}
+  .ft-card:hover .glare{background-position:100% 100%}
+  .ft-card:hover [data-inside] .inside-photo,.ft-photo[data-inside]:hover .inside-photo[src]{opacity:1}
+  .ft-card:hover [data-inside] .inside-label,.ft-photo[data-inside]:hover:has(.inside-photo[src]) .inside-label{opacity:1;transform:none}
+  .ft-card:hover [data-inside] .photo-count,.ft-photo[data-inside]:hover:has(.inside-photo[src]) .photo-count{opacity:0}
+}
+
+/* The close: a line and the two ways on. */
+.ft-foot{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:18px 32px;margin-top:clamp(8px,1.4vw,24px);padding-top:28px;border-top:1px solid var(--graphite)}
+.ft-foot p{margin:0;font:300 clamp(24px,2.2vw,32px)/1.2 var(--font-display);letter-spacing:-.015em;color:#ebe5da}
+.ft-actions{display:flex;flex-wrap:wrap;align-items:center;gap:14px 30px}
+
+/* ------------------------------------------------------------ the catalogue
+   Wide screens: a printed catalogue of square pages on the black table, the
+   contents and the ways on beneath it. The title lives on its cover. */
+.featured:not(.is-staged) :is(.ft-book,.ft-contents){display:none}
+.featured.is-staged .ft-grid{display:none}
+.featured.is-staged{
+  --pad:clamp(16px,3vh,40px);--bar:clamp(70px,10vh,92px);
+  --page:min(calc(100svh - var(--header-height) - var(--pad) * 2 - var(--bar)),calc(50vw - var(--gutter)),780px);
+  --slack:calc((100svh - var(--header-height) - var(--page) - var(--bar)) / 2);
+  --paper:#f5f1e9;--ink:#15130f;--ink-muted:#7a736a;--gold-ink:#8f6229;--rule:rgba(21,19,15,.14);
+  display:grid;grid-template-columns:minmax(0,1fr) auto;grid-template-rows:var(--page) var(--bar);grid-template-areas:'book book' 'bar foot';column-gap:40px;
+  height:100svh;padding:calc(var(--header-height) + var(--slack)) calc((100% - var(--page) * 2) / 2) var(--slack);overflow:clip}
+.is-staged .ft-head{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+
+/* The book: two pages either side of the spine. Each leaf turns about the
+   spine; its front is a right-hand page, its back a left-hand one. */
+.ft-book{grid-area:book;position:relative;width:calc(var(--page) * 2);height:var(--page);container-type:size;perspective:calc(var(--page) * 9.5);perspective-origin:50% 50%}
+.ft-spread{position:absolute;inset:0;transform-style:preserve-3d}
+.ft-base,.ft-leaf{position:absolute;top:0;left:50%;width:50%;height:100%;transform-style:preserve-3d}
+.ft-leaf{transform-origin:0 50%;will-change:transform}
+.ft-face{position:absolute;inset:0;overflow:hidden;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+.ft-back{transform:rotateY(180deg)}
+/* The paper's weight: the right-hand stack shows its edges. */
+.ft-base{box-shadow:2px 0 0 -1px #d6cfc2,4px 0 0 -2px #b9b1a4,6px 0 0 -3px #8e877b}
+/* Each page darkens a little into the gutter. */
+.ft-face:after{content:'';position:absolute;top:0;bottom:0;z-index:4;width:10%;pointer-events:none}
+.ft-front:after{left:0;background:linear-gradient(90deg,rgba(24,18,10,.24),rgba(24,18,10,.06) 45%,transparent)}
+.ft-back:after{right:0;background:linear-gradient(270deg,rgba(24,18,10,.34),rgba(24,18,10,.08) 45%,transparent)}
+/* Light on a turning page (featured-stage.js): it darkens edge-on and a
+   gloss runs across the coated paper; beneath it, its shadow. */
+.ft-shade,.ft-gloss{position:absolute;inset:0;z-index:5;pointer-events:none;opacity:0}
+/* Turned away from the light, a page darkens most at its free edge. */
+.ft-front .ft-shade{background:linear-gradient(90deg,rgba(10,9,7,.55),rgba(10,9,7,.95))}
+.ft-back .ft-shade{background:linear-gradient(270deg,rgba(10,9,7,.55),rgba(10,9,7,.95))}
+.ft-gloss{background:linear-gradient(100deg,transparent 38%,rgba(255,251,242,.5) 50%,transparent 62%) 0 0/280% 100% no-repeat}
+.ft-cast{position:absolute;top:0;bottom:0;width:50%;pointer-events:none;opacity:0}
+.ft-cast--right{left:50%;transform-origin:0 50%;background:linear-gradient(90deg,rgba(0,0,0,.8),rgba(0,0,0,.3) 35%,transparent 85%)}
+.ft-cast--left{right:50%;transform-origin:100% 50%;background:linear-gradient(270deg,rgba(0,0,0,.8),rgba(0,0,0,.3) 35%,transparent 85%)}
+
+/* A page is a container: its type is set in proportion to it, as print is. */
+.ft-page{position:absolute;inset:0;container-type:size}
+
+/* The cover: black, a gold rule inset, the dealership's mark. */
+.ft-cover{display:grid;grid-template-rows:auto 1fr auto;justify-items:center;padding:9cqi 8cqi 7.4cqi;text-align:center;color:var(--ivory);background:radial-gradient(120% 85% at 50% 0%,#1d1d20,#0c0c0d 58%,#070707)}
+.ft-cover:before{content:'';position:absolute;inset:3.4cqi;border:1px solid rgba(196,136,58,.42);pointer-events:none}
+.ft-cover-mark{display:block;width:40cqi;height:auto}
+.ft-cover-title{align-self:center}
+.ft-cover-name{margin:0;font:300 11cqi/.94 var(--font-display);letter-spacing:-.04em;color:#f3eee5;text-wrap:balance}
+.ft-cover-intro{margin:4cqi auto 0;max-width:34ch;font:400 max(11px,2.1cqi)/1.65 var(--font-text);color:#a7a29a}
+.ft-cover-issue{display:grid;grid-template-columns:1fr auto 1fr;align-items:baseline;width:100%;margin:0;font:500 max(10px,1.85cqi)/1 var(--font-text);letter-spacing:.03em;color:#cfb07a}
+.ft-cover-issue span:first-child{text-align:left}
+.ft-cover-issue span:last-child{text-align:right}
+.ft-cover-hint{color:#8d887f}
+
+/* A car's page: ivory paper, a running head, the car, a folio. */
+.ft-sheet{display:flex;flex-direction:column;padding:5.8cqi 7cqi 5.4cqi;color:var(--ink);background:linear-gradient(90deg,#ede7dc,var(--paper) 14%,#f7f3ec)}
+.ft-run{display:flex;justify-content:space-between;gap:2cqi;margin:0;padding-bottom:2.4cqi;border-bottom:1px solid var(--rule);font:500 max(10px,1.7cqi)/1.2 var(--font-text);letter-spacing:.02em;color:var(--ink-muted)}
+.ft-sheet-body{display:flex;flex:1;flex-direction:column;min-height:0;padding-top:4.6cqi}
+.ft-sheet .ft-card-top{align-items:flex-start}
+.ft-sheet .ft-make{padding-top:1.4cqi}
+/* Room for a word on the price is kept on every page, so each name sits at
+   the same height. */
+.ft-price-block{display:grid;align-content:start;justify-items:end;gap:.8cqi;min-height:9.6cqi}
+.ft-sheet .ft-make{font-size:max(11px,2.05cqi);color:var(--gold-ink)}
+.ft-sheet .ft-price{font-size:4.8cqi;color:var(--gold-ink)}
+.ft-sheet .ft-price.is-quiet{font-size:max(11px,2cqi);color:var(--ink-muted)}
+.ft-sheet .ft-name{margin-top:.6cqi;font-size:10.8cqi;line-height:.95;letter-spacing:-.04em;color:#100f0d}
+.ft-sheet .ft-name i{color:#8a8379}
+.ft-sheet .ft-facts{margin-top:auto;gap:2cqi;padding-top:2.8cqi;border-top-color:var(--rule)}
+.ft-sheet .ft-facts dt{font-size:max(10px,1.8cqi);color:var(--ink-muted)}
+.ft-sheet .ft-facts dd{margin-top:1cqi;font-size:3.7cqi;color:var(--ink)}
+.ft-sheet .ft-avail{color:var(--ink-muted)}
+.ft-sheet .ft-note{margin:0;font-size:max(11px,2.3cqi);color:#5a544c}
+.ft-about{margin:1.6cqi 0 0;font:italic 300 3cqi/1.3 var(--font-display);color:#5a544c}
+/* The cabin beside the highlights, as a magazine sets a second picture. */
+.ft-feature{display:grid;grid-template-columns:24cqi minmax(0,1fr);gap:4.4cqi;align-items:start;margin-top:4.2cqi}
+.ft-feature:not(:has(.ft-inset)){grid-template-columns:minmax(0,1fr)}
+.ft-inset{margin:0}
+.ft-inset img{display:block;width:100%;height:auto;aspect-ratio:1;object-fit:cover;background:#e4ddd0}
+.ft-inset figcaption{margin-top:1.2cqi;font:500 max(10px,1.6cqi)/1.2 var(--font-text);color:var(--ink-muted)}
+.ft-points{display:grid;gap:1.7cqi;margin:0;padding:0;list-style:none;font:400 max(11px,2.1cqi)/1.4 var(--font-text);color:#3e3933}
+.ft-points li{position:relative;padding-left:3.2cqi}
+.ft-points li:before{content:'';position:absolute;left:0;top:.7em;width:1.8cqi;height:1px;background:var(--gold-ink)}
+.ft-view{align-self:flex-start;margin-top:3.2cqi;padding-bottom:.7cqi;font:600 max(12px,2.15cqi)/1.2 var(--font-text);letter-spacing:.03em;color:var(--ink);background:linear-gradient(var(--gold-ink),var(--gold-ink)) 0 100%/100% 1px no-repeat;transition:background-size .5s var(--ease)}
+.ft-view:hover{background-size:40% 1px}
+.ft-view:focus-visible{outline-color:var(--gold-ink)}
+.ft-folio{margin:3.4cqi 0 0;font:500 max(10px,1.7cqi)/1 var(--font-text);color:var(--ink-muted);font-variant-numeric:tabular-nums}
+
+/* A car's photograph, full bleed on its left page. */
+.ft-photo .car-badge,.ft-photo .plate-chip{left:3.6cqi;top:3.6cqi}
+.ft-photo .car-badge~.plate-chip{top:calc(3.6cqi + 36px)}
+.ft-photo .photo-count,.ft-photo .inside-label{left:3.6cqi;bottom:3.6cqi}
+
+/* The corners: the foot of each outer edge turns the page. They leave the
+   page as it is; pointed at, the corner catches a little light, as a page
+   does when a thumb lifts it, and its label shows beneath the book. */
+.ft-turn{position:absolute;bottom:0;z-index:3;width:9cqi;height:9cqi;padding:0;background:none;border:0;cursor:pointer;transform:translateZ(calc(var(--layers, 13) * .6px))}
+.ft-turn--next{right:0}
+.ft-turn--back{left:0}
+.ft-turn:before{content:'';position:absolute;inset:0;opacity:0;transition:opacity .5s var(--ease)}
+.ft-turn--next:before{background:radial-gradient(circle at 100% 100%,rgba(255,250,240,.4),rgba(255,250,240,0) 70%)}
+.ft-turn--back:before{background:radial-gradient(circle at 0 100%,rgba(255,250,240,.4),rgba(255,250,240,0) 70%)}
+.ft-turn span{position:absolute;bottom:calc(-1 * clamp(22px,3vh,30px));white-space:nowrap;font:500 12.5px/1 var(--font-text);letter-spacing:.03em;color:var(--steel);opacity:0;transition:opacity .4s}
+.ft-turn--next span{right:0}
+.ft-turn--back span{left:0}
+.ft-turn:disabled{visibility:hidden}
+.ft-turn:focus-visible{outline-offset:-2px}
+.ft-turn:is(:hover,:focus-visible):before,.ft-turn:is(:hover,:focus-visible) span{opacity:1}
+
+/* The contents: every car in a row beneath the catalogue; the gold line
+   marks the one open. The ways on stand at the right. */
+/* Set low in its band, clear of a page swinging out of the book above it. */
+.ft-contents{grid-area:bar;position:relative;align-self:end;min-width:0;overflow:clip;padding-bottom:4px}
+.ft-rows{display:flex;gap:clamp(22px,2.6vw,44px);width:max-content;margin:0;padding:0;list-style:none}
+.ft-row{display:flex;align-items:baseline;gap:12px;padding:10px 0 12px;font:inherit;color:var(--steel-dim);background:none;border:0;cursor:pointer;transition:color .45s var(--ease)}
+.ft-row-name{font:400 clamp(17px,1.3vw,21px)/1.2 var(--font-display);white-space:nowrap}
+.ft-row-name i{font-weight:300}
+.ft-row-price{font-size:13px;font-weight:500;white-space:nowrap;transition:color .45s var(--ease)}
+.ft-row:hover,.ft-row:focus-visible,.ft-row.is-active{color:var(--ivory)}
+.ft-row.is-active .ft-row-price{color:var(--gold-hi)}
+.ft-marker{position:absolute;left:0;bottom:4px;width:0;height:1px;background:linear-gradient(90deg,var(--gold-hi),var(--gold));opacity:0;pointer-events:none}
+.is-staged .ft-foot{grid-area:foot;align-self:end;margin:0 0 8px;padding:0;border:0}
+.is-staged .ft-foot p{display:none}
+.is-staged .ft-actions{gap:12px 26px}

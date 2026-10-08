@@ -82,26 +82,29 @@
 
     <section class="fleet" id="fleet" aria-labelledby="fleet-title">
       <div class="fleet-stage">
+        <div class="fleet-flood" aria-hidden="true"></div>
         <div class="fleet-fallback" aria-hidden="true"><img src="/stills/defender-fleet.webp" alt="" loading="lazy" /><img src="/stills/sclass.webp" alt="" loading="lazy" /><img src="/stills/gls.webp" alt="" loading="lazy" /><img src="/stills/x7-fleet.webp" alt="" loading="lazy" /></div>
         <canvas role="img" aria-label="Four cars from the collection, parked in the dark: a light comes up over each in turn, then the whole studio: a Land Rover Defender 110, a Mercedes-Maybach S 580, a Mercedes-Benz GLS 580 and a BMW X7."></canvas>
       </div>
-      <div class="fleet-copy">
-        <div class="fleet-copy-head">
-          <p class="fleet-eyebrow"><i class="fleet-rule" aria-hidden="true"></i>The Baba collection</p>
-          <h2 id="fleet-title"><span class="fl-line"><span>Luxury cars.</span></span><span class="fl-line"><span><em>Trusted deals.</em></span></span></h2>
-        </div>
-        <div class="fleet-copy-side">
-          <p class="fleet-note">Carefully selected pre-owned luxury cars, with transparent documentation, finance assistance and trusted customer support.</p>
-          <div class="fleet-actions"><a class="fleet-button" href="/collection/">Explore the collection <span aria-hidden="true">→</span></a><a class="fleet-link" href="#inventory">Featured cars</a></div>
-        </div>
+      <div class="fleet-copy fleet-plate">
+        <h2 id="fleet-title"><span class="fl-line"><span>Luxury cars.</span></span><span class="fl-line"><span><em>Trusted deals.</em></span></span></h2>
+        <p class="fleet-note">Carefully selected pre-owned luxury cars, with transparent documentation, finance assistance and trusted customer support.</p>
+        <div class="fleet-actions"><a class="fleet-button" href="/collection/">Explore the collection <span aria-hidden="true">→</span></a><a class="fleet-link" href="#inventory">Featured cars</a></div>
       </div>
     </section>
 
-    <section class="collection section-pad" id="inventory" aria-labelledby="inventory-title">
-      <div class="collection-heading"><h2 id="inventory-title">Featured collection.</h2><p class="intro" id="collection-intro">Distinctive cars. Carefully considered.<br>Enquire for current availability.</p></div>
-      <div class="collection-status"><span id="collection-count" role="status" aria-live="polite"></span><a class="text-link" href="/collection/">View the full collection <span aria-hidden="true">↗</span></a></div>
-      <div class="vehicle-grid" id="vehicle-grid" aria-busy="true"><div class="vehicle-card is-skeleton" aria-hidden="true"></div><div class="vehicle-card is-skeleton" aria-hidden="true"></div><div class="vehicle-card is-skeleton" aria-hidden="true"></div></div>
-      <div class="collection-bottom"><p>Looking for something in particular?</p><div class="collection-actions"><a class="outline-button" href="/collection/">Browse every car</a><button class="outline-button" data-enquire data-subject="Help me find my next car">Let us find it</button></div></div>
+    <section class="featured" id="inventory" aria-labelledby="inventory-title">
+      <header class="ft-head">
+        <h2 id="inventory-title"><span class="ft-mask"><span class="ft-line" data-featured-title>Featured collection.</span></span></h2>
+        <p class="ft-intro" data-featured-intro>Distinctive cars. Carefully considered.<br>Enquire for current availability.</p>
+      </header>
+      <div class="ft-book" data-featured-book></div>
+      <nav class="ft-contents" aria-label="Featured cars"><ol class="ft-rows"></ol><i class="ft-marker" aria-hidden="true"></i></nav>
+      <div class="ft-grid" data-featured-grid aria-busy="true"><div class="ft-card is-skeleton" aria-hidden="true"></div><div class="ft-card is-skeleton" aria-hidden="true"></div><div class="ft-card is-skeleton" aria-hidden="true"></div></div>
+      <footer class="ft-foot">
+        <p>Looking for something in particular?</p>
+        <div class="ft-actions"><a class="outline-button" href="/collection/" data-featured-browse>Browse every car</a><button type="button" class="text-link" data-enquire data-subject="Help me find my next car">Ask us to find one</button></div>
+      </footer>
     </section>
 
     <section class="brand-intro section-pad" id="about" aria-labelledby="about-title">

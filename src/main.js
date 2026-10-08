@@ -3,6 +3,7 @@ import './about.css';
 import './film.css';
 import './fleet.css';
 import './india.css';
+import './featured.css';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';

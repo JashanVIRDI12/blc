@@ -18,7 +18,7 @@ function sprite(rgb, softness) {
   return canvas;
 }
 
-export function createDust(stage, { scene }) {
+export function createDust(stage, { scene, amount = 1 }) {
   const back = document.createElement('canvas'), front = document.createElement('canvas');
   back.className = 'fleet-dust fleet-dust--back'; front.className = 'fleet-dust fleet-dust--front';
   [back, front].forEach(canvas => canvas.setAttribute('aria-hidden', 'true'));
@@ -42,8 +42,8 @@ export function createDust(stage, { scene }) {
   };
   function populate() {
     const area = width * height;
-    layers[0].motes = Array.from({ length: Math.round(Math.min(220, area / 6200)) }, () => mote(false));
-    layers[1].motes = Array.from({ length: Math.round(Math.min(30, area / 44000)) }, () => mote(true));
+    layers[0].motes = Array.from({ length: Math.round(Math.min(220, area / 6200) * amount) }, () => mote(false));
+    layers[1].motes = Array.from({ length: Math.round(Math.min(30, area / 44000) * amount) }, () => mote(true));
   }
   function resize() {
     const rect = stage.getBoundingClientRect();

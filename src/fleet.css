@@ -12,36 +12,22 @@
 .fleet-fallback img:nth-child(3){position:relative;z-index:1;width:26%;max-width:440px}
 .fleet-fallback img:nth-child(2),.fleet-fallback img:nth-child(4){width:23%}
 
-/* The words, in a bar beneath the cars: the headline at the left, the line
-   and the actions at the right. Each line rises out of its own mask. */
+/* The words, in a bar beneath the cars, over a hairline. Each line rises out
+   of its own mask. */
 .fleet-copy{position:absolute;left:var(--gutter);right:var(--gutter);bottom:clamp(18px,3.6vh,44px);z-index:3;display:flex;align-items:flex-end;justify-content:space-between;gap:20px 56px;padding:24px 0 0;text-align:left;pointer-events:none}
 .fleet-copy:before{content:'';position:absolute;left:0;right:0;top:0;height:1px;background:rgba(17,17,17,.13);transform:scaleX(var(--rule,1));transform-origin:left}
 .fleet-copy a,.fleet-copy button{pointer-events:auto}
-.fleet-copy-head{min-width:0}
-.fleet-copy-side{flex:none;display:grid;justify-items:end;gap:18px;max-width:430px;text-align:right}
-.fleet-eyebrow{display:flex;align-items:center;gap:14px;margin:0;font:600 12px/1.4 var(--font-text);letter-spacing:.16em;text-transform:uppercase;color:#84502c}
-.fleet-rule{display:block;width:34px;height:1px;background:linear-gradient(90deg,var(--gold-lo),var(--gold-hi));transform-origin:left}
-.fleet h2{margin-top:14px;font-size:clamp(36px,min(4.6vw,8.4vh),78px);line-height:.98;letter-spacing:-.035em;color:#101010}
-.fleet h2 em{color:#93662e}
 .fleet-note{max-width:44ch;margin:0;font-size:14.5px;line-height:1.62;color:#5f5b55}
 .fleet-actions{display:flex;flex-wrap:wrap;justify-content:flex-end;align-items:center;gap:12px 26px}
 .fleet-button{display:inline-flex;align-items:center;gap:14px;min-height:52px;padding:0 26px;font:600 13.5px/1 var(--font-text);letter-spacing:.04em;color:#fff;background:#111;border-radius:999px;transition:background-color .4s,gap .5s var(--ease)}
 .fleet-button:hover{gap:20px;background:#000}
 .fleet-link{padding-bottom:4px;font:600 13px/1.2 var(--font-text);letter-spacing:.03em;color:#141413;background:linear-gradient(#93662e,#93662e) 0 100%/100% 1px no-repeat;transition:background-size .5s var(--ease)}
 .fleet-link:hover{background-size:40% 1px}
-/* Wide screens set the headline on one line. */
-@media(min-width:1101px){
-  .fleet:not(.fleet--stage) h2 .fl-line{display:inline-block;vertical-align:top}
-  .fleet:not(.fleet--stage) h2 .fl-line+.fl-line{margin-left:.22em}
-}
-@media(max-height:640px){.fleet:not(.fleet--stage) .fleet-note{display:none}}
 /* The home page's four stills, side by side. */
 .fleet:not(.fleet--stage) .fleet-fallback img:nth-child(n){width:24%;max-width:400px;margin:0 -1.2%}
 
 @media(max-width:760px){
   .fleet-copy{display:grid;justify-items:start;gap:18px;padding-top:18px}
-  .fleet-copy-side{justify-items:start;gap:16px;text-align:left}
-  .fleet h2{font-size:clamp(36px,10vw,48px)}
   .fleet-note{font-size:13.5px}
   .fleet-actions{justify-content:flex-start;gap:12px 22px}
   .fleet-button{min-height:48px;padding:0 22px}
@@ -49,6 +35,34 @@
   .fleet-fallback img{width:30%;margin:0 -6%}
   .fleet-fallback img:nth-child(1),.fleet-fallback img:nth-child(5){display:none}
 }
+
+/* The home page's plate: the sign, the cars and the camera all stand on the
+   middle of the stage, and so do the words. The hairline is the coachline,
+   drawn out from the middle; beneath it the headline is centred, with the line
+   about the cars to its left and the actions to its right, all three settled
+   on the same floor. Narrower screens stack them on the same axis. */
+.fleet-plate{--title:clamp(40px,min(5.2vw,8vh),92px);display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);grid-template-areas:'note title actions';align-items:end;gap:0 clamp(28px,3.4vw,64px);padding-top:clamp(22px,3.4vh,36px)}
+.fleet-plate:before{background:linear-gradient(90deg,rgba(147,102,46,0),rgba(147,102,46,.55) 20%,#b98336 50%,rgba(147,102,46,.55) 80%,rgba(147,102,46,0));transform-origin:center}
+.fleet-plate h2{grid-area:title;margin:0;font-size:var(--title);line-height:.95;letter-spacing:-.035em;text-align:center;color:#101010}
+.fleet-plate h2 em{color:#93662e}
+.fleet-plate .fleet-note{grid-area:note;justify-self:start;max-width:34ch;margin-bottom:calc(var(--title) * .32 - 7px)}
+.fleet-plate .fleet-actions{grid-area:actions;justify-self:end;margin-bottom:calc(var(--title) * .32)}
+@media(max-height:640px){.fleet-plate .fleet-note{display:none}}
+@media(max-width:1100px){
+  .fleet-plate{--title:clamp(36px,min(6.4vw,8vh),64px);grid-template-columns:minmax(0,1fr);grid-template-areas:'title' 'note' 'actions';justify-items:center;gap:14px;text-align:center}
+  .fleet-plate .fleet-note,.fleet-plate .fleet-actions{justify-self:center;margin:0}
+  .fleet-plate .fleet-note{max-width:52ch}
+  .fleet-plate .fleet-actions{justify-content:center;margin-top:6px}
+}
+@media(max-width:760px){
+  .fleet-plate{--title:clamp(36px,10.4vw,48px);gap:12px;padding-top:20px}
+  .fleet-plate .fleet-note{max-width:36ch}
+  .fleet-plate .fleet-actions{gap:12px 22px;margin-top:4px}
+}
+
+/* The studio coming up (lights-on.js): white light floods out from behind
+   the cars before it fills the room. */
+.fleet-flood{position:absolute;inset:0;opacity:0;pointer-events:none;background:radial-gradient(closest-side at 50% 56%,#fff 0%,#fff 30%,rgba(255,255,255,.72) 50%,rgba(255,255,255,.3) 72%,rgba(255,255,255,.08) 88%,rgba(255,255,255,0) 100%);transform-origin:50% 56%;will-change:transform,opacity}
 
 /* Dust in the air (dust.js), behind and in front of the cars. */
 .fleet-stage .fleet-dust{opacity:1;pointer-events:none;transition:none}

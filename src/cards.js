@@ -7,7 +7,7 @@ import { badge, carTitle, carURL, cover, facts, formatPrice, plateLabel } from '
 // The two manufacturer figures that best say what kind of car a preview is.
 const KEY_SPECS = ['Power', '0–100 km/h', 'Wading depth', 'Approach angle', 'Seats'];
 export const keySpecs = car => KEY_SPECS.map(key => car.specs.find(([name]) => name === key)).filter(Boolean).slice(0, 2);
-const camera = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>';
+export const camera = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>';
 const heart = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z"/></svg>';
 
 // A visitor's shortlist, kept in this browser only.
@@ -106,22 +106,4 @@ export function attachImageFallback(container) {
     img.alt = 'Vehicle photographs available on request';
     img.src = '/vehicle-placeholder.svg';
   }));
-}
-
-// Cards rise into place as they come into view, a row at a time, after
-// React Bits' AnimatedContent. Reduced motion shows them at once.
-let observer;
-export function reveal(cards) {
-  if (matchMedia('(prefers-reduced-motion: reduce)').matches || !('IntersectionObserver' in window)) return;
-  observer ??= new IntersectionObserver(entries => {
-    entries.filter(entry => entry.isIntersecting).forEach((entry, order) => {
-      const card = entry.target;
-      observer.unobserve(card);
-      card.style.transitionDelay = `${Math.min(order, 5) * 80}ms`;
-      card.classList.add('is-revealed');
-      card.classList.remove('is-pending');
-      card.addEventListener('transitionend', () => { card.style.transitionDelay = ''; card.classList.remove('is-revealed'); }, { once: true });
-    });
-  }, { rootMargin: '0px 0px -8% 0px' });
-  cards.forEach(card => { card.classList.add('is-pending'); observer.observe(card); });
 }
