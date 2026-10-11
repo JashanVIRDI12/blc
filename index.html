@@ -9,18 +9,27 @@
   <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
   <link rel="preload" href="/fonts/newsreader-latin.woff2" as="font" type="font/woff2" crossorigin>
   <link rel="preload" href="/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- Stylesheets are linked here, not imported by the page's script, so no page is ever painted without them. -->
+  <link rel="stylesheet" href="/src/styles.css" />
+  <link rel="stylesheet" href="/src/about.css" />
+  <link rel="stylesheet" href="/src/film.css" />
+  <link rel="stylesheet" href="/src/fleet.css" />
+  <link rel="stylesheet" href="/src/india.css" />
+  <link rel="stylesheet" href="/src/featured.css" />
+  <link rel="stylesheet" href="/src/consult.css" />
+  <link rel="stylesheet" href="/src/fx.css" />
   <title>Baba Luxury Cars — The art of choosing well.</title>
 </head>
 <body>
   <a class="skip-link" href="#inventory">Skip to inventory</a>
   <div class="loader" id="loader" role="status" aria-live="polite">
-    <img class="loader-logo" src="/brand/baba-luxury-car-800.webp" alt="Baba Luxury Car" width="800" height="250" />
-    <div class="loader-bottom"><p>Preparing the showroom <span id="load-percent">0%</span></p><div class="load-track"><i id="load-bar"></i></div></div>
+    <span class="loader-mark"><img class="loader-logo" src="/brand/baba-luxury-car-800.webp" alt="Baba Luxury Car" width="800" height="250" /></span>
+    <div class="loader-bottom"><p><span>Preparing the showroom</span><span class="loader-count" aria-hidden="true"><span id="load-count">0</span><small>%</small></span><span class="sr-only" id="load-percent">0%</span></p><div class="load-track"><i id="load-bar"></i></div></div>
     <button class="text-link loader-skip" id="skip-loading">Continue to the collection</button>
   </div>
 <!-- @include header.html -->
   <div id="smooth-wrapper"><main id="smooth-content">
-    <section class="cinema" id="home" aria-label="The BABA showroom: scroll to explore our selection standards">
+    <section class="cinema" id="home" aria-label="The Baba Luxury Cars showroom: scroll to explore our selection standards">
       <canvas aria-label="Scroll through the Baba Luxury Cars showroom film." id="showroom" tabindex="-1"></canvas>
       <img class="static-poster" src="/stills/gls.webp" alt="Mercedes-Benz GLS 580 in Cavansite Blue" />
       <div class="cinema-shade" aria-hidden="true"></div>
@@ -107,9 +116,11 @@
       </footer>
     </section>
 
+<!-- @include consultation.html -->
+
     <section class="brand-intro section-pad" id="about" aria-labelledby="about-title">
       <div class="brand-copy">
-        <p class="eyebrow">About Baba</p>
+        <p class="eyebrow">About us</p>
         <h2 id="about-title">Exceptional cars.<br><em>A personal approach.</em></h2>
         <p class="brand-description">The right car begins with you. At Baba Luxury Cars, we bring a considered approach to premium pre-owned vehicles — and a personal touch to finding your next one.</p>
         <a class="editorial-link" href="/collection/">Explore the collection</a>
@@ -124,13 +135,17 @@
     </section>
 
     <section class="india" id="india" aria-labelledby="india-title">
-      <div class="india-inner">
-        <header class="india-head">
-          <p class="india-eyebrow" data-india-reveal><i aria-hidden="true"></i>The Baba journey</p>
-          <h2 id="india-title"><span class="india-line"><span>Across</span></span><span class="india-line"><span><em>India.</em></span></span></h2>
-          <p class="india-statement" data-india-statement>Delivered to almost every state <span class="india-keep">in India.</span><br><em>Every one of them, happily.</em></p>
-        </header>
-        <dl class="india-figures" data-india-figures></dl>
+      <div class="india-stage" data-india-stage>
+        <div class="india-road" data-india-road aria-hidden="true"><i class="india-shade"></i></div>
+        <div class="india-inner">
+          <header class="india-head">
+            <p class="india-eyebrow" data-india-reveal><i aria-hidden="true"></i>Our journey</p>
+            <h2 id="india-title"><span class="india-line"><span>Across</span></span><span class="india-line"><span><em>India.</em></span></span></h2>
+            <p class="india-statement" data-india-statement>Delivered to almost every state <span class="india-keep">in India.</span><br><em>Every one of them, happily.</em></p>
+          </header>
+          <dl class="india-figures" data-india-figures></dl>
+        </div>
+        <p class="india-throttle" aria-hidden="true"><i><b></b></i><span class="india-throttle-fine">Press and hold to drive faster</span><span class="india-throttle-touch">Touch and hold to drive faster</span></p>
       </div>
       <div class="india-gallery" data-india-gallery hidden>
         <div class="india-track" data-india-track role="list" aria-label="Handover photographs"></div>

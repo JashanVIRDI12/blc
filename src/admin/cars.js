@@ -273,6 +273,8 @@ export function exportCars(app) {
 }
 
 // ----------------------------------------------------------------- editor
+// The editor's sections, in the bar along its top.
+const JUMPS = [['photos', 'Photos'], ['car', 'The car'], ['plate', 'Number plate'], ['insurance', 'Insurance'], ['words', 'Highlights'], ['specs', 'Specification'], ['inspection', 'Inspection'], ['price', 'Price'], ['status', 'Status']];
 export function renderEditor(view, app, id, { paste = false } = {}) {
   const creating = !id || id === 'new';
   const original = creating ? { id: uuid(), slug: '', make: '', model: '', variant: '', body: 'SUV', year: null, kilometres: null, owners: null, fuel: '', transmission: 'Automatic', colour: '', registration: '', plateTag: '', plateNumber: '', insurance: '', insuranceUntil: null, location: 'New Delhi', price: null, status: 'available', note: '', featured: false, featuredRank: 0, sortOrder: 0, collections: [], photos: [], hoverPhoto: '', highlights: [], description: '', specs: [], inspection: null, model3d: '' } : app.cars.find(car => car.id === id);
@@ -289,16 +291,18 @@ export function renderEditor(view, app, id, { paste = false } = {}) {
   const priceText = numeric(car.price) ? String(car.price) : '';
 
   view.innerHTML = `<header class="a-head a-head--editor"><div><a class="a-back" href="#cars">← All cars</a><h1 data-title>${creating ? 'Add a car' : esc(`${car.make} ${car.model}`)}</h1><p class="a-sub" data-state>${creating ? 'Paste its WhatsApp ad to fill the form, or type what you know; only the make and model are required.' : `Last saved ${esc(timeAgo(car.updatedAt))}. Changes are saved when you press Save (⌘S).`}</p></div><div class="a-head-actions">${creating ? '' : `<a class="a-button" href="${esc(siteURL(app, `/car/?id=${encodeURIComponent(car.slug)}`))}" target="_blank" rel="noopener">View on site ${icon.out}</a>`}<button type="button" class="a-button a-button--primary" data-save>Save</button></div></header>
+  <nav class="a-jump" aria-label="Sections of this car">${JUMPS.map(([key, label]) => `<a href="#" data-jump="${key}"><i aria-hidden="true">${icon.check}</i>${label}</a>`).join('')}</nav>
   <form class="a-editor" novalidate autocomplete="off">
     <div class="a-editor-main">
       <details class="a-card a-paste"${paste || creating ? ' open' : ''}><summary><span>${icon.wand}<b>Fill from a WhatsApp ad</b></span><small>Paste the ad as the team writes it; every field it understands is filled in.</small></summary>
-        <textarea data-paste rows="4" placeholder="BMW X7 XDRIVE 30D{PHYTONIC BLUE COLOUR} | 2021 MODEL | DIESEL | SECOND OWNER | AUTOMATIC TRANSMISSION | HR70H9908 | 80000KM DRIVEN | INSURANCE EXPIRED | PAN INDIA FINANCE AVAILABLE | @✅68LACS"></textarea>
-        <div class="a-inline-actions"><button type="button" class="a-button a-button--primary a-button--small" data-fill>${icon.wand}Fill the form</button><span class="a-hint" data-fill-result></span></div></details>
-      <section class="a-card"><h2>Photos</h2><p class="a-hint">The first photo is the cover. Choose a cabin photo with ${icon.eye} and the card turns to it when a visitor points at it on the collection page.</p><div data-photos></div></section>
-      <section class="a-card"><h2>The car</h2><div class="a-grid">
+        <textarea data-paste rows="3" placeholder="Paste the ad here. The form fills in as soon as you paste."></textarea>
+        <div class="a-inline-actions"><button type="button" class="a-button a-button--small" data-fill>${icon.wand}<span>Fill the form</span></button><span class="a-hint" data-fill-result></span></div>
+        <p class="a-paste-example"><b>For example</b>BMW X7 XDRIVE 30D{PHYTONIC BLUE COLOUR} | 2021 MODEL | DIESEL | SECOND OWNER | HR70H9908 | 80000KM DRIVEN | @✅68LACS</p></details>
+      <section class="a-card" data-section="photos"><h2>Photos</h2><p class="a-hint">The first photo is the cover. Choose a cabin photo with ${icon.eye} and the card turns to it when a visitor points at it on the collection page.</p><div data-photos></div></section>
+      <section class="a-card" data-section="car"><h2>The car</h2><div class="a-grid a-grid--3">
         <label class="a-field"><span>Make <i aria-hidden="true">*</i></span><input name="make" list="a-makes" required maxlength="40" placeholder="Mercedes-Benz" value="${esc(car.make)}" /></label>
         <label class="a-field"><span>Model <i aria-hidden="true">*</i></span><input name="model" required maxlength="60" placeholder="GLS 400 d" value="${esc(car.model)}" /></label>
-        <label class="a-field a-span-2">Variant<input name="variant" maxlength="80" placeholder="4MATIC AMG Line" value="${esc(car.variant)}" /></label>
+        <label class="a-field">Variant<input name="variant" maxlength="80" placeholder="4MATIC AMG Line" value="${esc(car.variant)}" /></label>
         <label class="a-field">Body<select name="body">${options(bodies, car.body)}</select></label>
         <label class="a-field">Year (model)<input name="year" type="number" inputmode="numeric" min="1950" max="2100" placeholder="2022" value="${car.year ?? ''}" /></label>
         <label class="a-field">Driven<input name="kilometres" type="number" inputmode="numeric" min="0" step="1" placeholder="75000" value="${car.kilometres ?? ''}" /><small data-km-hint></small></label>
@@ -308,7 +312,7 @@ export function renderEditor(view, app, id, { paste = false } = {}) {
         <label class="a-field">Colour<input name="colour" maxlength="60" placeholder="Phytonic Blue" value="${esc(car.colour)}" /></label>
         <label class="a-field">Location<input name="location" maxlength="60" placeholder="New Delhi" value="${esc(car.location)}" /></label>
       </div></section>
-      <section class="a-card"><h2>Registration and number plate</h2>
+      <section class="a-card" data-section="plate"><h2>Registration and number plate</h2>
         <div class="a-grid">
           <label class="a-field"><span class="a-label-icon">Full registration ${icon.lock}</span><input name="fullRegistration" maxlength="20" placeholder="HR51CM9909" value="${esc(own.registration || '')}" autocapitalize="characters" spellcheck="false" /><small>Private: only you see the full number.</small></label>
           <div class="a-field"><span>Shown on the site</span><output class="a-shown" data-shown></output><small data-shown-hint></small></div>
@@ -317,24 +321,24 @@ export function renderEditor(view, app, id, { paste = false } = {}) {
         <div class="a-grid" data-plate-fields><label class="a-field">Number shown<input name="plateNumber" inputmode="numeric" maxlength="4" placeholder="0001 or 7272" value="${esc(car.plateNumber)}" /><small>Filled from the registration, or enter the digits here. Leading zeros are kept.</small></label><div class="a-field"><span>On the site</span><output class="a-plate-preview" data-plate-preview aria-live="polite"></output></div></div>
         <p class="a-hint">VIP or Fancy is selected automatically as you type. Numbers 0001–0099 are VIP; ordinary numbers have no tag.</p>
       </section>
-      <section class="a-card"><h2>Insurance</h2><div class="a-grid">
+      <section class="a-card" data-section="insurance"><h2>Insurance</h2><div class="a-grid">
         <label class="a-field">Insurance<select name="insurance"><option value="">Not stated</option><option value="valid"${car.insurance === 'valid' ? ' selected' : ''}>Valid</option><option value="expired"${car.insurance === 'expired' ? ' selected' : ''}>Expired</option></select></label>
         <label class="a-field">Valid until (optional, never shown)<input name="insuranceUntil" type="date" value="${esc(car.insuranceUntil || '')}" /></label>
       </div><p class="a-hint" data-insurance-hint></p></section>
-      <section class="a-card"><h2>Highlights and description</h2>
+      <section class="a-card" data-section="words"><h2>Highlights and description</h2>
         <div class="a-field"><span id="highlights-label">Highlights</span><div class="a-tags" data-tags><input aria-labelledby="highlights-label" placeholder="Type one and press Enter" data-tag-input maxlength="60" /></div><small>Tap to add:</small><div class="a-suggest" data-suggest></div></div>
         <label class="a-field">About this car<textarea name="description" rows="5" maxlength="4000" placeholder="One or two short paragraphs: its condition, its history, what makes it special.">${esc(car.description)}</textarea></label>
       </section>
-      <section class="a-card"><h2>Specification</h2><p class="a-hint">Shown as a table on the car’s page.</p><div class="a-specs" data-specs></div><div class="a-inline-actions"><button type="button" class="a-button a-button--small" data-add-spec>${icon.plus}Add a row</button><button type="button" class="a-button a-button--small a-button--ghost" data-common-specs>Add the usual rows</button></div></section>
-      <section class="a-card"><h2>Inspection and history</h2><p class="a-hint">Tick only what you have checked; each ticked item is listed on the car’s page.</p><div class="a-checks">${INSPECTION.map(([key, label]) => `<label class="a-check"><input type="checkbox" name="inspect-${key}"${inspection[key] === true ? ' checked' : ''} /><span>${label}</span></label>`).join('')}</div>
+      <section class="a-card" data-section="specs"><h2>Specification</h2><p class="a-hint">Shown as a table on the car’s page.</p><div class="a-specs" data-specs></div><div class="a-inline-actions"><button type="button" class="a-button a-button--small" data-add-spec>${icon.plus}Add a row</button><button type="button" class="a-button a-button--small a-button--ghost" data-common-specs>Add the usual rows</button></div></section>
+      <section class="a-card" data-section="inspection"><h2>Inspection and history</h2><p class="a-hint">Tick only what you have checked; each ticked item is listed on the car’s page.</p><div class="a-checks">${INSPECTION.map(([key, label]) => `<label class="a-check"><input type="checkbox" name="inspect-${key}"${inspection[key] === true ? ' checked' : ''} /><span>${label}</span></label>`).join('')}</div>
         <div class="a-grid"><label class="a-field">Tyre condition (%)<input name="tyrePercent" type="number" min="0" max="100" inputmode="numeric" value="${inspection.tyrePercent ?? ''}" placeholder="85" /></label><label class="a-field">Inspected on<input name="checkedAt" type="date" value="${esc(toDateInput(inspection.checkedAt))}" /></label><label class="a-field a-span-2">Inspection report link<input name="reportUrl" type="url" placeholder="https://…" value="${esc(inspection.reportUrl || '')}" /></label></div>
       </section>
     </div>
     <aside class="a-editor-side">
       <section class="a-card a-preview-card"><h2>On the site</h2><div class="a-preview" data-preview></div><p class="a-hint">Point at the photo to see the hover photo.</p></section>
-      <section class="a-card"><h2>Price</h2><label class="a-field">Asking price (₹)<input name="price" inputmode="decimal" placeholder="68 lakh, 1.25 cr or 6800000" value="${esc(priceText)}" /><small data-price-hint></small></label>
+      <section class="a-card" data-section="price"><h2>Price</h2><label class="a-field">Asking price (₹)<input name="price" inputmode="decimal" placeholder="68 lakh, 1.25 cr or 6800000" value="${esc(priceText)}" /><small data-price-hint></small></label>
         <label class="a-field">Card note<input name="note" maxlength="80" placeholder="Near-final price" value="${esc(car.note)}" /><small>An optional short line shown under the car.</small></label></section>
-      <section class="a-card"><h2>Status</h2><div class="a-status-options" role="radiogroup" aria-label="Status">${Object.entries(STATUS).map(([value, label]) => `<label class="a-radio" data-tone="${value}"><input type="radio" name="status" value="${value}"${car.status === value ? ' checked' : ''} /><span><b>${label}</b><small>${STATUS_HELP[value]}</small></span></label>`).join('')}</div></section>
+      <section class="a-card" data-section="status"><h2>Status</h2><div class="a-status-options" role="radiogroup" aria-label="Status">${Object.entries(STATUS).map(([value, label]) => `<label class="a-radio" data-tone="${value}"><input type="radio" name="status" value="${value}"${car.status === value ? ' checked' : ''} /><span><b>${label}</b><small>${STATUS_HELP[value]}</small></span></label>`).join('')}</div></section>
       <section class="a-card a-card--private"><h2>${icon.lock}For the dealership</h2><p class="a-hint">Never shown on the site.</p>
         <label class="a-field">Stock<input name="stock" list="a-stocks" maxlength="40" placeholder="BLC stock" value="${esc(own.stock || '')}" /></label>
         <label class="a-field">Notes<textarea name="privateNotes" rows="4" maxlength="4000" placeholder="Seller, purchase price, keys, pending work…">${esc(own.notes || '')}</textarea></label></section>
@@ -344,7 +348,7 @@ export function renderEditor(view, app, id, { paste = false } = {}) {
       <section class="a-card"><h2>3D model on the home page</h2><label class="a-field">This car is a…<select name="model3d"><option value="">None</option>${showcase.map(item => `<option value="${item.id}"${car.model3d === item.id ? ' selected' : ''}>${esc(`${item.make} ${item.model}`)}</option>`).join('')}</select><small>If it is one of the 3D cars in the home page’s drive, clicking that car opens this one.</small></label></section>
       ${creating ? '' : `<section class="a-card a-card--quiet"><h2>More</h2><div class="a-inline-actions"><button type="button" class="a-button a-button--small" data-duplicate>${icon.copy}Duplicate</button><button type="button" class="a-button a-button--small a-button--danger" data-delete>${icon.trash}Delete…</button></div><p class="a-hint">Web address: <code>/car/?id=${esc(car.slug)}</code></p></section>`}
     </aside>
-    <div class="a-savebar"><span data-dirty>No changes</span><button type="button" class="a-button a-button--primary" data-save>Save</button></div>
+    <div class="a-savebar"><span class="a-savebar-state"><i aria-hidden="true"></i><span data-dirty>No changes</span></span><button type="button" class="a-button a-button--primary" data-save>Save</button></div>
   </form>
   <datalist id="a-makes">${MAKES.map(name => `<option value="${name}">`).join('')}</datalist><datalist id="a-stocks">${STOCKS.map(name => `<option value="${name}">`).join('')}</datalist>`;
 
@@ -436,6 +440,9 @@ export function renderEditor(view, app, id, { paste = false } = {}) {
     const state = insuranceState(next), days = insuranceDays(next);
     $('[data-insurance-hint]', view).innerHTML = !state ? 'Not shown on the site.' : `Shown as <b>Insurance: ${state === 'valid' ? 'Valid' : 'Expired'}</b>, with no date.${next.insuranceUntil ? (days >= 0 ? ` It turns to Expired by itself on ${new Date(`${next.insuranceUntil}T12:00`).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })} (in ${days} ${days === 1 ? 'day' : 'days'}).` : ' The date has passed, so it shows Expired.') : ''}`;
     preview(next);
+    // The section bar: a tick on each part that has been filled in.
+    const done = { photos: next.photos.length > 0, car: Boolean(next.make && next.model && next.year && numeric(next.kilometres)), plate: Boolean(field('fullRegistration').value.trim()), insurance: Boolean(next.insurance), words: next.highlights.length > 0 || Boolean(next.description), specs: next.specs.length > 0, inspection: Boolean(next.inspection), price: numeric(next.price), status: true };
+    $$('[data-jump]', view).forEach(link => link.classList.toggle('is-done', Boolean(done[link.dataset.jump])));
     const ad = adText({ ...next, slug: next.slug || '' }, listing);
     $('[data-ad]', view).textContent = ad;
     $('[data-share-ad]', view).href = `https://wa.me/?text=${encodeURIComponent(ad)}`;
@@ -443,7 +450,7 @@ export function renderEditor(view, app, id, { paste = false } = {}) {
   function preview(next) {
     const facts = next.status === 'sold' ? [next.year, next.fuel] : [next.year, drivenText(next.kilometres, listing), next.fuel, formatOwners(next.owners)];
     const plate = next.status === 'sold' ? '' : plateLabel(next, listing);
-    $('[data-preview]', view).innerHTML = `<div class="a-preview-visual${next.hoverPhoto ? ' has-inside' : ''}${next.status === 'sold' ? ' is-sold' : ''}">${next.photos[0] ? `<img src="${esc(thumbImage(next.photos[0]))}" alt="" />` : icon.car}${next.hoverPhoto ? `<img class="a-preview-inside" src="${esc(thumbImage(next.hoverPhoto))}" alt="" /><span class="a-preview-label">Inside</span>` : ''}${plate ? `<span class="a-plate-chip a-plate-chip--on" data-tone="${next.plateTag}">${icon.plate}${esc(plate)}</span>` : ''}${next.status === 'sold' ? '<span class="a-preview-sold">Sold</span>' : ''}</div>
+    $('[data-preview]', view).innerHTML = `<div class="a-preview-visual${next.hoverPhoto ? ' has-inside' : ''}${next.status === 'sold' ? ' is-sold' : ''}">${next.photos[0] ? `<img src="${esc(thumbImage(next.photos[0]))}" alt="" />` : `<span class="a-preview-empty">${icon.car}<small>The cover photo shows here</small></span>`}${next.hoverPhoto ? `<img class="a-preview-inside" src="${esc(thumbImage(next.hoverPhoto))}" alt="" /><span class="a-preview-label">Inside</span>` : ''}${plate ? `<span class="a-plate-chip a-plate-chip--on" data-tone="${next.plateTag}">${icon.plate}${esc(plate)}</span>` : ''}${next.status === 'sold' ? '<span class="a-preview-sold">Sold</span>' : ''}</div>
       <div class="a-preview-body"><small>${esc(next.make || 'Make')}</small><b>${esc(next.model || 'Model')}${next.variant ? ` <span>${esc(next.variant)}</span>` : ''}</b><strong>${esc(next.status === 'sold' ? '' : Number.isNaN(next.price) ? '' : formatPrice(next.price) || 'Price on request')}</strong><p>${facts.filter(Boolean).map(esc).join('<i></i>')}</p>${next.note && next.status !== 'sold' ? `<em>${esc(next.note)}</em>` : ''}</div>`;
   }
 
@@ -462,8 +469,26 @@ export function renderEditor(view, app, id, { paste = false } = {}) {
     hints(); mark();
     const names = { name: 'make and model', year: 'year', fuel: 'fuel', owners: 'ownership', transmission: 'gearbox', registration: 'registration', kilometres: 'driven', insurance: 'insurance', price: 'price' };
     $('[data-fill-result]', view).innerHTML = `${icon.check} Filled ${found.map(key => names[key]).filter(Boolean).join(', ') || 'what it could'}${ad.highlights.length ? ` and ${ad.highlights.length} highlight${ad.highlights.length === 1 ? '' : 's'}` : ''}. Check them below, then add the photos.`;
+    $('[data-fill] span', view).textContent = 'Fill again';
     toast('Form filled from the ad');
   });
+  // A pasted ad fills the form at once.
+  $('[data-paste]', view).addEventListener('paste', () => setTimeout(() => $('[data-fill]', view).click(), 0));
+
+  // The section bar: jump to a part; the one in view is marked.
+  const jump = $('.a-jump', view);
+  jump.addEventListener('click', event => {
+    const link = event.target.closest('[data-jump]');
+    if (!link) return;
+    event.preventDefault();
+    form.querySelector(`[data-section="${link.dataset.jump}"]`)?.scrollIntoView({ behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth', block: 'start' });
+  });
+  const spy = new IntersectionObserver(entries => entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    $$('[data-jump]', view).forEach(link => link.toggleAttribute('aria-current', link.dataset.jump === entry.target.dataset.section));
+  }), { rootMargin: '-30% 0px -60% 0px' });
+  $$('[data-section]', form).forEach(section => spy.observe(section));
+
   function autoPlate(source) {
     if (source === 'fullRegistration') field('plateNumber').value = plateDigits(field(source).value);
     const plate = suggestPlate(field('plateNumber').value);
@@ -496,6 +521,8 @@ export function renderEditor(view, app, id, { paste = false } = {}) {
   form.addEventListener('submit', event => event.preventDefault());
   app.guard = () => dirty() || manager.busy();
   app.discard = () => { const keep = new Set(app.cars.flatMap(entry => entry.photos)); app.store.removePhotos(manager.uploaded().filter(url => !keep.has(url))).catch(() => {}); };
+  // "Save and leave" in the unsaved-changes dialog (main.js) saves through here.
+  app.saveEdits = () => save($('[data-save]', view));
   hints();
   if (paste) requestAnimationFrame(() => $('[data-paste]', view).focus());
 

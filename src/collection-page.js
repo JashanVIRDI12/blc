@@ -3,23 +3,19 @@
 // sale, the curated collections, filters that answer at once, and the cars
 // recently delivered. The filters live in the address, so a filtered view
 // can be shared.
-import './styles.css';
-import './light.css';
-import './fleet.css';
-import './collection.css';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
-import { SplitText } from 'gsap/SplitText';
 import { setupPage } from './chrome.js';
 import { loadSite, FOR_SALE, BODIES, FUELS, PRICE_BANDS, KM_BANDS, STATUS, priceBand, isNew, recommended, plateLabel } from './data.js';
 import { carCard, shortlist } from './cards.js';
 import { escapeHTML, numeric } from './util.js';
+import { createHallmarks } from './hallmarks.js';
 import { marqueArt, sizeMarques } from './marque-art.js';
 import { fleetVehicles } from './config.js';
 import { models } from './models.js';
 import { prefetchModels } from './model-cache.js';
 
-gsap.registerPlugin(ScrollTrigger, SplitText);
+gsap.registerPlugin(ScrollTrigger);
 // "Recently delivered" (delivered.js), the ring of cars handed over: set to
 // true to show it again.
 const SHOW_DELIVERED = false;
@@ -163,6 +159,7 @@ async function init() {
   strip.innerHTML = `<i class="marques-rule" aria-hidden="true"></i><i class="marques-rule marques-rule--bottom" aria-hidden="true"></i>
     <div class="marques-window"><ul class="marques-track">${MARQUES.map(marque => markup(marque, false)).join('')}${MARQUES.map(marque => markup(marque, true)).join('')}</ul><i class="marques-cursor" aria-hidden="true"></i></div>`;
   sizeMarques(strip, matchMedia('(max-width: 760px)').matches ? 30 : 42);
+  chrome(strip);
   strip.addEventListener('click', event => {
     const button = event.target.closest('[data-marque]');
     if (!button) return;
@@ -404,35 +401,19 @@ function introCopy() {
     gsap.fromTo(element, { autoAlpha: 0, y: 28 }, { autoAlpha: 1, y: 0, duration: 1.1, ease: 'expo.out', scrollTrigger: { trigger: element, start: 'top 90%', once: true } });
   });
 }
-// The promises, as the band comes into view: its hairline draws across and
-// the dividers down; in each column the index rolls to its number, the
-// promise rises out of its line word by word, and the note follows. Under a
-// fine pointer a soft light follows the pointer within its column.
+// The promises, each under its hallmark (hallmarks.js).
 function promises() {
-  const band = document.querySelector('.c-promises');
-  if (!band) return;
-  const items = [...band.querySelectorAll('.c-promise')];
-  if (finePointer) items.forEach(item => item.addEventListener('pointermove', event => {
-    const box = item.getBoundingClientRect();
-    item.style.setProperty('--x', `${(event.clientX - box.left).toFixed(0)}px`);
-    item.style.setProperty('--y', `${(event.clientY - box.top).toFixed(0)}px`);
-  }));
-  if (reduced) return;
-  const media = gsap.matchMedia();
-  media.add({ wide: '(min-width: 900px)', narrow: '(max-width: 899px)' }, ({ conditions }) => {
-    const words = items.map(item => SplitText.create(item.querySelector('.c-promise-title'), { type: 'words', mask: 'words' }).words);
-    const timeline = gsap.timeline({ defaults: { ease: 'expo.out' }, scrollTrigger: { trigger: band, start: 'top 86%', once: true } })
-      .fromTo(band, { '--rule': 0 }, { '--rule': 1, duration: 1.6, ease: 'expo.inOut' }, 0);
-    if (conditions.wide) timeline.fromTo(band.querySelectorAll('.c-promise-rule'), { scaleY: 0 }, { scaleY: 1, duration: 1.3, ease: 'expo.inOut', stagger: .1 }, .35);
-    items.forEach((item, i) => {
-      const at = .3 + i * .12, drum = item.querySelector('.c-promise-drum');
-      // From the first row to its number on the second turn of the drum (y
-      // zeroed: GSAP would otherwise read the CSS resting place as a y offset).
-      timeline.fromTo(drum, { y: 0, yPercent: 0 }, { y: 0, yPercent: -5 * parseFloat(drum.style.getPropertyValue('--to')), duration: 1.6, ease: 'expo.inOut' }, at)
-        .fromTo(words[i], { yPercent: 105 }, { yPercent: 0, duration: 1.3, stagger: .045 }, at + .2)
-        .fromTo(item.querySelector('.c-promise-note'), { autoAlpha: 0, y: 12 }, { autoAlpha: 1, y: 0, duration: 1.1, clearProps: 'transform' }, at + .45);
-    });
-    return () => timeline.scrollTrigger?.kill();
+  createHallmarks(document.querySelector('.c-promises'), { reduced, finePointer });
+}
+// Every mark becomes a mask over polished chrome: the vector marks, cropped
+// to their drawing by sizeMarques, are set as masks like the others.
+function chrome(strip) {
+  strip.querySelectorAll('.marque svg').forEach(svg => {
+    const shape = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${svg.getAttribute('viewBox')}"><path d="${svg.querySelector('path').getAttribute('d')}"/></svg>`;
+    const mask = document.createElement('i');
+    mask.className = 'marque-mask'; mask.setAttribute('aria-hidden', 'true');
+    mask.style.setProperty('--mask', `url("data:image/svg+xml,${encodeURIComponent(shape)}")`);
+    svg.replaceWith(mask);
   });
 }
 // The strip drifts slowly, a touch faster while the page is scrolled and the
@@ -446,15 +427,43 @@ function runMarques(strip) {
   const cursor = strip.querySelector('.marques-cursor');
   if (reduced) return;
   gsap.set(strip.querySelectorAll('.marques-rule'), { scaleX: 0 });
-  gsap.set(track.querySelectorAll('.marque'), { autoAlpha: 0, y: 14 });
+  gsap.set(track.querySelectorAll('.marque-mask'), { autoAlpha: 0, y: 14 });
   ScrollTrigger.create({
     trigger: strip, start: 'top 88%', once: true,
     onEnter: () => gsap.timeline({ defaults: { ease: 'expo.out' } })
       .to(strip.querySelectorAll('.marques-rule'), { scaleX: 1, duration: 1.6, ease: 'expo.inOut' }, 0)
-      .to(track.querySelectorAll('.marque'), { autoAlpha: .6, y: 0, duration: 1.4, stagger: { each: .045, from: 'center' }, clearProps: 'all' }, .35),
+      .to(track.querySelectorAll('.marque-mask'), { autoAlpha: 1, y: 0, duration: 1.4, stagger: { each: .045, from: 'center' }, clearProps: 'opacity,visibility,transform' }, .35),
   });
 
   const loop = gsap.to(track, { xPercent: -50, duration: track.children.length * 2.1, ease: 'none', repeat: -1 });
+  // The drum: each badge's place along the strip, as the track drifts, is
+  // set on a cylinder seen from the front. Near the middle the badges pass
+  // quickly and face the visitor, large and bright; towards the ends they
+  // crowd, turn away and dim. The glint is where the light over the middle
+  // falls on each. Measured once per layout, set every frame while in view.
+  const items = [...track.children], marks = items.map(item => item.querySelector('.marque'));
+  let centres = [], width = 0, half = 1, span = 1;
+  const measure = () => {
+    width = track.scrollWidth; half = window_.clientWidth / 2;
+    centres = items.map(item => item.offsetLeft + item.offsetWidth / 2);
+    span = half * 1.08;
+  };
+  const turn = () => {
+    const shift = gsap.getProperty(track, 'xPercent') / 100 * width;
+    items.forEach((item, i) => {
+      const u = centres[i] + shift - half, angle = gsap.utils.clamp(-1.45, 1.45, u / span);
+      const face = Math.cos(angle), dx = span * Math.sin(angle) - u;
+      item.style.transform = `translateX(${dx.toFixed(1)}px) perspective(700px) rotateY(${(-angle * 57.3 * .85).toFixed(2)}deg) scale(${(.74 + .26 * face).toFixed(3)})`;
+      marks[i].style.setProperty('--lit', (face ** 3).toFixed(3));
+      // The bright band crosses a badge as it passes the middle (0–100%: the
+      // chrome always covers the whole mark).
+      marks[i].style.setProperty('--glint', `${gsap.utils.clamp(0, 100, 50 - Math.sin(angle) * 48).toFixed(1)}%`);
+    });
+  };
+  measure();
+  new ResizeObserver(() => { measure(); turn(); }).observe(window_);
+  ScrollTrigger.create({ trigger: strip, start: 'top bottom', end: 'bottom top', onToggle: self => self.isActive ? gsap.ticker.add(turn) : gsap.ticker.remove(turn) });
+  turn();
   let direction = 1, settle, resting = false;
   ScrollTrigger.create({
     trigger: strip, start: 'top bottom', end: 'bottom top',

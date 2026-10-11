@@ -55,6 +55,14 @@ export const vehicleParts = {
     plates: [{ at: [0, .47, 2.729], normal: [0, 0, 1] }, { at: [0, .83, -2.614], normal: [0, .28, -.96] }],
     supports: { engine: false, bonnet: false, cabin: false }, engineEvidence: [],
   },
+  // From tools/prep-fleet.mjs x7m60 (bmw.co.uk: 5,181 mm long, 3,105 mm
+  // wheelbase).
+  x7m60: {
+    wheels, doors: [], bonnet: null, tailgate: null, bodyMaterial: 'x7m60_paint',
+    headlamps: [[.72, .86, 2.45], [-.72, .86, 2.45]], taillamps: [[.78, 1.05, -2.5], [-.78, 1.05, -2.5]],
+    wheelbase: 3.105, track: 1.647, wheelRadius: .406, size: [2.003, 1.844, 5.181],
+    plates: [], supports: { engine: false, bonnet: false, cabin: false }, engineEvidence: [],
+  },
   i7: {
     wheels, doors: [], bonnet: null, tailgate: null, bodyMaterial: 'i7_paint',
     headlamps: [[.7, .81, 2.6], [-.7, .81, 2.6]], taillamps: [[.75, .97, -2.6], [-.75, .97, -2.6]],

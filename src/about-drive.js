@@ -151,6 +151,7 @@ export function createAboutDrive(section, { after } = {}) {
     if (weight === 0 && !gesture.active) for (const id of ids) turn[id] = 0;
     const canTurn = turnable();
     canvas.classList.toggle('is-turnable', canTurn);
+    canvas.dataset.cursor = canTurn ? 'Turn' : '';
     hint?.classList.toggle('is-shown', canTurn && !turned);
     for (const [id, { car, holder }] of vehicles) {
       const state = travel[id](p);

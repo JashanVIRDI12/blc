@@ -19,11 +19,14 @@ export default defineConfig({
   plugins: [includes],
   build: {
     rollupOptions: {
+      // Keep licence banners (/*! … */), such as React Bits' (NOTICE.md).
+      output: { comments: { legal: true, annotation: false, jsdoc: false } },
       input: {
         main: resolve(root, 'index.html'),
         collection: resolve(root, 'collection/index.html'),
         car: resolve(root, 'car/index.html'),
         concierge: resolve(root, 'concierge/index.html'),
+        about: resolve(root, 'about/index.html'),
         admin: resolve(root, 'admin/index.html'),
       },
     },

@@ -50,15 +50,17 @@
 .theme-light .vehicle-card .make{color:var(--gold-ink)}
 .theme-light .vehicle-name{color:var(--ink)}
 .theme-light .vehicle-name small,.theme-light .vehicle-card .availability{color:var(--muted)}
-.theme-light .vehicle-meta{color:var(--muted);border-top-color:var(--hair)}
-.theme-light .vehicle-meta span+span:before{background:var(--gold-ink)}
+.theme-light .vehicle-facts{border-top-color:var(--hair)}
+.theme-light .vehicle-facts .dt{color:var(--muted-2)}
+.theme-light .vehicle-facts .dd{color:var(--ink)}
+.theme-light .vehicle-price b i{color:var(--gold-ink)}
+.theme-light .vehicle-price span{color:var(--muted)}
 .theme-light .vehicle-keyspecs{border-top-color:var(--hair)}
 .theme-light .vehicle-keyspecs .dt{color:var(--muted-2)}
 .theme-light .vehicle-keyspecs .dd{color:var(--ink)}
 .theme-light .vehicle-price{color:var(--ink)}
 .theme-light .vehicle-price.is-quiet{color:var(--muted)}
 .theme-light .vehicle-note{color:var(--ink-2)}
-.theme-light .view-vehicle{color:var(--ink);background-image:linear-gradient(var(--gold-ink),var(--gold-ink))}
 .theme-light .car-badge{color:var(--ink);background:rgba(255,255,255,.92);border-color:var(--hair);border-radius:999px;padding:7px 12px}
 .theme-light .car-badge[data-tone=new]{color:#fff;background:#111;border-color:#111}
 .theme-light .car-badge[data-tone=coming_soon]{color:var(--gold-ink);border-color:rgba(147,102,46,.45)}
@@ -70,10 +72,11 @@
 .theme-light .shortlist-button[aria-pressed=true]{color:#a5732f;border-color:rgba(165,115,47,.5)}
 .theme-light .vehicle-card.is-skeleton{background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.7) 50%,transparent 70%) 0 0/250% 100%,var(--tile);opacity:1}
 /* …and in a black band, light type around the same tiles. */
-.theme-light .band-dark .vehicle-name,.theme-light .band-dark .vehicle-price,.theme-light .band-dark .vehicle-keyspecs .dd,.theme-light .band-dark .vehicle-note{color:var(--ivory)}
+.theme-light .band-dark .vehicle-name,.theme-light .band-dark .vehicle-price,.theme-light .band-dark .vehicle-keyspecs .dd,.theme-light .band-dark .vehicle-facts .dd,.theme-light .band-dark .vehicle-note{color:var(--ivory)}
+.theme-light .band-dark .vehicle-price b i{color:var(--gold)}
 .theme-light .band-dark .vehicle-card .make{color:var(--gold)}
-.theme-light .band-dark .vehicle-name small,.theme-light .band-dark .vehicle-meta,.theme-light .band-dark .vehicle-card .availability,.theme-light .band-dark .vehicle-keyspecs .dt,.theme-light .band-dark .vehicle-price.is-quiet{color:var(--steel)}
-.theme-light .band-dark .vehicle-meta,.theme-light .band-dark .vehicle-keyspecs{border-top-color:var(--graphite)}
+.theme-light .band-dark .vehicle-name small,.theme-light .band-dark .vehicle-card .availability,.theme-light .band-dark .vehicle-keyspecs .dt,.theme-light .band-dark .vehicle-facts .dt,.theme-light .band-dark .vehicle-price span,.theme-light .band-dark .vehicle-price.is-quiet{color:var(--steel)}
+.theme-light .band-dark .vehicle-facts,.theme-light .band-dark .vehicle-keyspecs{border-top-color:var(--graphite)}
 
 /* Empty states. */
 .theme-light .empty-state p{color:var(--muted)}
@@ -87,6 +90,13 @@
 .theme-light .editorial-form input:not([type=checkbox]),.theme-light .editorial-form textarea{color:var(--ink);border-bottom-color:var(--hair-2);background-image:linear-gradient(var(--gold-ink),var(--gold-ink))}
 .theme-light .editorial-form ::placeholder{color:#aaa59c}
 .theme-light .editorial-form .choice-label{color:var(--ink)}
+.theme-light .form-choices legend{color:var(--muted)}
+.theme-light .form-chip span{color:var(--ink);border-color:var(--hair-2)}
+.theme-light .form-chip:hover span{border-color:var(--ink)}
+.theme-light .form-chip input:checked+span{color:#fff;background:#111;border-color:#111}
+.theme-light .form-chip input:focus-visible+span{outline-color:var(--gold-ink)}
+.theme-light .editorial-form select{color:var(--ink);border-bottom-color:var(--hair-2)}
+.theme-light .editorial-form select:focus{border-bottom-color:var(--gold-ink)}
 .theme-light .form-intro,.theme-light .form-policy,.theme-light .optional{color:var(--muted)}
 .theme-light .form-result{border-top-color:var(--hair)}
 .theme-light .form-result pre{color:var(--ink-2);background:var(--ivory-paper);border-color:var(--hair)}

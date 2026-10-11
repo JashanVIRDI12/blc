@@ -2,7 +2,8 @@
 // collection and a car's similar cars. Each car stands in a lit vitrine; a
 // band of light sweeps across it on hover, after React Bits' GlareHover.
 import { escapeHTML, safeImage, thumbImage, stored } from './util.js';
-import { badge, carTitle, carURL, cover, facts, formatPrice, plateLabel } from './data.js';
+import { badge, carTitle, carURL, cover, formatPrice, formatDriven, formatOwners, plateLabel } from './data.js';
+import { LISTING_DEFAULTS } from './listing-rules.js';
 
 // The two manufacturer figures that best say what kind of car a preview is.
 const KEY_SPECS = ['Power', '0–100 km/h', 'Wading depth', 'Approach angle', 'Seats'];
@@ -51,6 +52,22 @@ export function priceLabel(car, { card = false } = {}) {
   return formatPrice(car.price) || 'Price on request';
 }
 
+// The price, set to be read first: the figure large, its unit beside it, the
+// rupee sign in gold. "Price on request" stays quiet.
+function priceHTML(text, quiet) {
+  if (quiet) return `<span class="vehicle-price is-quiet">${escapeHTML(text)}</span>`;
+  const m = /^₹\s?([\d.,]+)\s*(lakh|crore)?$/.exec(text);
+  return m ? `<span class="vehicle-price"><b><i>₹</i>${m[1]}</b>${m[2] ? `<span>${m[2]}</span>` : ''}</span>` : `<span class="vehicle-price"><b>${escapeHTML(text)}</b></span>`;
+}
+// What a buyer compares first, each under its own label. A sold car keeps
+// only the basics chosen in Settings.
+function labelledFacts(car, listing = LISTING_DEFAULTS) {
+  const driven = listing?.drivenLabel || 'Driven';
+  const all = { year: ['Year', car.year ? String(car.year) : ''], driven: [driven, formatDriven(car.kilometres)], fuel: ['Fuel', car.fuel], owners: ['Ownership', formatOwners(car.owners)], body: ['Body', car.body], colour: ['Colour', car.colour], transmission: ['Gearbox', car.transmission] };
+  const keys = car.status === 'sold' ? (listing?.soldFacts || LISTING_DEFAULTS.soldFacts) : ['year', 'driven', 'fuel', 'owners'];
+  return keys.map(key => all[key]).filter(pair => pair && pair[1]);
+}
+
 export function carCard(car, settings, { index = 0, saving = false } = {}) {
   const article = document.createElement('article');
   article.className = 'vehicle-card';
@@ -61,17 +78,17 @@ export function carCard(car, settings, { index = 0, saving = false } = {}) {
   const price = priceLabel(car, { card: true });
   const specs = car.preview ? keySpecs(car) : [];
   const listing = settings?.listing;
-  const meta = car.preview ? [] : facts(car, listing);
+  const meta = car.preview ? [] : labelledFacts(car, listing);
   // A fancy or VIP number is named on the photo; a sold car is stamped.
   const plate = car.status === 'sold' ? '' : plateLabel(car, listing);
   // Under the pointer the card turns to the cabin (the car's hover photo).
   const inside = !car.preview && car.status !== 'sold' && car.hoverPhoto && car.hoverPhoto !== car.photos[0] ? car.hoverPhoto : '';
   article.innerHTML = `<a class="vehicle-link" href="${carURL(car)}">
-    <span class="vehicle-visual" data-photo="${car.preview ? 'cutout' : 'full'}"${inside ? ' data-inside' : ''}><img src="${escapeHTML(thumbImage(cover(car)) || '/vehicle-placeholder.svg')}" data-full="${escapeHTML(safeImage(cover(car)) || '')}" alt="" loading="lazy" decoding="async" width="900" height="600" />${inside ? `<img class="inside-photo" src="${escapeHTML(thumbImage(inside))}" data-full="${escapeHTML(safeImage(inside))}" alt="" loading="lazy" decoding="async" width="900" height="600" /><span class="inside-label" aria-hidden="true">Inside</span>` : ''}<span class="glare" aria-hidden="true"></span>${tag ? `<span class="car-badge" data-tone="${tag.tone}">${escapeHTML(tag.label)}</span>` : ''}${car.photos.length > 1 ? `<span class="photo-count">${camera}${car.photos.length}<span class="sr-only"> photographs</span></span>` : ''}${plate ? `<span class="plate-chip" data-tone="${car.plateTag}"><i aria-hidden="true"></i>${escapeHTML(plate)}</span>` : ''}${car.status === 'sold' ? '<span class="sold-stamp" aria-hidden="true">Sold</span>' : ''}${car.status === 'sold' ? '' : '<span class="view-vehicle" aria-hidden="true">View car</span>'}</span>
-    <span class="vehicle-card-heading"><span><span class="make">${escapeHTML(car.make)}</span><span class="vehicle-name">${escapeHTML(car.model)}${car.variant ? ` <small>${escapeHTML(car.variant)}</small>` : ''}</span></span>${price ? `<span class="vehicle-price${car.price === null && car.status !== 'sold' ? ' is-quiet' : ''}">${escapeHTML(price)}</span>` : ''}</span>
+    <span class="vehicle-visual" data-photo="${car.preview ? 'cutout' : 'full'}"${inside ? ' data-inside' : ''}><img src="${escapeHTML(thumbImage(cover(car)) || '/vehicle-placeholder.svg')}" data-full="${escapeHTML(safeImage(cover(car)) || '')}" alt="" loading="lazy" decoding="async" width="900" height="600" />${inside ? `<img class="inside-photo" src="${escapeHTML(thumbImage(inside))}" data-full="${escapeHTML(safeImage(inside))}" alt="" loading="lazy" decoding="async" width="900" height="600" /><span class="inside-label" aria-hidden="true">Inside</span>` : ''}<span class="glare" aria-hidden="true"></span>${tag ? `<span class="car-badge" data-tone="${tag.tone}">${escapeHTML(tag.label)}</span>` : ''}${car.photos.length > 1 ? `<span class="photo-count">${camera}${car.photos.length}<span class="sr-only"> photographs</span></span>` : ''}${plate ? `<span class="plate-chip" data-tone="${car.plateTag}"><i aria-hidden="true"></i>${escapeHTML(plate)}</span>` : ''}${car.status === 'sold' ? '<span class="sold-stamp" aria-hidden="true">Sold</span>' : ''}</span>
+    <span class="vehicle-card-heading"><span class="vehicle-title"><span class="make">${escapeHTML(car.make)}</span><span class="vehicle-name">${escapeHTML(car.model)}${car.variant ? ` <small>${escapeHTML(car.variant)}</small>` : ''}</span></span>${price ? `<span class="vehicle-price-block">${priceHTML(price, car.price === null)}</span>` : ''}${car.note && car.status !== 'sold' ? `<span class="vehicle-note">${escapeHTML(car.note)}</span>` : ''}</span>
     ${specs.length ? `<span class="vehicle-keyspecs">${specs.map(([key, value]) => `<span><span class="dt">${escapeHTML(key)}</span><span class="dd">${escapeHTML(value)}</span></span>`).join('')}</span>` : ''}
-    ${meta.length ? `<span class="vehicle-meta">${meta.map(value => `<span>${escapeHTML(value)}</span>`).join('')}</span>` : car.preview ? '<span class="availability">Enquire for current availability</span>' : ''}
-    ${car.note && car.status !== 'sold' ? `<span class="vehicle-note">${escapeHTML(car.note)}</span>` : ''}
+    ${meta.length ? `<span class="vehicle-facts">${meta.map(([key, value]) => `<span><span class="dt">${escapeHTML(key)}</span><span class="dd">${escapeHTML(value)}</span></span>`).join('')}</span>` : ''}
+    ${car.preview ? '<span class="availability">Enquire for current availability</span>' : ''}
   </a>`;
   if (saving) article.append(shortlistButton(car));
   attachImageFallback(article);

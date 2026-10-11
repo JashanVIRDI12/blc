@@ -1,0 +1,151 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="About Baba Luxury Cars, New Delhi: pre-owned luxury cars carefully selected, professionally evaluated and transparently presented, for more than eighteen years. Built on trust. Driven by quality." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
+  <link rel="preload" href="/fonts/newsreader-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- Stylesheets are linked here, not imported by the page's script, so no page is ever painted without them. -->
+  <link rel="stylesheet" href="/src/styles.css" />
+  <link rel="stylesheet" href="/src/about-page.css" />
+  <link rel="stylesheet" href="/src/fx.css" />
+  <title>About — Built on trust, driven by quality | Baba Luxury Cars</title>
+</head>
+<body class="inner-page about-page">
+  <a class="skip-link" href="#manifesto">Skip to our story</a>
+<!-- @include header.html -->
+  <div id="smooth-wrapper"><main id="smooth-content">
+
+    <!-- The unveiling: a Maybach under an ivory silk cover, pulled away by the scroll (unveil.js). -->
+    <section class="ab-unveil" id="top" aria-labelledby="about-title">
+      <div class="ab-stage" data-unveil-stage>
+        <canvas class="ab-canvas" data-unveil-canvas aria-label="A Mercedes-Maybach S 580 under an ivory silk cover in a dark studio. Scrolling draws the cover away." role="img"></canvas>
+        <img class="ab-poster" src="/stills/sclass.webp" alt="" width="1600" height="900" />
+        <i class="ab-veil" aria-hidden="true"></i>
+      </div>
+      <div class="ab-hero">
+        <p class="ab-kicker" data-hero-reveal><i aria-hidden="true"></i>About Baba Luxury Cars</p>
+        <h1 id="about-title" class="ab-title"><span class="ab-line"><span>Built on trust.</span></span><span class="ab-line"><span><em>Driven by quality.</em></span></span></h1>
+        <p class="ab-lede" data-hero-reveal>Pre-owned luxury cars from New Delhi, carefully selected, professionally evaluated and transparently presented. For more than eighteen years.</p>
+      </div>
+      <div class="ab-cue" data-unveil-cue aria-hidden="true"><span class="ab-cue-line"><i></i></span><span class="ab-cue-text">Scroll to unveil</span><span class="ab-load" data-unveil-load><b></b></span></div>
+    </section>
+
+    <!-- The manifesto: the words come into focus as they are read (React Bits' Scroll Reveal). -->
+    <section class="ab-manifesto" id="manifesto" aria-label="Our story">
+      <p class="ab-statement" data-scroll-reveal>For more than eighteen years we have done one thing: <em>helped people choose well.</em> Every car we offer is carefully selected, professionally evaluated and transparently presented, its RC, insurance, service history and ownership laid out before you decide. <em>No hidden surprises.</em> And when the keys are yours, we are still here, because our relationship <em>does not end with the sale.</em></p>
+      <p class="ab-sign" data-reveal="fade"><span>Baba Luxury Cars</span><span>Paschim Vihar, New Delhi</span></p>
+    </section>
+
+    <!-- The figures, on a rotating display set into a dashboard: walnut, then the dials, then the navigation screen (fascia.js). -->
+    <section class="ab-figures" id="figures" aria-labelledby="figures-title">
+      <div class="fa-stage" data-fascia-stage aria-hidden="true"><canvas class="ab-canvas" data-fascia-canvas></canvas></div>
+      <div class="fa-frame">
+        <header class="ab-mast fa-head" data-mast>
+          <h2 id="figures-title"><span class="ab-mast-a"><span>Never</span></span> <em class="ab-mast-b"><span>rolled back.</span></em></h2>
+          <p class="ab-mast-intro">A pre-owned car is only as honest as its odometer, and a dealer only as honest as its record. Here is ours, read straight off the dials.</p>
+        </header>
+        <div class="fa-slot" data-fascia-slot></div>
+      </div>
+      <dl class="fa-readings" data-readings>
+        <div><dt>Years of experience</dt><dd>18<small>+</small></dd></div>
+        <div><dt>Happy clients</dt><dd>12<small>k+</small></dd></div>
+        <div><dt>Satisfaction rate</dt><dd>98<small>%</small></dd></div>
+        <div class="fa-reach"><dt>Delivered to</dt><dd>Almost every state in India</dd></div>
+      </dl>
+    </section>
+
+    <!-- The inspection: a black Defender on a studio turntable, turned by the scroll as each check is ticked (inspect-stage.js). -->
+    <section class="ab-inspect" id="inspection" aria-labelledby="inspect-title">
+      <div class="ins-stage" data-inspect-stage aria-hidden="true">
+        <canvas class="ab-canvas"></canvas>
+        <img class="ab-poster" src="/stills/defender-inspection.webp" alt="" width="1800" height="830" loading="lazy" />
+      </div>
+      <div class="ins-frame">
+        <header class="ab-mast" data-mast>
+          <h2 id="inspect-title"><span class="ab-mast-a"><span>Inspected,</span></span> <em class="ab-mast-b"><span>panel by panel.</span></em></h2>
+          <p class="ab-mast-intro">Every car is chosen, inspected and photographed by us before it is listed. What we look at, and what we will show you.</p>
+        </header>
+        <ol class="ins-list" data-checks>
+          <li data-check><i>01</i><b>Engine and service</b><span>The bay, the service book and the odometer, read together.</span><s aria-hidden="true"></s><u aria-hidden="true"></u></li>
+          <li data-check><i>02</i><b>Tyres and brakes</b><span>Tread depth, tyre age and brake wear.</span><s aria-hidden="true"></s><u aria-hidden="true"></u></li>
+          <li data-check><i>03</i><b>Paint and panels</b><span>Original paint, repaints and past repairs, panel by panel.</span><s aria-hidden="true"></s><u aria-hidden="true"></u></li>
+          <li data-check><i>04</i><b>Cabin and electronics</b><span>Upholstery, screens and every switch.</span><s aria-hidden="true"></s><u aria-hidden="true"></u></li>
+          <li data-check><i>05</i><b>Registration and history</b><span>The RC, insurance and ownership, checked against the car.</span><s aria-hidden="true"></s><u aria-hidden="true"></u></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- The paperwork, as the dossier it is: each document is dealt onto the last, and the ones beneath show their tabs (after React Bits' Scroll Stack). -->
+    <section class="ab-dossier" id="paperwork" aria-labelledby="paperwork-title">
+      <header class="ab-mast" data-mast>
+        <h2 id="paperwork-title"><span class="ab-mast-a"><span>The paperwork,</span></span> <em class="ab-mast-b"><span>in order.</span></em></h2>
+        <p class="ab-mast-intro">Clear information on the RC, insurance, service history and ownership, shown before you decide. With no hidden surprises.</p>
+      </header>
+      <div class="ab-stack" data-stack>
+        <article class="ab-doc" data-doc>
+          <p class="ab-doc-tab"><span>01</span><b>Registration certificate</b></p>
+          <div class="ab-doc-art"><div class="doc doc--rc" aria-hidden="true"><span class="doc-top"><b>Registration certificate</b><i>Smart card</i></span><span class="doc-chip"></span><span class="doc-holo"></span><span class="doc-fields"><i></i><i></i><i></i><i></i></span><span class="doc-strip"></span></div></div>
+          <div class="ab-doc-copy"><h3>The RC</h3><p>Checked against the car itself: chassis and engine numbers, the registration and the owner on record.</p></div>
+        </article>
+        <article class="ab-doc" data-doc>
+          <p class="ab-doc-tab"><span>02</span><b>Motor insurance</b></p>
+          <div class="ab-doc-art"><div class="doc doc--policy" aria-hidden="true"><span class="doc-head"><b>Motor insurance</b><i>Policy schedule</i></span><span class="doc-lines"><i></i><i></i><i></i><i></i><i></i><i></i></span><span class="doc-stamp">In force</span></div></div>
+          <div class="ab-doc-copy"><h3>Insurance</h3><p>The cover in force, and its claims, so a past repair is never a surprise.</p></div>
+        </article>
+        <article class="ab-doc" data-doc>
+          <p class="ab-doc-tab"><span>03</span><b>Service record</b></p>
+          <div class="ab-doc-art"><div class="doc doc--book" aria-hidden="true"><span class="doc-head"><b>Service record</b><i>Maintenance history</i></span><span class="doc-rows"><i><em></em></i><i><em></em></i><i><em></em></i><i><em></em></i></span></div></div>
+          <div class="ab-doc-copy"><h3>Service history</h3><p>The service book and its records, read with the odometer, so the kilometres add up.</p></div>
+        </article>
+        <article class="ab-doc" data-doc>
+          <p class="ab-doc-tab"><span>04</span><b>Transfer of ownership</b></p>
+          <div class="ab-doc-art"><div class="doc doc--forms" aria-hidden="true"><span class="doc-tab">Form 29</span><span class="doc-tab doc-tab--b">Form 30</span><span class="doc-head"><b>Ownership</b><i>Transfer of ownership</i></span><span class="doc-lines"><i></i><i></i><i></i><i></i></span><span class="doc-sign"></span></div></div>
+          <div class="ab-doc-copy"><h3>Ownership</h3><p>Every owner before you, laid out plainly, and the transfer papers prepared with you.</p></div>
+        </article>
+        <article class="ab-doc" data-doc>
+          <p class="ab-doc-tab"><span>05</span><b>Loan options</b></p>
+          <div class="ab-doc-art"><div class="doc doc--finance" aria-hidden="true"><span class="doc-head"><b>Finance</b><i>Loan options</i></span><span class="doc-figure"><i></i><i></i><i></i></span><span class="doc-lines"><i></i><i></i><i></i></span><span class="doc-seal"></span></div></div>
+          <div class="ab-doc-copy"><h3>Finance, if you wish</h3><p>Competitive loan and finance options through trusted finance partners.</p></div>
+        </article>
+      </div>
+    </section>
+
+    <!-- The handovers: Baba's own photographs, in a deck that deals itself (after React Bits' Card Swap). -->
+    <section class="ab-handovers" id="handovers" aria-labelledby="handovers-title">
+      <header class="ab-mast" data-mast>
+        <h2 id="handovers-title"><span class="ab-mast-a"><span>Delivered to almost every state.</span></span> <em class="ab-mast-b"><span>Every one of them, happily.</span></em></h2>
+        <p class="ab-mast-intro">Pan-India buying and selling, and a handover photograph for every car that leaves us. These are a few of them.</p>
+      </header>
+      <div class="ab-run" data-run><div class="ab-run-track" data-run-track role="list" aria-label="Handover photographs"></div></div>
+      <p class="ab-run-foot" aria-hidden="true"><span data-run-count>01</span><i><b data-run-bar></b></i><span data-run-total></span></p>
+    </section>
+
+    <!-- Visit: the showroom, its hours on a live clock, and every line (visit.js). -->
+    <section class="ab-visit" id="visit" aria-labelledby="visit-title">
+      <div class="ab-visit-copy">
+        <header class="ab-mast" data-mast>
+          <h2 id="visit-title"><span class="ab-mast-a"><span>Come and</span></span> <em class="ab-mast-b"><span>see them.</span></em></h2>
+        </header>
+        <p class="ab-address" data-visit-address>B-2, Emaya Mall, Paschim Vihar, New Delhi 110063</p>
+        <p class="ab-status" data-visit-status><i aria-hidden="true"></i><span>Monday to Sunday, 11 am to 8 pm</span></p>
+        <div class="ab-visit-actions"><a class="solid-button" data-visit-directions target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&amp;query=Baba%20Luxury%20Car%2C%20B-2%2C%20Emaya%20Mall%2C%20Paschim%20Vihar%2C%20New%20Delhi%20110063"><span>Get directions</span></a><button type="button" class="outline-button" data-enquire data-subject="I’d like to visit the showroom">Arrange a visit</button></div>
+        <dl class="ab-lines" data-visit-lines></dl>
+        <p class="ab-social"><a href="https://www.instagram.com/babaluxurycar" target="_blank" rel="noopener">Instagram</a><a href="https://www.youtube.com/@babaluxurycar" target="_blank" rel="noopener">YouTube</a></p>
+      </div>
+      <figure class="ab-clock" data-clock aria-hidden="true">
+        <svg viewBox="0 0 400 400"><g data-clock-face></g><g data-clock-hands><g class="ck-shadows" transform="translate(3 5)"><path data-shadow="h" d="M200 216 193 200 200 106 207 200Z"/><path data-shadow="m" d="M200 224 195.5 200 200 60 204.5 200Z"/><path data-shadow="s" d="M199.2 244h1.6V54h-1.6Z"/></g><g data-hand="h"><path class="ck-lit" d="M200 216 193 200 200 106Z"/><path class="ck-shade" d="M200 216 207 200 200 106Z"/></g><g data-hand="m"><path class="ck-lit" d="M200 224 195.5 200 200 60Z"/><path class="ck-shade" d="M200 224 204.5 200 200 60Z"/></g><g data-hand="s" class="ck-second"><path d="M199.2 244h1.6V54h-1.6Z"/><circle cx="200" cy="232" r="4.2"/></g><circle class="ck-cap" cx="200" cy="200" r="7.5"/><circle class="ck-pin" cx="200" cy="200" r="2.4"/></g><g data-clock-glass></g></svg>
+        <figcaption><span>New Delhi</span><b data-clock-time></b></figcaption>
+      </figure>
+    </section>
+
+<!-- @include footer.html -->
+  </main></div>
+<!-- @include dialogs.html -->
+  <script type="module" src="/src/about-page.js"></script>
+</body>
+</html>

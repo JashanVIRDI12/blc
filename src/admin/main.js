@@ -1,9 +1,9 @@
 // The admin portal (/admin/): sign in, then Overview, Cars, Enquiries,
 // Deliveries, Home page, Collections and Settings. Every change saves to
 // Supabase (or, before it is connected, to a preview in this browser).
-import './admin.css';
 import { createStore } from './store.js';
-import { $, $$, esc, toast, busy, icon } from './ui.js';
+import { $, $$, esc, toast, busy, icon, confirmDialog } from './ui.js';
+import { installPickers } from './pickers.js';
 import { renderCars, renderEditor, siteURL } from './cars.js';
 import { renderOverview } from './overview.js';
 import { renderEnquiries } from './enquiries.js';
@@ -17,6 +17,7 @@ const root = $('#app');
 const app = { store: null, user: null, cars: [], collections: [], settings: null, private: {}, enquiries: [], deliveries: [], guard: null, discard: null, refresh: () => {} };
 const logo = '<img src="/brand/baba-luxury-car-800.webp" alt="Baba Luxury Car" width="800" height="250" />';
 
+installPickers();
 boot();
 
 async function boot() {
@@ -122,7 +123,7 @@ function shell() {
     </aside>
     <main class="a-main" id="view" tabindex="-1"></main>
   </div>`;
-  $('[data-sign-out]')?.addEventListener('click', async () => { if (app.guard?.() && !confirm('Leave without saving your changes?')) return; app.guard = null; await app.store.signOut(); });
+  $('[data-sign-out]')?.addEventListener('click', async () => { if (!(await leave())) return; app.guard = null; await app.store.signOut(); });
   app.refresh = () => {
     $('[data-count]').textContent = app.cars.filter(car => FOR_SALE.includes(car.status)).length || '';
     const fresh = app.enquiries.filter(row => row.status === 'new').length;
@@ -142,7 +143,7 @@ function route() {
   const view = $('#view');
   if (!view) return;
   current = location.hash;
-  app.guard = null;
+  app.guard = null; app.saveEdits = null;
   app.discard = null;
   const section = name === 'car' ? 'cars' : name;
   $$('[data-route]').forEach(link => link.toggleAttribute('aria-current', link.dataset.route === section));
@@ -157,14 +158,32 @@ function route() {
   view.focus({ preventScroll: true });
   if (!(name === 'settings' && id)) scrollTo(0, 0);
 }
-addEventListener('hashchange', () => {
+// Leaving a car with unsaved changes asks first, in the portal's own dialog:
+// save and go, keep editing, or go without saving. Resolves true to go.
+let asking = false;
+async function leave() {
+  if (!app.guard?.()) return true;
+  if (asking) return false;
+  asking = true;
+  const answer = await confirmDialog({ tone: 'warn', title: 'Save your changes?', body: 'This car has changes that haven’t been saved yet.', confirm: 'Save and leave', cancel: 'Keep editing', extra: 'Discard changes', extraDanger: true });
+  asking = false;
+  if (answer === true) { await app.saveEdits?.(); return !app.guard?.(); }
+  if (answer === 'extra') { app.discard?.(); app.guard = null; return true; }
+  return false;
+}
+addEventListener('hashchange', async () => {
   if (!$('#view')) return;
   if (app.guard?.()) {
-    if (!confirm('You have unsaved changes. Leave without saving?')) { history.replaceState(null, '', current); return; }
-    app.discard?.();
+    // Stay put while the question is open; go once it is answered.
+    const target = location.hash;
+    history.replaceState(null, '', current);
+    if (await leave()) location.hash = target;
+    return;
   }
   route();
 });
+// Closing the tab or reloading can only be guarded by the browser's own
+// question: no page may draw its own there.
 addEventListener('beforeunload', event => { if (app.guard?.()) event.preventDefault(); });
 // Shortcuts: "/" searches the cars, "N" starts a new one.
 addEventListener('keydown', event => {

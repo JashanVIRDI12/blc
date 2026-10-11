@@ -116,22 +116,58 @@ p{text-wrap:pretty}
   .site-header .brand-logo{height:50px}
 }
 
-/* Menu: the whole screen, sections set as statements. */
-.mobile-menu{position:fixed;inset:0;z-index:29;display:flex;flex-direction:column;padding:calc(var(--header-height) + 34px) var(--gutter) calc(34px + env(safe-area-inset-bottom));background:var(--reflection),var(--obsidian);overflow:auto}
-.mobile-menu a{display:block;padding:16px 0 14px;font:300 clamp(34px,9.5vw,52px)/1.05 var(--font-display);letter-spacing:-.02em;border-bottom:1px solid var(--graphite);animation:menu-in .7s var(--ease) both}
-.mobile-menu a:nth-child(2){animation-delay:.05s}.mobile-menu a:nth-child(3){animation-delay:.1s}.mobile-menu a:nth-child(4){animation-delay:.15s}.mobile-menu a:nth-child(5){animation-delay:.2s}
+/* Menu: the whole screen, on black on every page (ivory type, whatever the
+   page's own theme): the sections set as statements, the current one in
+   gold; at its foot, how to reach us. A warm light behind; the rows rise in. */
+.mobile-menu{position:fixed;inset:0;z-index:29;display:flex;flex-direction:column;gap:40px;padding:calc(var(--header-height) + 28px) var(--gutter) calc(28px + env(safe-area-inset-bottom));color:var(--ivory);background:radial-gradient(70% 45% at 85% 0%,rgba(196,136,58,.13),rgba(196,136,58,0) 70%),var(--reflection),#060607;overflow:auto}
+.mobile-menu:before{content:'';position:absolute;left:var(--gutter);right:var(--gutter);top:var(--header-height);height:1px;background:var(--coachline);opacity:.6}
+.mm-links{display:grid}
+.mm-links a{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:18px 0 16px;font:300 clamp(36px,9vw,54px)/1.05 var(--font-display);letter-spacing:-.025em;color:var(--ivory);border-bottom:1px solid rgba(239,233,222,.12);animation:menu-in .7s var(--ease) both;transition:color .3s}
+.mm-links a:after{content:'';flex:none;width:11px;height:11px;margin-right:6px;border-top:1px solid var(--gold);border-right:1px solid var(--gold);transform:rotate(45deg);opacity:.7;transition:transform .45s var(--ease),opacity .3s}
+.mm-links a:hover,.mm-links a:focus-visible{color:var(--gold-hi)}
+.mm-links a:hover:after,.mm-links a:focus-visible:after{opacity:1;transform:translateX(5px) rotate(45deg)}
+.mm-links a[aria-current=page]{font-style:italic;color:var(--gold)}
+.mm-links a:nth-child(2){animation-delay:.05s}.mm-links a:nth-child(3){animation-delay:.1s}.mm-links a:nth-child(4){animation-delay:.15s}
+.mm-foot{display:grid;gap:14px;margin-top:auto;animation:menu-in .7s var(--ease) .22s both}
+.mm-foot:empty{display:none}
+.mm-label{margin:0;font-size:13px;font-weight:600;letter-spacing:.04em;color:var(--gold)}
+.mm-actions{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px}
+.mm-action{display:flex;align-items:center;justify-content:center;gap:10px;min-height:54px;padding:0 18px;font:600 14px/1.2 var(--font-text);color:var(--ivory);border:1px solid rgba(239,233,222,.2);border-radius:999px;transition:border-color .3s,background-color .3s}
+.mm-action:hover{border-color:var(--gold)}
+.mm-action svg{flex:none;width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linejoin:round}
+.mm-action--gold{color:#1a1008;background:var(--brushed-gold);border-color:transparent}
+.mm-action--gold:hover{border-color:transparent}
+.mm-visit{display:grid;gap:3px;margin:4px 0 0;font-size:13px;line-height:1.5;color:var(--steel)}
 @keyframes menu-in{from{opacity:0;transform:translateY(18px)}}
+@media(prefers-reduced-motion:reduce){.mm-links a,.mm-foot{animation:none}}
+/* The toggle becomes a ring while the menu is open, its focus ring round. */
+.menu-toggle{border-radius:50%;transition:border-color .3s}
+.menu-toggle:focus-visible{outline-offset:2px}
+.menu-open .menu-toggle{align-items:center;border:1px solid rgba(196,136,58,.55)}
+.menu-open .enquire-link{border-radius:999px}
+@media(max-width:520px){.mm-actions{grid-template-columns:1fr}}
 
 /* Loader: the logo, and the coachline drawn as the showroom loads. */
-.loader{position:fixed;inset:0;z-index:80;display:grid;place-items:center;background:var(--obsidian);transition:opacity .8s var(--ease),visibility .8s}
+/* The loader: the logo, a light passing across its gold, and a counter
+   rolling to the share of the showroom loaded. It fades as the film begins,
+   the logo easing forward as it goes. */
+.loader{position:fixed;inset:0;z-index:80;display:grid;place-items:center;background:var(--obsidian);transition:opacity .9s var(--ease),visibility .9s}
+.loader-mark{position:relative;display:block;z-index:1}
 .loader-logo{display:block;width:min(66vw,420px);height:auto}
+/* A light passes across the gold, as across foil. */
+.loader-mark:after{content:'';position:absolute;inset:0;background:linear-gradient(100deg,transparent 40%,rgba(255,244,214,.9) 50%,transparent 60%) 100% 0/300% 100% no-repeat;-webkit-mask:url('/brand/baba-luxury-car-800.webp') center/contain no-repeat;mask:url('/brand/baba-luxury-car-800.webp') center/contain no-repeat;mix-blend-mode:screen;animation:loader-shine 2.8s var(--ease) infinite .4s}
+@keyframes loader-shine{0%{background-position:100% 0}55%,100%{background-position:0% 0}}
 .loader.is-complete{opacity:0;visibility:hidden;pointer-events:none}
-.loader-bottom{position:absolute;left:var(--gutter);right:var(--gutter);bottom:calc(36px + env(safe-area-inset-bottom));display:grid;gap:14px;font-size:13px;color:var(--steel)}
-.loader-bottom p{display:flex;justify-content:space-between}
-#load-percent{font-variant-numeric:tabular-nums;color:var(--ivory)}
+.loader-mark,.loader-bottom,.loader-skip{transition:opacity .6s var(--ease),transform 1.1s var(--ease)}
+.loader.is-complete .loader-mark{opacity:0;transform:scale(1.035)}
+.loader.is-complete .loader-bottom,.loader.is-complete .loader-skip{opacity:0;transform:translateY(-8px)}
+.loader-bottom{position:absolute;z-index:1;left:var(--gutter);right:var(--gutter);bottom:calc(36px + env(safe-area-inset-bottom));display:grid;gap:14px;font-size:13px;color:var(--steel)}
+.loader-bottom p{display:flex;justify-content:space-between;align-items:flex-end}
+.loader-count{font:300 clamp(64px,9vw,148px)/.78 var(--font-display);letter-spacing:-.045em;color:var(--ivory);font-variant-numeric:lining-nums tabular-nums}
+.loader-count small{margin-left:.06em;font-size:.3em;font-style:italic;letter-spacing:0;color:var(--gold);vertical-align:top}
 .load-track{height:1px;background:rgba(196,136,58,.2);overflow:hidden}
 .load-track i{display:block;height:100%;background:var(--brushed-gold);transform:scaleX(0);transform-origin:left}
-.loader-skip{position:absolute;top:calc(22px + env(safe-area-inset-top));right:var(--gutter);font-size:13px}
+.loader-skip{z-index:1;position:absolute;top:calc(22px + env(safe-area-inset-top));right:var(--gutter);font-size:13px}
 
 /* Sections. Labels appear only where the headline alone would not say what
    a section is. */
@@ -163,11 +199,9 @@ p{text-wrap:pretty}
 .car-badge[data-tone=preview]{left:20px;top:18px;padding:0;font-weight:500;letter-spacing:.05em;font-size:12px;color:var(--steel);background:none;border:0}
 .photo-count{position:absolute;left:16px;bottom:14px;z-index:2;display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--ivory);text-shadow:0 1px 8px rgba(0,0,0,.7)}
 .photo-count svg{width:16px;height:16px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linejoin:round}
-.view-vehicle{position:absolute;right:18px;bottom:16px;z-index:2;padding-bottom:4px;font-size:13px;font-weight:500;color:var(--ivory);background:linear-gradient(var(--gold),var(--gold)) 0 100%/100% 1px no-repeat;transition:background-size .5s var(--ease)}
 @media(hover:hover){
   .vehicle-link:hover .vehicle-visual img{transform:scale(1.035)}
   .vehicle-link:hover .glare{background-position:100% 100%}
-  .vehicle-link:hover .view-vehicle{background-size:40% 1px}
 }
 /* A visitor's shortlist (cards.js): kept in this browser. */
 .shortlist-button{position:absolute;top:10px;right:10px;z-index:3;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;color:var(--ivory);background:rgba(8,8,9,.6);border:1px solid rgba(239,233,222,.14);transition:color .3s,border-color .3s,background-color .3s}
@@ -177,20 +211,30 @@ p{text-wrap:pretty}
 .shortlist-button[aria-pressed=true] svg{fill:currentColor}
 .shortlist-button.is-popped svg{animation:pop .5s cubic-bezier(.3,1.6,.5,1)}
 @keyframes pop{40%{transform:scale(1.3)}}
-.vehicle-card-heading{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;padding-top:26px}
-.vehicle-card .make{display:block;font-size:12.5px;font-weight:600;letter-spacing:.06em;color:var(--gold);margin-bottom:10px}
-.vehicle-name{display:block;font:400 clamp(34px,3.4vw,44px)/1 var(--font-display);letter-spacing:-.02em;font-variant-numeric:lining-nums;text-wrap:balance}
-.vehicle-name small{display:block;margin-top:9px;font:500 13.5px/1.3 var(--font-text);letter-spacing:.02em;color:var(--steel)}
+/* The words: the make and the name, with the price beside the name on its
+   last line (the largest figure on the card, its rupee sign in gold); any
+   word on the price beneath it, at the right; then the facts in a labelled
+   row. */
+.vehicle-card-heading{display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:end;align-items:last baseline;gap:8px 20px;padding-top:24px}
+.vehicle-title{display:block;min-width:0}
+.vehicle-card .make{display:block;font-size:12.5px;font-weight:600;letter-spacing:.06em;color:var(--gold);margin-bottom:8px}
+.vehicle-name{display:block;font:400 clamp(27px,2.3vw,34px)/1.04 var(--font-display);letter-spacing:-.022em;font-variant-numeric:lining-nums;text-wrap:balance}
+.vehicle-name small{font:italic 300 .66em/1 var(--font-display);letter-spacing:0;color:var(--steel)}
+.vehicle-price-block{display:grid;justify-items:end;gap:5px;text-align:right}
+.vehicle-price{display:flex;align-items:baseline;gap:6px;white-space:nowrap;color:var(--ivory)}
+.vehicle-price b{font:400 clamp(26px,2.2vw,32px)/1 var(--font-display);letter-spacing:-.025em;font-variant-numeric:lining-nums}
+.vehicle-price b i{margin-right:2px;font-style:normal;font-size:.76em;color:var(--gold)}
+.vehicle-price span{font-size:13.5px;font-weight:600;letter-spacing:.01em;color:var(--steel)}
+.vehicle-price.is-quiet{font-size:13.5px;font-weight:600;color:var(--steel)}
+.vehicle-note{grid-column:2;justify-self:end;display:block;margin-top:-2px;font:italic 300 14.5px/1.3 var(--font-display);text-align:right;color:#cfc8bb}
 /* Two manufacturer figures that say what kind of car it is. */
 .vehicle-keyspecs{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:22px;padding-top:16px;border-top:1px solid var(--graphite)}
 .vehicle-keyspecs .dt{display:block;font-size:12px;color:var(--steel-dim);margin-bottom:4px}
 .vehicle-keyspecs .dd{display:block;font:400 22px/1.1 var(--font-display);font-variant-numeric:lining-nums;color:var(--ivory)}
-.vehicle-price{padding-top:6px;font-weight:500;color:var(--gold);white-space:nowrap}
-.vehicle-price.is-quiet{font-size:13px;font-weight:500;color:var(--steel)}
-.vehicle-card .availability{display:block;padding-top:16px;font-size:13.5px;color:var(--steel)}
-.vehicle-meta{display:flex;flex-wrap:wrap;align-items:center;gap:6px 0;margin-top:16px;padding-top:14px;border-top:1px solid var(--graphite);font-size:13px;color:var(--steel)}
-.vehicle-meta span+span:before{content:'';display:inline-block;width:3px;height:3px;margin:0 11px 0 12px;border-radius:50%;background:var(--gold-lo);vertical-align:middle}
-.vehicle-note{display:block;margin-top:12px;font:italic 300 17px/1.4 var(--font-display);color:#cfc8bb}
+.vehicle-facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(68px,1fr));gap:12px 14px;margin-top:18px;padding-top:15px;border-top:1px solid var(--graphite)}
+.vehicle-facts .dt{display:block;margin-bottom:5px;font-size:11.5px;font-weight:500;letter-spacing:.02em;color:var(--steel-dim)}
+.vehicle-facts .dd{display:block;font:400 clamp(15px,1.25vw,18px)/1.15 var(--font-display);white-space:nowrap;font-variant-numeric:lining-nums;color:var(--ivory)}
+.vehicle-card .availability{display:block;margin-top:14px;font-size:13.5px;color:var(--steel)}
 .vehicle-card[data-status=sold] .vehicle-visual img{filter:grayscale(1) brightness(.75)}
 @media(hover:hover){.vehicle-card[data-status=sold] .vehicle-link:hover .vehicle-visual img{filter:none}}
 /* Placeholders hold the room while the stock loads. */
@@ -376,6 +420,20 @@ p{text-wrap:pretty}
 .choice-label input{width:18px;height:18px;margin:0;accent-color:var(--gold)}
 .optional{font-weight:400;color:var(--steel-dim)}
 .form-policy{margin:0 0 20px;font-size:12px;color:var(--steel-dim)}
+/* Choices set out as pills (the consultation's call and time): each a real
+   radio button, drawn as its label. */
+.form-choices{min-width:0;margin:0 0 24px;padding:0;border:0}
+.form-choices legend{margin-bottom:12px;padding:0;font-size:12.5px;font-weight:600;letter-spacing:.05em;color:var(--steel)}
+.form-chips{display:flex;flex-wrap:wrap;gap:8px}
+.editorial-form .form-chip{position:relative;display:block;margin:0;font-size:inherit;letter-spacing:0}
+.editorial-form .form-chip input[type=radio]{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;border:0;opacity:0;cursor:pointer}
+.form-chip span{display:inline-flex;align-items:center;min-height:42px;padding:0 17px;font:500 13.5px/1 var(--font-text);color:var(--ivory);border:1px solid var(--graphite);border-radius:999px;transition:color .3s,background-color .3s,border-color .3s}
+.form-chip:hover span{border-color:rgba(196,136,58,.6)}
+.form-chip input:checked+span{color:#1a1008;background:var(--gold);border-color:var(--gold)}
+.form-chip input:focus-visible+span{outline:1px solid var(--gold);outline-offset:3px}
+.editorial-form select{display:block;width:100%;margin-top:6px;padding:12px 28px 13px 0;font:400 16px/1.4 var(--font-text);color:var(--ivory);background:transparent url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 12 8'%3E%3Cpath d='M1 1.5 6 6.5 11 1.5' fill='none' stroke='%23c4883a' stroke-width='1.3'/%3E%3C/svg%3E") right 2px center/11px no-repeat;border:0;border-bottom:1px solid var(--graphite);border-radius:0;appearance:none;-webkit-appearance:none}
+.editorial-form select:focus{outline:none;border-bottom-color:var(--gold)}
+.editorial-form select option{color:#111;background:#fff}
 .editorial-form .solid-button{width:100%}
 .form-result{margin-top:26px;padding-top:22px;border-top:1px solid var(--graphite);font-size:14px}
 .form-result:focus{outline:none}

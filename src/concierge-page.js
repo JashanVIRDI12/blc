@@ -4,10 +4,6 @@
 // call-back request (the admin's inbox, as a concierge enquiry); then how it
 // works, and the services that make a car yours. `?marque=Bentley` arrives
 // with the marque chosen (from the collection page's strip).
-import './styles.css';
-import './light.css';
-import './collection.css';
-import './concierge.css';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { setupPage } from './chrome.js';
@@ -16,10 +12,12 @@ import { saveEnquiry } from './forms.js';
 import { MARQUES } from './marques.js';
 import { marqueArt, sizeMarques } from './marque-art.js';
 import { escapeHTML } from './util.js';
+import { createModifications } from './modifications.js';
 
 gsap.registerPlugin(ScrollTrigger);
 setupPage('concierge');
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+createModifications(document.querySelector('#modifications'), { reduced });
 const finePointer = matchMedia('(hover: hover) and (pointer: fine)').matches;
 const $ = selector => document.querySelector(selector);
 const $$ = selector => [...document.querySelectorAll(selector)];
@@ -37,7 +35,8 @@ let settings = { ...defaultSettings.concierge };
 function contact() {
   const digits = String(settings.whatsapp || '').replace(/\D/g, '');
   const full = digits.length === 10 ? `91${digits}` : digits;
-  $$('[data-concierge-whatsapp]').forEach(link => { link.hidden = !digits; link.href = `https://wa.me/${full}?text=${encodeURIComponent('Hello Baba Concierge, I’d like you to find me a car.')}`; });
+  $$('[data-concierge-whatsapp]').forEach(link => { link.hidden = !digits; link.href = `https://wa.me/${full}?text=${encodeURIComponent('Hello Baba Luxury Cars concierge, I’d like you to find me a car.')}`; });
+  $$('[data-mods-whatsapp]').forEach(link => { link.hidden = !digits; link.href = `https://wa.me/${full}?text=${encodeURIComponent('Hello Baba Luxury Cars concierge, I’m buying a car from you and I’d like some work done to it: ')}`; });
   $('[data-concierge-number]').textContent = settings.whatsapp || '';
   const call = $('[data-concierge-call]');
   call.hidden = !digits;
@@ -185,7 +184,7 @@ function sync(animate = false) {
   const digits = String(settings.whatsapp || '').replace(/\D/g, '');
   const whatsapp = $('[data-card-whatsapp]');
   whatsapp.hidden = !digits;
-  const text = ['Hello Baba Concierge, I’d like you to find me a car.', facts().map(([, label, value]) => `${label}: ${value}`).join('\n')].filter(Boolean).join('\n\n');
+  const text = ['Hello Baba Luxury Cars concierge, I’d like you to find me a car.', facts().map(([, label, value]) => `${label}: ${value}`).join('\n')].filter(Boolean).join('\n\n');
   whatsapp.href = `https://wa.me/${digits.length === 10 ? `91${digits}` : digits}?text=${encodeURIComponent(text)}`;
 }
 

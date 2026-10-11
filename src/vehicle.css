@@ -12,7 +12,9 @@
 .v-crumbs [aria-current]{color:var(--ink)}
 @media(min-width:1101px){
   .v-layout{grid-template-columns:minmax(0,1.5fr) minmax(360px,1fr);gap:clamp(40px,4.4vw,72px);align-items:start}
-  .v-panel{position:sticky;top:calc(var(--header-height) + 28px)}
+  /* The photographs hold beside the info while it is read, and let go
+     where it ends. */
+  .v-gallery{position:sticky;top:calc(var(--header-height) + 24px)}
 }
 
 /* Gallery: swipe, arrows, thumbnails; a lightbox for the full picture. */
@@ -37,34 +39,95 @@
 .v-thumbs img{display:block;width:100%;height:100%;object-fit:cover}
 .v-thumbs [data-photo=cutout] img{object-fit:contain;padding:6px}
 
-/* The panel. */
-.v-panel .eyebrow{margin-bottom:12px}
-.v-panel h1{font-size:clamp(48px,5.2vw,84px);line-height:.96;letter-spacing:-.035em;color:var(--ink)}
-.v-variant{margin-top:12px;font-size:15px;font-weight:500;color:var(--muted)}
-.v-price{margin-top:26px;font:400 clamp(34px,3.2vw,46px)/1 var(--font-display);font-variant-numeric:lining-nums;color:var(--ink)}
-.v-price span{display:block;margin-top:9px;font:500 13px/1.3 var(--font-text);color:var(--muted)}
-.v-price.is-quiet{font-size:clamp(26px,2.4vw,32px);color:var(--ink-2)}
-.v-note{margin-top:14px;font:italic 300 19px/1.4 var(--font-display);color:var(--gold-ink)}
-.v-facts{display:grid;grid-template-columns:1fr 1fr;gap:0 22px;margin-top:30px;border-top:1px solid var(--hair)}
-.v-facts:empty{display:none}
-.v-facts div{padding:14px 0 13px;border-bottom:1px solid var(--hair)}
-.v-facts dt{margin-bottom:4px;font:600 10.5px/1.3 var(--font-text);letter-spacing:.12em;text-transform:uppercase;color:var(--muted-2)}
-.v-facts dd{font-size:15px;font-weight:500;color:var(--ink)}
-.v-actions{display:grid;gap:12px;margin-top:30px}
-.v-actions .ink-button{width:100%}
-.v-contact{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+/* The panel: what the car is, what it costs and how to take it further, all
+   on the first screen; then the details and why to trust us. */
+.v-panel-top{display:flex;align-items:center;justify-content:space-between;gap:16px}
+.v-make{display:flex;flex-wrap:wrap;align-items:center;gap:8px 14px;margin:0;font:600 13px/1.3 var(--font-text);letter-spacing:.06em;color:var(--gold-ink)}
+.v-status{display:inline-flex;align-items:center;gap:7px;padding:5px 11px 5px 9px;font-size:11.5px;font-weight:700;letter-spacing:.04em;color:var(--ink);background:#fff;border:1px solid var(--hair-2);border-radius:999px}
+.v-status i{position:relative;width:7px;height:7px;border-radius:50%;background:#2f9e5f}
+.v-status[data-tone=available] i:after{content:'';position:absolute;inset:-4px;border-radius:50%;border:1px solid #2f9e5f;animation:v-live 2.4s ease-out infinite}
+.v-status[data-tone=reserved] i{background:#c88f2c}
+.v-status[data-tone=coming_soon] i{background:#5b7fd1}
+.v-status[data-tone=sold] i,.v-status[data-tone=preview] i{background:var(--muted-2)}
+@keyframes v-live{from{opacity:.9;transform:scale(.6)}to{opacity:0;transform:scale(1.6)}}
+@media(prefers-reduced-motion:reduce){.v-status i:after{display:none}}
+.v-tools{display:flex;gap:8px}
+.v-tool{position:relative;display:grid;place-items:center;width:42px;height:42px;padding:0;color:var(--ink);background:#fff;border:1px solid var(--hair-2);border-radius:50%;transition:border-color .3s,color .3s,background-color .3s}
+.v-tool svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+.v-tool:hover{border-color:var(--ink)}
+.theme-light .v-tool.shortlist-button{position:relative;top:auto;right:auto;background:#fff;border-color:var(--hair-2)}
+.theme-light .v-tool.shortlist-button[aria-pressed=true]{color:#a5732f;border-color:rgba(165,115,47,.5)}
+.v-tool[data-said]:after{content:attr(data-said);position:absolute;right:0;top:calc(100% + 8px);padding:6px 10px;font-size:12px;font-weight:600;white-space:nowrap;color:#fff;background:var(--ink);border-radius:8px}
+.v-panel h1{margin-top:14px;font-size:clamp(46px,4.6vw,76px);line-height:.98;letter-spacing:-.035em;color:var(--ink)}
+.v-line{display:inline-block;overflow:hidden;padding-bottom:.1em;margin-bottom:-.1em;vertical-align:baseline}
+.v-line+.v-line{margin-left:.24em}
+.v-line>*{display:inline-block}
+.v-panel h1 em{font-weight:300;font-size:.62em;letter-spacing:-.02em;color:var(--gold-ink)}
+.v-panel .plate-chip--panel{margin:16px 0 0}
+.v-chips{display:flex;flex-wrap:wrap;gap:7px;margin:18px 0 0;padding:0;list-style:none}
+.v-chips li{padding:7px 12px;font-size:12.5px;font-weight:500;color:var(--ink-2);background:#faf7f0;border:1px solid rgba(147,102,46,.24);border-radius:999px}
+/* The price: the largest figure here, the rupee sign in gold. */
+.v-price-row{display:flex;flex-wrap:wrap;align-items:flex-end;justify-content:space-between;gap:8px 20px;margin-top:26px}
+.v-price{display:grid;gap:8px;margin:0;font:400 clamp(28px,2.4vw,34px)/1 var(--font-display);color:var(--ink)}
+.v-price-main{display:flex;align-items:baseline;gap:8px}
+.v-price-main i+b{margin-left:-4px}
+.v-price-main i{font-style:normal;font-size:clamp(34px,2.9vw,44px);color:var(--gold-ink)}
+.v-price-main b{font:400 clamp(52px,4.6vw,72px)/.9 var(--font-display);letter-spacing:-.035em;font-variant-numeric:lining-nums tabular-nums;color:var(--ink)}
+.v-price-main small{font:600 16px/1 var(--font-text);letter-spacing:.01em;color:var(--muted)}
+.v-price-full{font:500 13px/1.3 var(--font-text);font-variant-numeric:tabular-nums;color:var(--muted)}
+.v-price.is-quiet{color:var(--ink-2)}
+.v-note{margin:0 0 6px;padding:7px 12px;font:italic 400 16px/1.2 var(--font-display);color:var(--gold-ink);background:rgba(147,102,46,.07);border-radius:8px}
+/* The four facts a buyer compares first. */
+.v-key{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));margin:24px 0 0;background:#fff;border:1px solid var(--hair);border-radius:14px}
+.v-key:empty{display:none}
+.v-key div{padding:14px 16px 15px}
+.v-key div+div{border-left:1px solid var(--hair)}
+.v-key dt{margin-bottom:6px;font:500 11.5px/1.2 var(--font-text);letter-spacing:.02em;color:var(--muted-2)}
+.v-key dd{margin:0;font:400 20px/1.15 var(--font-display);font-variant-numeric:lining-nums;white-space:nowrap;color:var(--ink)}
+/* The next step. */
+.v-actions{display:grid;gap:10px;margin-top:22px}
+.v-cta{--sheen:-60%;width:100%;min-height:58px;overflow:hidden;font-size:14px;border-radius:14px}
+.v-cta:before{content:'';position:absolute;inset:0;background:linear-gradient(105deg,transparent 35%,rgba(242,191,94,.38) 50%,transparent 65%) var(--sheen) 0/220% 100% no-repeat;pointer-events:none}
+.v-cta svg{width:18px;height:18px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linecap:round;stroke-linejoin:round;transition:transform .5s var(--ease)}
+.v-cta:hover svg{transform:translateX(4px)}
+.v-contact{display:grid;grid-template-columns:1fr 1fr;gap:10px}
 .v-contact:has(>a[hidden]){grid-template-columns:1fr}
 .v-contact:not(:has(>a:not([hidden]))){display:none}
-.v-secondary{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-top:4px}
-.v-save{position:static;display:inline-flex;gap:10px;width:auto;height:auto;padding:10px 0;font-size:13.5px;font-weight:600;letter-spacing:.03em;color:var(--ink);border-radius:0;background:none;border:0}
-.theme-light .v-save,.theme-light .v-save:hover{background:none;border:0}
-.v-save:after{content:'Save to shortlist'}
-.v-save[aria-pressed=true]:after{content:'On your shortlist'}
-.v-secondary .text-link{font-size:13px}
+.v-contact-link{display:flex;align-items:center;gap:11px;min-height:58px;padding:9px 14px;color:var(--ink);background:#fff;border:1px solid var(--hair-2);border-radius:14px;transition:border-color .3s,transform .3s var(--ease)}
+.v-contact-link:hover{border-color:var(--ink);transform:translateY(-1px)}
+.v-contact-link svg{flex:none;width:22px;height:22px;fill:none;stroke:var(--gold-ink);stroke-width:1.5;stroke-linejoin:round}
+.v-contact-link span{display:grid;gap:2px;min-width:0}
+.v-contact-link b{font-size:14px;font-weight:700}
+.v-contact-link small{overflow:hidden;font-size:12px;text-overflow:ellipsis;white-space:nowrap;color:var(--muted)}
+/* Why to trust us: the dealership's promises, for every car. */
+.v-trust{display:grid;gap:14px;margin:26px 0 0;padding:20px 0 0;list-style:none;border-top:1px solid var(--hair)}
+.v-trust li{display:grid;grid-template-columns:34px minmax(0,1fr);gap:12px;align-items:start}
+.v-trust svg{width:34px;height:34px;padding:8px;fill:none;stroke:var(--gold-ink);stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round;background:#faf7f0;border-radius:50%}
+.v-trust span{display:grid;gap:2px;font-size:13px;line-height:1.5;color:var(--muted)}
+.v-trust b{font-size:14px;font-weight:700;color:var(--ink)}
+/* The rest of the facts. */
+.v-more{margin-top:26px}
+.v-more-title{margin:0 0 4px;font:400 22px/1.2 var(--font-display);color:var(--ink)}
+.v-facts{display:grid;grid-template-columns:1fr 1fr;gap:0 22px;margin:0}
+.v-facts:empty{display:none}
+.v-facts div{display:flex;justify-content:space-between;gap:12px;padding:11px 0;border-bottom:1px solid var(--hair)}
+.v-facts dt{font-size:13px;color:var(--muted)}
+.v-facts dd{margin:0;font-size:13.5px;font-weight:600;text-align:right;color:var(--ink)}
 .v-preview-note{margin-top:24px;font-size:14px;line-height:1.7;color:var(--muted)}
+
+/* The gallery's own touches: the counter opens the photographs full size;
+   a gold line under the thumbnails shows how far through them you are. */
+.v-counter{display:inline-flex;align-items:center;gap:7px;cursor:zoom-in}
+.v-counter svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:1.8}
+.v-progress{position:relative;display:block;height:2px;margin-top:10px;background:var(--hair);border-radius:2px;overflow:hidden}
+.v-progress i{position:absolute;inset:0;background:linear-gradient(90deg,var(--gold-ink),#c49a5c);transform:scaleX(var(--at,0));transform-origin:left;transition:transform .5s var(--ease)}
+.v-thumbs button{border-radius:8px}
+.v-thumbs button[aria-current=true]{border-color:var(--gold-ink);box-shadow:0 0 0 1px var(--gold-ink)}
+.v-stage-wrap{border-radius:4px;overflow:hidden}
 
 /* Details. */
 .v-details{margin-top:clamp(56px,7vw,104px);max-width:1180px}
+.v-details:not(:has(.v-section:not([hidden]))){display:none}
 .v-section{display:grid;gap:18px;padding:36px 0;border-top:1px solid var(--hair)}
 .v-heading{font:400 clamp(28px,2.6vw,36px)/1.1 var(--font-display);letter-spacing:-.015em;color:var(--ink)}
 @media(min-width:1101px){
@@ -85,11 +148,6 @@
 .v-checks li:before{content:'';position:absolute;left:2px;top:.42em;width:12px;height:6px;border-left:1.5px solid var(--gold-ink);border-bottom:1.5px solid var(--gold-ink);transform:rotate(-45deg)}
 .v-checks .v-report{padding-left:0}
 .v-checks .v-report:before{display:none}
-.v-standard ol{display:grid;gap:14px;margin:0;padding:0;list-style:none;counter-reset:step}
-.v-standard li{position:relative;padding-left:42px;font-size:15px;line-height:1.7;color:var(--muted);counter-increment:step}
-.v-standard li:before{content:'0' counter(step);position:absolute;left:0;top:.15em;font:italic 400 17px/1.4 var(--font-display);color:var(--gold-ink)}
-.v-standard b{font-weight:600;color:var(--ink)}
-.v-standard .text-link{justify-self:start}
 
 .v-similar{position:relative}
 .v-similar .eyebrow{color:var(--gold)}
@@ -115,6 +173,12 @@
 @media(max-width:760px){
   .v-page{padding-left:0;padding-right:0}
   .v-crumbs,.v-panel,.v-details,.v-thumbs{padding-left:var(--gutter);padding-right:var(--gutter)}
+  .v-progress{margin-left:var(--gutter);margin-right:var(--gutter)}
+  .v-stage-wrap{border-radius:0}
+  .v-key{grid-template-columns:repeat(2,1fr)}
+  .v-key div:nth-child(3){border-left:0}
+  .v-key div:nth-child(n+3){border-top:1px solid var(--hair)}
+  .v-facts{grid-template-columns:1fr}
   .v-arrow{display:none}
   .v-layout{gap:30px}
 }
@@ -140,7 +204,10 @@
 
 /* Square photographs; the gallery never runs taller than the screen beside
    the panel, trimming a little sky (the car sits low in the frame). */
-.v-slide[data-photo=full]{aspect-ratio:1/1;max-height:calc(100svh - var(--header-height) - 150px)}
+.v-slide[data-photo=full]{aspect-ratio:1/1}
+/* Beside the panel, the photograph never runs taller than the screen; stacked
+   (phones and narrow windows), it stays whole and square. */
+@media(min-width:1101px){.v-slide[data-photo=full]{max-height:calc(100svh - var(--header-height) - 150px)}}
 .v-slide[data-photo=full] img{object-fit:cover;object-position:50% 74%}
 .v-thumbs button[data-photo=full]{aspect-ratio:1/1;width:78px}
 
@@ -150,58 +217,98 @@
 .v-concierge-link b{display:block;font:400 19px/1.2 var(--font-display);letter-spacing:-.01em}
 .v-concierge-link span:not(.v-concierge-spark){display:grid;gap:2px;font-size:12.5px;line-height:1.4;color:var(--muted)}
 .v-concierge-link i{margin-left:auto;font-style:normal;color:var(--gold-ink);transition:transform .5s var(--ease)}
+.v-panel .v-concierge-link{margin-top:22px;border-radius:14px}
 .v-concierge-link:hover{border-color:var(--gold-ink)}
 .v-concierge-link:hover i{transform:translateY(3px)}
 .v-concierge-spark{flex:none;width:9px;height:9px;background:linear-gradient(135deg,var(--gold-lo),var(--gold-hi));transform:rotate(45deg)}
 
-.v-concierge{margin:clamp(64px,8vw,120px) calc(var(--gutter) * -1) calc(clamp(64px,8vw,120px) * -1);padding:clamp(64px,8vw,116px) var(--gutter);background:var(--ivory-paper);border-top:1px solid var(--hair);scroll-margin-top:var(--header-height)}
-.v-concierge-head{max-width:760px;margin-bottom:clamp(36px,4.4vw,60px)}
-.v-concierge-head .eyebrow{margin-bottom:18px}
-.v-concierge-head h2{font-size:clamp(46px,6vw,92px);line-height:.96;letter-spacing:-.035em;color:var(--ink)}
-.v-concierge-head h2 em{color:var(--gold-ink)}
-.v-concierge-intro{max-width:56ch;margin-top:22px;font-size:16.5px;line-height:1.7;color:var(--muted)}
-.v-concierge-body{display:grid;gap:36px}
-@media(min-width:1101px){.v-concierge-body{grid-template-columns:minmax(0,1.35fr) minmax(360px,1fr);gap:clamp(40px,5vw,84px);align-items:start}.v-sheet{position:sticky;top:calc(var(--header-height) + 24px)}}
-.v-menu-group{min-width:0;margin:0;padding:22px 0 24px;border:0;border-top:1px solid var(--hair)}
-.v-menu-group legend{float:left;width:100%;display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding:0;font:400 22px/1.2 var(--font-display);letter-spacing:-.01em;color:var(--ink)}
-.v-menu-group legend span{font:italic 400 14px/1 var(--font-display);color:var(--gold-ink)}
-.v-menu-items{clear:both;display:flex;flex-wrap:wrap;gap:8px}
-.v-chip{display:inline-flex;align-items:center;gap:9px;min-height:42px;padding:0 16px 0 13px;font-size:13.5px;font-weight:500;color:var(--ink);background:#fff;border:1px solid var(--hair-2);border-radius:999px;transition:color .3s,background-color .3s,border-color .3s,transform .4s var(--ease)}
-.v-chip i{position:relative;width:12px;height:12px;border:1px solid currentColor;border-radius:50%;opacity:.5;transition:opacity .3s,background-color .3s,border-color .3s}
-.v-chip:hover{border-color:var(--ink)}
-.v-chip:active{transform:scale(.97)}
-.v-chip[aria-pressed=true]{color:#fff;background:var(--ink);border-color:var(--ink)}
-.v-chip[aria-pressed=true] i{opacity:1;border-color:var(--gold-hi);background:radial-gradient(circle,var(--gold-hi) 0 3px,transparent 3.5px)}
-.v-chip-ghost{position:fixed;z-index:200;display:flex;align-items:center;padding:0 14px;overflow:hidden;font-size:13.5px;font-weight:500;white-space:nowrap;color:#fff;background:var(--ink);border-radius:999px;box-shadow:0 18px 40px -16px rgba(0,0,0,.5);pointer-events:none}
+/* Baba Concierge, on ivory paper below the car: the title and how it works,
+   three steps on a gold line; the options as white tiles, a chosen one in
+   ink; the build sheet beside them, the car's own photograph at its head. */
+.v-concierge{--line:1;position:relative;isolation:isolate;margin:clamp(64px,8vw,120px) calc(var(--gutter) * -1) calc(clamp(64px,8vw,120px) * -1);padding:clamp(72px,8vw,120px) var(--gutter);color:var(--ink);background:var(--ivory-paper);scroll-margin-top:var(--header-height);overflow:clip}
+.v-concierge:before{content:'';position:absolute;left:0;right:0;top:0;height:1px;background:var(--coachline);opacity:.7}
+.v-concierge:after{content:'';position:absolute;z-index:-1;right:-12%;top:-25%;width:62%;height:75%;background:radial-gradient(closest-side,rgba(196,136,58,.14),rgba(196,136,58,0));pointer-events:none}
+.v-concierge-head{display:grid;gap:44px;margin-bottom:clamp(48px,5vw,76px)}
+@media(min-width:1101px){.v-concierge-head{grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:clamp(40px,5vw,96px);align-items:end}}
+.v-concierge .eyebrow{margin-bottom:18px;color:var(--gold-ink)}
+.v-concierge h2{margin:0;font:300 clamp(48px,6vw,96px)/.96 var(--font-display);letter-spacing:-.04em;color:var(--ink)}
+.v-concierge h2 em{color:var(--gold-ink)}
+.v-cline{display:inline-block;overflow:hidden;padding-bottom:.1em;margin-bottom:-.1em;vertical-align:bottom}
+.v-cline>span{display:inline-block}
+.v-concierge-intro{max-width:52ch;margin-top:22px;font-size:16px;line-height:1.7;color:var(--muted)}
+/* How it works: three steps, each on a white card hung from a gold line. */
+.v-concierge-steps{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:0;padding:34px 0 0;list-style:none;counter-reset:step}
+.v-concierge-steps:before{content:'';position:absolute;left:13px;right:13px;top:13px;height:1px;background:linear-gradient(90deg,var(--gold-lo),var(--gold-hi) 50%,var(--gold-lo));transform:scaleX(var(--line));transform-origin:left}
+.v-concierge-steps li{position:relative;display:grid;align-content:start;gap:6px;padding:18px 18px 20px;background:#fff;border:1px solid var(--hair);border-radius:14px;box-shadow:0 18px 40px -30px rgba(40,30,15,.35);counter-increment:step}
+.v-concierge-steps li:before{content:counter(step);position:absolute;top:-35px;left:0;display:grid;place-items:center;width:27px;height:27px;font:italic 400 14px/1 var(--font-display);color:#1a1008;background:var(--brushed-gold);border-radius:50%;box-shadow:0 0 0 5px var(--ivory-paper)}
+.v-concierge-steps b{font:400 23px/1.1 var(--font-display);letter-spacing:-.01em;color:var(--ink)}
+.v-concierge-steps span{font-size:13.5px;line-height:1.55;color:var(--muted)}
 
-.v-sheet{display:grid;gap:18px;padding:26px;background:#fff;border:1px solid var(--hair);box-shadow:0 40px 80px -50px rgba(40,30,15,.45)}
-.v-sheet-head{display:flex;align-items:center;gap:14px;padding-bottom:18px;border-bottom:1px solid var(--hair)}
-.v-sheet-photo{flex:none;width:64px;aspect-ratio:1/1;overflow:hidden;background:var(--tile)}
-.v-sheet-photo img{display:block;width:100%;height:100%;object-fit:cover}
-.v-sheet-photo[data-photo=cutout] img{object-fit:contain;padding:4px}
-.v-sheet-head small{display:block;margin-bottom:3px;font:600 10.5px/1.3 var(--font-text);letter-spacing:.16em;text-transform:uppercase;color:var(--gold-ink)}
-.v-sheet-head b{display:block;font:400 21px/1.15 var(--font-display);letter-spacing:-.01em;color:var(--ink)}
-.v-sheet-count{flex:none;display:grid;place-items:center;min-width:34px;height:34px;margin-left:auto;padding:0 8px;font:700 13px/1 var(--font-text);font-variant-numeric:tabular-nums;color:#fff;background:var(--ink);border-radius:999px}
+/* The options. */
+.v-concierge-body{display:grid;gap:36px}
+@media(min-width:1101px){.v-concierge-body{grid-template-columns:minmax(0,1.4fr) minmax(360px,1fr);gap:clamp(40px,4vw,72px);align-items:start}.v-sheet{position:sticky;top:calc(var(--header-height) + 24px)}}
+.v-menu-group{min-width:0;margin:0;padding:24px 0 28px;border:0;border-top:1px solid var(--hair)}
+.v-menu-group:first-child{border-top:0;padding-top:0}
+.v-menu-group legend{float:left;width:100%;display:flex;align-items:baseline;gap:12px;margin-bottom:16px;padding:0;font:400 24px/1.2 var(--font-display);letter-spacing:-.01em;color:var(--ink)}
+.v-menu-group legend span{font:italic 400 14px/1 var(--font-display);color:var(--gold-ink)}
+.v-menu-items{clear:both;display:grid;grid-template-columns:repeat(auto-fill,minmax(190px,1fr));gap:10px}
+.v-chip{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:56px;padding:10px 12px 10px 16px;font-size:14px;font-weight:500;line-height:1.3;text-align:left;color:var(--ink);background:#fff;border:1px solid var(--hair);border-radius:12px;box-shadow:0 1px 0 rgba(40,30,15,.04);transition:border-color .3s,background-color .3s,color .3s,box-shadow .4s var(--ease),transform .4s var(--ease)}
+.v-chip i{flex:none;position:relative;display:grid;place-items:center;width:26px;height:26px;color:var(--gold-ink);border:1px solid rgba(147,102,46,.35);border-radius:50%;transition:background-color .3s,border-color .3s,color .3s,transform .5s var(--ease)}
+.v-chip svg{position:absolute;width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;transition:opacity .25s,transform .4s var(--ease)}
+.v-chip .v-chip-on{opacity:0;transform:scale(.4)}
+.v-chip:hover{border-color:rgba(147,102,46,.55);box-shadow:0 14px 30px -22px rgba(40,30,15,.5);transform:translateY(-1px)}
+.v-chip:hover i{transform:rotate(90deg)}
+.v-chip:active{transform:scale(.98)}
+.v-chip[aria-pressed=true]{color:#fff;background:#141414;border-color:#141414;box-shadow:0 16px 34px -20px rgba(0,0,0,.55)}
+.v-chip[aria-pressed=true] i{color:#1a1008;background:var(--brushed-gold);border-color:transparent;transform:none}
+.v-chip[aria-pressed=true] .v-chip-add{opacity:0;transform:scale(.4)}
+.v-chip[aria-pressed=true] .v-chip-on{opacity:1;transform:none}
+.v-chip-ghost{position:fixed;z-index:200;display:flex;align-items:center;padding:0 14px;overflow:hidden;font-size:14px;font-weight:600;white-space:nowrap;color:#fff;background:#141414;border-radius:10px;box-shadow:0 18px 40px -16px rgba(0,0,0,.45);pointer-events:none}
+
+/* The build sheet. */
+.v-sheet{overflow:hidden;background:#fff;border:1px solid var(--hair);border-radius:18px;box-shadow:0 40px 80px -46px rgba(40,30,15,.5)}
+.v-sheet-head{position:relative;display:flex;align-items:flex-end;gap:14px;min-height:184px;padding:18px 20px}
+.v-sheet-photo{position:absolute;inset:0;overflow:hidden;background:var(--tile)}
+.v-sheet-photo:after{content:'';position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,10,12,0) 32%,rgba(10,10,12,.82))}
+.v-sheet-photo img{display:block;width:100%;height:100%;object-fit:cover;object-position:50% 70%}
+.v-sheet-photo[data-photo=cutout] img{object-fit:contain;padding:12px}
+.v-sheet-name{position:relative;min-width:0}
+.v-sheet-name small{display:block;margin-bottom:4px;font:600 12px/1.3 var(--font-text);letter-spacing:.04em;color:var(--gold-hi)}
+.v-sheet-name b{display:block;font:400 25px/1.1 var(--font-display);letter-spacing:-.01em;color:#fff}
+.v-sheet-count{position:relative;flex:none;display:grid;place-items:center;min-width:40px;height:40px;margin-left:auto;padding:0 10px;font:700 14px/1 var(--font-text);font-variant-numeric:tabular-nums;color:#fff;background:rgba(20,21,24,.55);border:1px solid rgba(255,255,255,.3);border-radius:999px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);transition:background-color .3s,color .3s,border-color .3s}
+.v-sheet-count.is-on{color:#1a1008;background:var(--brushed-gold);border-color:transparent}
+.v-sheet-body{display:grid;gap:16px;padding:18px 20px 22px}
 .v-sheet-list{display:grid;margin:0;padding:0;list-style:none;counter-reset:sheet}
-.v-sheet-list li{display:flex;align-items:center;gap:12px;padding:11px 0;overflow:hidden;font-size:14.5px;color:var(--ink);border-bottom:1px dashed var(--hair-2);counter-increment:sheet}
+.v-sheet-list:empty{display:none}
+.v-sheet-list li{display:flex;align-items:center;gap:12px;padding:12px 0;overflow:hidden;font-size:14.5px;font-weight:500;color:var(--ink);border-bottom:1px solid var(--hair);counter-increment:sheet}
 .v-sheet-list li:before{content:counter(sheet,decimal-leading-zero);font:italic 400 13px/1 var(--font-display);color:var(--gold-ink)}
-.v-sheet-list li button{margin-left:auto;width:28px;height:28px;font-size:18px;line-height:1;color:var(--muted);border-radius:50%;transition:color .3s,background-color .3s}
+.v-sheet-list li button{margin-left:auto;display:grid;place-items:center;width:28px;height:28px;font-size:18px;line-height:1;color:var(--muted);border-radius:50%;transition:color .3s,background-color .3s}
 .v-sheet-list li button:hover{color:var(--ink);background:var(--ivory-paper)}
-.v-sheet-empty{font-size:14px;line-height:1.6;color:var(--muted)}
-.v-sheet-field{display:grid;gap:7px;font:600 10.5px/1.3 var(--font-text);letter-spacing:.14em;text-transform:uppercase;color:var(--muted-2)}
-.v-sheet-field textarea,.v-sheet-field input{width:100%;padding:12px 14px;font:400 15px/1.5 var(--font-text);letter-spacing:0;text-transform:none;color:var(--ink);background:var(--paper);border:1px solid var(--hair-2);border-radius:0;resize:vertical}
-.v-sheet-field textarea:focus,.v-sheet-field input:focus{outline:none;border-color:var(--gold-ink)}
+.v-sheet-empty{display:flex;align-items:center;gap:12px;padding:14px;font-size:13.5px;line-height:1.5;color:var(--muted);background:var(--ivory-paper);border:1px dashed var(--hair-2);border-radius:12px}
+.v-sheet-empty svg{flex:none;width:18px;height:18px;fill:none;stroke:var(--gold-ink);stroke-width:1.8;stroke-linecap:round}
+.v-sheet-field{display:grid;gap:7px;font:600 12px/1.3 var(--font-text);letter-spacing:.02em;color:var(--muted)}
+.v-sheet-field textarea,.v-sheet-field input{width:100%;padding:12px 14px;font:400 15px/1.5 var(--font-text);color:var(--ink);background:var(--paper);border:1px solid var(--hair-2);border-radius:10px;resize:vertical}
+.v-sheet-field ::placeholder{color:#aaa59c}
+.v-sheet-field textarea:focus,.v-sheet-field input:focus{outline:none;border-color:var(--gold-ink);box-shadow:0 0 0 3px rgba(147,102,46,.12)}
 .v-sheet-contact{display:grid;grid-template-columns:1fr 1fr;gap:12px}
-.v-sheet-actions{display:grid;gap:10px}
-.v-sheet-actions .ink-button,.v-sheet-actions .outline-button{width:100%}
-.v-sheet-whatsapp svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linejoin:round}
-.v-sheet-result{padding:12px 14px;font-size:14px;line-height:1.55;color:var(--ink);background:var(--ivory-paper);border-left:2px solid var(--gold-ink)}
+.v-sheet-actions{display:grid;gap:8px}
+.v-sheet-whatsapp{display:flex;align-items:center;justify-content:center;gap:12px;min-height:56px;padding:0 20px;font:600 14px/1.2 var(--font-text);letter-spacing:.02em;text-align:center;color:#fff;background:#141414;border-radius:14px;transition:background-color .4s,transform .3s var(--ease)}
+.v-sheet-whatsapp:hover{background:#000;transform:translateY(-1px)}
+.v-sheet-whatsapp svg{flex:none;width:20px;height:20px;fill:none;stroke:var(--gold-hi);stroke-width:1.6;stroke-linejoin:round}
+.v-sheet-call{min-height:46px;font:600 13.5px/1 var(--font-text);color:var(--ink);background:#fff;border:1px solid var(--hair-2);border-radius:12px;transition:border-color .3s}
+.v-sheet-call:hover{border-color:var(--ink)}
+.v-sheet-result{padding:12px 14px;font-size:14px;line-height:1.55;color:var(--ink);background:var(--ivory-paper);border-left:2px solid var(--gold-ink);border-radius:0 8px 8px 0}
 .v-sheet-small{font-size:12.5px;line-height:1.55;color:var(--muted-2)}
-@media(max-width:760px){
-  .v-sheet{padding:20px}
-  .v-sheet-contact{grid-template-columns:1fr}
-  .v-chip{min-height:40px;font-size:13px}
-}
-.v-concierge-more{margin-top:16px;font-size:14.5px;color:var(--muted)}
+.v-concierge-more{margin-top:clamp(40px,4vw,56px);padding-top:24px;font-size:14.5px;color:var(--muted);border-top:1px solid var(--hair)}
 .v-concierge-more .ink-link{font-size:14.5px}
-@media(max-width:760px){.v-concierge{margin-left:0;margin-right:0}}
+
+@media(max-width:760px){
+  .v-concierge{margin-left:0;margin-right:0}
+  .v-concierge-steps{grid-template-columns:1fr;gap:12px;padding:0 0 0 42px}
+  .v-concierge-steps:before{left:13px;right:auto;top:14px;bottom:14px;width:1px;height:auto;background:linear-gradient(180deg,var(--gold-lo),var(--gold-hi));transform:scaleY(var(--line));transform-origin:top}
+  .v-concierge-steps li:before{top:16px;left:-42px}
+  .v-menu-items{grid-template-columns:1fr 1fr;gap:8px}
+  .v-chip{min-height:54px;padding:10px 10px 10px 12px;font-size:13px}
+  .v-chip i{width:24px;height:24px}
+  .v-sheet-contact{grid-template-columns:1fr}
+}

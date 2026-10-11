@@ -16,8 +16,8 @@
         2.6034998893737793
       ]
     },
-    "nodes": 136,
-    "meshes": 126,
+    "nodes": 141,
+    "meshes": 131,
     "triangles": 503823,
     "moving": [
       {
@@ -483,7 +483,6 @@
       "gls_gauges_screen",
       "gls_gps_screen",
       "gls_glass_1",
-      "wheel_42a",
       "gls_shild",
       "gls_grille",
       "etk800",
@@ -498,7 +497,6 @@
       "gls_svet",
       "gls_fara",
       "lsiggls",
-      "gls_palitra",
       "Scene_-_Root",
       "amdb11_brake",
       "amdb11_misc_chrome",
@@ -506,6 +504,13 @@
       "amdb11_badging",
       "amdb11_caliper",
       "gls_kaki",
+      "engine_alloy",
+      "engine_cover",
+      "engine_plastic",
+      "engine_plastic",
+      "engine_plastic",
+      "engine_metal",
+      "engine_alloy",
       "grille_face",
       "steering_leather",
       "logo_chrome",

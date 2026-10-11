@@ -26,7 +26,7 @@ export function renderHome(view, app) {
   const ranked = $('[data-ranked]', view);
   const featured = () => app.cars.filter(car => car.featured).sort((a, b) => a.featuredRank - b.featuredRank);
   const draw = () => {
-    const limit = Number(app.settings.home.limit) || 3;
+    const limit = Number(app.settings.home.limit) || 6;
     // Automatic: the most expensive cars on sale, kept current as cars sell.
     if (app.settings.home.choose !== 'picks') {
       $('[data-choose-hint]', view).textContent = `Chosen by themselves: the ${limit} most expensive cars on sale, highest first. When one sells, the next takes its place.`;

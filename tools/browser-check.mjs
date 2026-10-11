@@ -37,11 +37,12 @@ async function checkAbout(mobile) {
   const prefix=mobile?'mobile':'desktop';
   // Navigation lands where both cars have stopped and the introduction is set.
   await waitFor('window.__about?.snapshot().ready');
-  await evaluate(`document.querySelector('${mobile?'#mobile-menu':'.desktop-nav'} a[href$="#about"]').click()`);await delay(1800);
+  // The nav's About now opens the About page; an in-page link still lands on the drive.
+  await evaluate(`(()=>{const a=document.createElement('a');a.href='#about';document.body.append(a);a.click();a.remove();})()`);await delay(1800);
   await waitFor(`Math.abs(window.__aboutProgress-${aboutAnchor})<.002 && window.__about.snapshot().rendered`);await delay(400);
   const state=await evaluate('({about:window.__about.snapshot(),background:getComputedStyle(document.querySelector("#about")).backgroundColor,copy:document.querySelector(".brand-copy").getBoundingClientRect().toJSON(),stage:document.querySelector("#about .brand-visual").getBoundingClientRect().toJSON(),set:getComputedStyle(document.querySelector(".brand-signoff")).opacity,header:document.querySelector(".site-header").classList.contains("is-practical"),sections:[...document.querySelectorAll("main section")].map(n=>n.id),width:document.documentElement.scrollWidth,controls:document.querySelectorAll("button[data-engine],button[data-sound],button[data-orbit]").length})');
   assert.equal(state.background,'rgb(255, 255, 255)');assert.equal(state.about.background,'#ffffff');assert.equal(state.controls,0,'Remove the ignition and orbit system');
-  assert.deepEqual(state.sections,['home','fleet','inventory','about','india'],'The film, the collection drive, the featured cars, About Baba, then Across India');
+  assert.deepEqual(state.sections,['home','fleet','inventory','consultation','about','india'],'The film, the collection drive, the featured cars, the consultation, About Baba, then Across India');
   assert(state.about.pinned,'The About stage is pinned while the cars are parked');assert(state.header,'The header is in its white practical style');
   assert.deepEqual(state.about.vehicles.map(v=>v.id).sort(),Object.keys(aboutMarks).sort(),'The X7 and the Defender drive in');
   for(const v of state.about.vehicles) assert(Math.hypot(...v.position.map((c,i)=>c-aboutMarks[v.id][i]))<.01,`${v.id} is parked on its mark`);

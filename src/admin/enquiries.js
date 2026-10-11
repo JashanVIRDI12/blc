@@ -6,7 +6,7 @@ import { carTitle } from '../data.js';
 import { thumbImage } from '../util.js';
 
 const LABELS = { new: 'New', contacted: 'Contacted', closed: 'Closed' };
-const DETAIL = { vehicle: 'Vehicle', registration: 'Registration', kilometres: 'Driven', exchange: 'Exchange', requests: 'Wants' };
+const DETAIL = { vehicle: 'Vehicle', registration: 'Registration', kilometres: 'Driven', exchange: 'Exchange', requests: 'Wants', callVia: 'Call by', when: 'Best time', budget: 'Budget' };
 const KINDS = { enquiry: ['Enquiry', 'enquiry'], valuation: ['Valuation', 'valuation'], concierge: ['Concierge', 'concierge'] };
 let tab = 'new', query = '';
 // "Land Rover Defender 110 — viewing (land-rover-defender-…)": the site adds

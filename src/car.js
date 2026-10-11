@@ -28,6 +28,8 @@ const easeOpen = (t) => (t < 0.5 ? 4 * t * t * t : 1 - (-2 * t + 2) ** 3 / 2);
 // mid-scroll (the About cars load while the film plays) never stalls a frame.
 MeshoptDecoder.useWorkers(Math.max(1, Math.min(2, (navigator.hardwareConcurrency || 2) - 1)));
 const loader = new GLTFLoader().setMeshoptDecoder(MeshoptDecoder);
+// The same loader, and its decoding threads, for the car loaded whole (detail-car.js).
+export { loader as gltfLoader };
 
 // Some source meshes pack unrelated pieces under one material: the GLS's
 // coolant tank shares a mesh with the bay's rubber seal. Give the disconnected

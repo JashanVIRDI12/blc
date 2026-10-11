@@ -24,10 +24,12 @@ const DRIFT = 28;      // px per second the strip drifts on its own
 const BEND = 2.2;      // the arc's radius, in gallery widths: larger is flatter
 const LEAN = .42;      // how much of the arc's slope each card leans with
 const PARALLAX = .06;  // how far a picture shifts in its frame, per px from the middle
+const STAGED = '(min-width: 1001px) and (min-height: 700px)';
 
-export function createAcrossIndia(section, { deliveries = [], reduced = false } = {}) {
+export function createAcrossIndia(section, { deliveries = [], settings = {}, reduced = false } = {}) {
   const $ = selector => section.querySelector(selector);
   const cleanups = [];
+  let disposed = false;
 
   // ------------------------------------------------------------ the figures
   // Each digit is a drum of 0-9, three times over, that rolls to its place.
@@ -40,10 +42,13 @@ export function createAcrossIndia(section, { deliveries = [], reduced = false } 
 
   // ---------------------------------------------------------- the gallery
   const gallery = $('[data-india-gallery]'), track = $('[data-india-track]'), foot = $('[data-india-foot]');
-  // Baba's own set (config.js), or else the photos uploaded in the admin.
-  const photos = deliveryPhotos.length
-    ? deliveryPhotos.map(({ city, card, full, caption }) => ({ city, caption, photo: full, card }))
-    : deliveries.filter(delivery => safeImage(delivery.photo));
+  // The photos in the admin's Deliveries tab, in their order; and, until the
+  // admin has taken them over, the set built into the site (config.js).
+  const builtIn = settings.gallery?.builtIn === false ? [] : deliveryPhotos;
+  const photos = [
+    ...deliveries.filter(delivery => safeImage(delivery.photo)),
+    ...builtIn.map(({ city, card, full, caption }) => ({ city, caption, photo: full, card })),
+  ];
   const alt = photo => photo.caption || `A Baba Luxury Cars handover${photo.city ? `, delivered to ${photo.city}` : ''}`;
   const card = (photo, index, copy) => `<div class="india-card" role="listitem"${copy ? ' aria-hidden="true"' : ''}>
       <a class="india-card-frame" href="${escapeHTML(safeImage(photo.photo))}" data-photo="${index}" target="_blank" rel="noopener"${copy ? ' tabindex="-1"' : ''} aria-label="${escapeHTML(`View the photograph: ${alt(photo)}`)}">
@@ -116,6 +121,7 @@ export function createAcrossIndia(section, { deliveries = [], reduced = false } 
   if (photos.length) {
     gallery.hidden = false; foot.hidden = false;
     gallery.classList.toggle('is-static', !moving);
+    if (moving) gallery.dataset.cursor = 'Drag';
     build(1);
     layout();
     const resizer = new ResizeObserver(() => layout());
@@ -208,6 +214,45 @@ export function createAcrossIndia(section, { deliveries = [], reduced = false } 
     cleanups.push(() => lightbox.destroy());
   }
 
+  // ------------------------------------------------------- the night drive
+  const stage = $('[data-india-stage]'), road = $('[data-india-road]');
+  const staged = !reduced && !!stage && matchMedia(STAGED).matches;
+  let night = null, count = () => {};
+  if (!reduced && road) {
+    import('./night-drive.js').then(({ createNightDrive }) => {
+      if (disposed) return;
+      night = createNightDrive(road, { input: stage });
+      if (!night) return;
+      section.classList.add('has-drive');
+      stage.dataset.cursor = 'Hold';
+      cleanups.push(() => night.dispose());
+    }).catch(error => console.error('The night drive is unavailable.', error));
+  }
+  if (staged) {
+    // The road opens from a window to the whole screen, then holds while it
+    // gathers speed; the pin's progress is the throttle.
+    section.classList.add('is-staged');
+    const opening = gsap.timeline({ defaults: { ease: 'none' } })
+      .fromTo(road, { clipPath: 'inset(47% 25% 8% 25% round 30px)' }, { clipPath: 'inset(0% 0% 0% 0% round 0px)', duration: .5, ease: 'power2.inOut' }, 0)
+      .fromTo(stage.querySelector('.india-shade'), { opacity: .35 }, { opacity: 1, duration: .5 }, 0)
+      .to({}, { duration: .5 });
+    const pin = ScrollTrigger.create({
+      trigger: stage, start: 'top top', end: '+=120%', pin: true, scrub: true, animation: opening, invalidateOnRefresh: true,
+      onUpdate: self => {
+        if (night) { night.drive.surge = self.progress; night.drive.pace = Math.abs(self.getVelocity()) / 2600; }
+        if (self.progress > .46) count();
+      },
+      onLeave: () => count(),
+    });
+    cleanups.push(() => pin.kill());
+  } else if (!reduced && road) {
+    const pace = ScrollTrigger.create({
+      trigger: stage, start: 'top bottom', end: 'bottom top',
+      onUpdate: self => { if (night) { night.drive.surge = self.progress * .6; night.drive.pace = Math.abs(self.getVelocity()) / 2600; } },
+    });
+    cleanups.push(() => pace.kill());
+  }
+
   // ----------------------------------------------------------------- motion
   // The section assembles once as it comes into view: the title rises out of
   // its lines, the statement line by line, the figures roll to their values
@@ -230,17 +275,21 @@ export function createAcrossIndia(section, { deliveries = [], reduced = false } 
         .to(section.querySelectorAll('[data-india-reveal]'), { autoAlpha: 1, y: 0, duration: 1.2, clearProps: 'transform' }, .1),
     });
     // Odometer: every drum spins through its digits and comes to rest, each
-    // a beat after the one before, like a counter settling.
-    const counts = ScrollTrigger.create({
-      trigger: list, start: 'top 88%', once: true,
-      onEnter: () => {
-        const timeline = gsap.timeline({ defaults: { ease: 'expo.out' } })
-          .to(section.querySelectorAll('.india-figure dt'), { autoAlpha: 1, y: 0, duration: 1.1, stagger: .08, clearProps: 'transform' }, .1);
-        drums.forEach(({ drum, to }, i) => timeline.fromTo(drum, { yPercent: 0 }, { yPercent: to, duration: 2.4, ease: 'expo.inOut' }, .05 + i * .07));
-        timeline.to(section.querySelectorAll('.india-suffix'), { autoAlpha: 1, y: 0, duration: 1, stagger: .08, clearProps: 'transform' }, 1.5);
-      },
-    });
-    cleanups.push(() => { head.kill(); counts.kill(); });
+    // a beat after the one before, like a counter settling. On the pinned
+    // stage it waits until the road fills the screen.
+    let counted = false;
+    if (staged) gsap.set(list, { autoAlpha: 0 });
+    count = () => {
+      if (counted) return;
+      counted = true;
+      const timeline = gsap.timeline({ defaults: { ease: 'expo.out' } })
+        .to(list, { autoAlpha: 1, duration: .8 }, 0)
+        .to(section.querySelectorAll('.india-figure dt'), { autoAlpha: 1, y: 0, duration: 1.1, stagger: .08, clearProps: 'transform' }, .1);
+      drums.forEach(({ drum, to }, i) => timeline.fromTo(drum, { yPercent: 0 }, { yPercent: to, duration: 2.4, ease: 'expo.inOut' }, .05 + i * .07));
+      timeline.to(section.querySelectorAll('.india-suffix'), { autoAlpha: 1, y: 0, duration: 1, stagger: .08, clearProps: 'transform' }, 1.5);
+    };
+    const counts = staged ? null : ScrollTrigger.create({ trigger: list, start: 'top 88%', once: true, onEnter: () => count() });
+    cleanups.push(() => { head.kill(); counts?.kill(); });
     if (photos.length) {
       const rise = ScrollTrigger.create({
         trigger: gallery, start: 'top 85%', once: true,
@@ -260,6 +309,6 @@ export function createAcrossIndia(section, { deliveries = [], reduced = false } 
   if (import.meta.env.DEV) window.__india = { state: () => ({ photos: photos.length, cards: cards.length, sets, moving, offset: state.offset, speed: state.speed, ticking, introduced }) };
   return {
     refresh: () => layout(),
-    dispose() { cleanups.forEach(cleanup => cleanup()); },
+    dispose() { disposed = true; cleanups.forEach(cleanup => cleanup()); },
   };
 }

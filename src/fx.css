@@ -1,0 +1,53 @@
+/* The motion every public page shares (src/fx/): the loupe pointer, the
+   lacquer panel between pages, the word reveals, and the keys in the footer. */
+
+/* The loupe: a gold point and a ring a beat behind it. The browser's own
+   cursor returns over fields, dialogs and the lightbox (loupe-native). */
+.has-loupe:not(.loupe-native),.has-loupe:not(.loupe-native) *{cursor:none!important}
+.loupe{position:fixed;left:0;top:0;z-index:99;pointer-events:none;opacity:0;transition:opacity .35s}
+.loupe.is-on{opacity:1}
+.loupe[data-mode="native"]{opacity:0}
+.loupe-dot,.loupe-ring{position:absolute;left:0;top:0;border-radius:50%;will-change:transform}
+.loupe-dot{width:6px;height:6px;margin:-3px 0 0 -3px;background:var(--gold);box-shadow:0 0 0 1px rgba(0,0,0,.18);transition:scale .35s var(--ease),opacity .35s}
+.loupe-ring{display:grid;place-items:center;width:38px;height:38px;margin:-19px 0 0 -19px;border:1px solid rgba(196,136,58,.6);
+  transition:width .5s var(--ease),height .5s var(--ease),margin .5s var(--ease),background-color .45s,border-color .45s,scale .3s var(--ease)}
+.loupe-label{font:700 10px/1 var(--font-text);letter-spacing:.18em;text-transform:uppercase;color:#1a1008;opacity:0;scale:.6;transition:opacity .3s,scale .45s var(--ease)}
+.loupe[data-mode="link"] .loupe-ring{width:62px;height:62px;margin:-31px 0 0 -31px;border-color:var(--gold);background-color:rgba(196,136,58,.1)}
+.loupe[data-mode="link"] .loupe-dot{scale:0}
+.loupe[data-mode="label"] .loupe-ring{width:88px;height:88px;margin:-44px 0 0 -44px;border-color:transparent;background:var(--brushed-gold);box-shadow:0 10px 30px rgba(0,0,0,.28)}
+.loupe[data-mode="label"] .loupe-label{opacity:1;scale:1}
+.loupe[data-mode="label"] .loupe-dot{scale:0}
+.loupe.is-down .loupe-ring{scale:.84}
+
+/* The panel between pages: a clip that wipes up the screen, its moving
+   edge coachlined, so the logo inside never moves; it only fades. The logo
+   is the home loader's own size and place, so arriving home is seamless. */
+.page-curtain{--top:0%;--bottom:0%;position:fixed;inset:0;z-index:95;background:#000;clip-path:inset(var(--top) 0 var(--bottom) 0)}
+.page-curtain img{position:absolute;inset:0;margin:auto;width:min(66vw,420px);height:auto;will-change:opacity,transform}
+.page-curtain i,.page-curtain b{position:absolute;left:0;right:0;height:1px;background:var(--coachline);opacity:0}
+.page-curtain i{top:var(--top)}
+.page-curtain b{bottom:var(--bottom)}
+
+/* Word reveals: each word rises out of its line. */
+.fx-line-mask{padding:0 .12em .12em;margin:0 -.12em -.12em}
+.footer-invitation h2.is-split{background:none;color:var(--gold)}
+.footer-invitation h2.is-split .fx-word{padding:0 .08em .12em .12em;margin:0 -.08em -.12em -.12em;background:var(--brushed-gold);-webkit-background-clip:text;background-clip:text;color:transparent}
+
+/* The keys hang from the footer's coachline, between the invitation and its
+   button, in a canvas over the whole footer so a thrown key is never cut
+   off (it never takes the pointer: key-lanyard.js reads the footer's).
+   --anchor is where the strap hangs, as a share of that width. On phones the
+   keys hang above the invitation. */
+.site-footer{isolation:isolate}
+.footer-keys{--anchor:.645;position:absolute;inset:0;z-index:1;pointer-events:none}
+.footer-keys canvas{display:block;width:100%;height:100%;pointer-events:none}
+@media(max-width:1100px){.footer-keys{--anchor:.7}}
+@media(max-width:760px){
+  .footer-keys{--anchor:.5;position:relative;inset:auto;height:min(330px,46vh);margin:calc(-1 * clamp(80px,11vw,168px)) calc(-1 * var(--gutter)) 8px}
+}
+/* A press of the lock: the coachline blinks twice, like indicators. */
+.site-footer.is-locking:before{animation:keys-blink 1.15s linear 1}
+.site-footer.is-locking:after{content:'';position:absolute;inset:0 0 auto;z-index:0;height:260px;pointer-events:none;background:radial-gradient(55% 100% at 50% 0%,rgba(242,166,64,.26),transparent 70%);animation:keys-glow 1.15s linear 1}
+@keyframes keys-blink{0%,100%{opacity:.8;filter:none}6%,32%{opacity:1;filter:brightness(1.9) drop-shadow(0 0 8px rgba(242,191,94,.9))}22%,48%{opacity:.2;filter:none}60%{opacity:.8}}
+@keyframes keys-glow{0%,22%,48%,100%{opacity:0}6%,32%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.site-footer.is-locking:before,.site-footer.is-locking:after{animation:none}}

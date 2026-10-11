@@ -1,5 +1,5 @@
 // The home page's featured collection: by default the most expensive cars on
-// sale (three), so it keeps itself current as cars sell; or, if the admin
+// sale (six), so it keeps itself current as cars sell; or, if the admin
 // chooses (Home page → Featured cars), the cars it picks, in their order.
 // With no picks, the first cars of the collection; with no stock, the
 // showcase previews. The cars are set twice from the same records: as cards
@@ -18,7 +18,7 @@ export async function setupFeatured() {
   const $ = selector => section.querySelector(selector);
   const { cars, settings, previews } = await loadSite();
   const forSale = cars.filter(car => car.preview || FOR_SALE.includes(car.status));
-  const picks = featuredCars(forSale, settings.home, previews).slice(0, Math.max(1, Number(settings.home.limit) || 3));
+  const picks = featuredCars(forSale, settings.home, previews).slice(0, Math.max(1, Number(settings.home.limit) || 6));
   $('[data-featured-title]').textContent = settings.home.title;
   const intro = !previews && settings.home.intro === defaultSettings.home.intro ? 'A considered selection.\nExplore the details and arrange a closer look.' : settings.home.intro;
   lines($('[data-featured-intro]'), intro);

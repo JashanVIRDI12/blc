@@ -144,6 +144,10 @@ function catalogue(section, context) {
     const room = contents.clientWidth, overflow = Math.max(0, track.scrollWidth - room);
     const shift = row ? gsap.utils.clamp(0, overflow, row.offsetLeft + row.offsetWidth / 2 - room / 2) : 0;
     gsap.to(track, { x: -shift, duration, ease: 'expo.inOut', overwrite: true });
+    // Where names run past the edge, the strip fades out, rather than cutting
+    // a name in half.
+    contents.style.setProperty('--fade-l', shift > 1 ? '56px' : '0px');
+    contents.style.setProperty('--fade-r', shift < overflow - 1 ? '56px' : '0px');
     if (row) gsap.to(marker, { x: row.offsetLeft - shift, width: row.offsetWidth, autoAlpha: 1, duration, ease: 'expo.inOut', overwrite: 'auto' });
     else gsap.to(marker, { autoAlpha: 0, duration: duration * .5, overwrite: 'auto' });
     turners.forEach(button => {
@@ -176,7 +180,9 @@ function catalogue(section, context) {
   const at = s => LEAD + (1 - 2 * LEAD) * s / n;
   const stepAt = p => gsap.utils.clamp(0, n, Math.round((p - LEAD) / (1 - 2 * LEAD) * n));
   pin = ScrollTrigger.create({
-    trigger: section, start: 'top top', end: () => `+=${Math.round(innerHeight * (.4 + .8 * n))}`,
+    // Each turn takes most of a screen of scroll; with more than four cars a
+    // little less, so the catalogue never outstays its welcome.
+    trigger: section, start: 'top top', end: () => `+=${Math.round(innerHeight * (.4 + (n > 4 ? .6 : .8) * n))}`,
     pin: true, anticipatePin: 1, invalidateOnRefresh: true, refreshPriority: 0,
     // The nearest stop, not the next one along: a scroll that runs a little past
     // a spread settles back on it rather than skipping the car beyond.

@@ -89,3 +89,33 @@
 @media(prefers-reduced-motion:reduce){
   .india-card-frame,.india-card-shift img,.india-card-caption,.india-card-caption b:after{transition:none}
 }
+
+/* The night drive (night-drive.js) behind the title: the road shows once its
+   scene is ready, under a shade that keeps the type on black above it and
+   the figures on black below. On large screens the stage pins and the road
+   opens out of a window (across-india.js). */
+.india-stage{position:relative;isolation:isolate}
+.india-road{position:absolute;inset:-1px 0;z-index:-1;pointer-events:none;opacity:0;transition:opacity 1.4s var(--ease)}
+.india.has-drive .india-road{opacity:1}
+.india-road canvas{position:absolute;inset:0;display:block;width:100%;height:100%}
+.india-shade{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,#070708 0%,rgba(7,7,8,.62) 26%,rgba(7,7,8,0) 50%,rgba(7,7,8,.2) 70%,rgba(7,7,8,.9) 90%,#070708 100%)}
+.india-throttle{display:none}
+.india.has-drive .india-throttle{display:flex;align-items:center;gap:14px;margin:0;font:600 10px/1.4 var(--font-text);letter-spacing:.2em;text-transform:uppercase;color:#8f8679;user-select:none;-webkit-user-select:none}
+.india-throttle i{position:relative;display:block;width:56px;height:1px;background:rgba(213,178,123,.22);overflow:hidden}
+.india-throttle b{position:absolute;inset:0;background:linear-gradient(90deg,var(--gold-lo),var(--gold-hi));transform:scaleX(.18);transform-origin:left;transition:transform 1.4s var(--ease)}
+.india-stage.is-boosting .india-throttle b{transform:scaleX(1);transition-duration:.5s}
+.india-stage.is-boosting .india-throttle{color:var(--gold-text)}
+.india-throttle-touch{display:none}
+@media(hover:none){.india-throttle-fine{display:none}.india-throttle-touch{display:inline}}
+/* Unpinned (phones, short screens): the hint sits under the figures. */
+.india:not(.is-staged) .india-throttle{justify-content:center;margin-top:28px;padding:0 var(--gutter)}
+/* Pinned: one screen, the head at the top and the figures at the foot, the
+   hint at the top right. */
+.india.is-staged{padding-top:0}
+.india.is-staged .india-stage{display:flex;flex-direction:column;height:100vh;height:100svh;min-height:700px;padding:calc(var(--header-height) + clamp(34px,5.4vh,76px)) 0 clamp(34px,5.4vh,72px);user-select:none;-webkit-user-select:none}
+.india.is-staged .india-stage>.india-inner{flex:1;display:flex;flex-direction:column;justify-content:space-between;width:100%}
+.india.is-staged .india-figures{margin-top:0}
+.india.is-staged .india-throttle{position:absolute;top:calc(var(--header-height) + clamp(34px,5.4vh,76px));right:var(--gutter)}
+.india.is-staged .india-gallery{margin-top:clamp(72px,8vw,120px)}
+/* Over the road, the figures keep a soft dark halo, as the film's notes do. */
+.india.has-drive .india-figure dd,.india.has-drive .india-figure dt,.india.has-drive .india-statement{text-shadow:0 2px 18px rgba(0,0,0,.85),0 0 2px rgba(0,0,0,.6)}

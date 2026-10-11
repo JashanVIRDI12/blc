@@ -43,9 +43,14 @@ export const defaultSettings = {
   contact: { phone: '', whatsapp: '', email: '', address: '', hours: '', enquiryEndpoint: '' },
   // `choose`: 'priciest', the most expensive cars on sale, kept up to date by
   // themselves; or 'picks', the cars starred in the admin, in their order.
-  home: { title: 'Featured collection.', intro: 'Distinctive cars. Carefully considered.\nEnquire for current availability.', limit: 3, choose: 'priciest' },
+  home: { title: 'Featured collection.', intro: 'Distinctive cars. Carefully considered.\nEnquire for current availability.', limit: 6, choose: 'priciest' },
   collection: { intro: 'Every car here has been chosen, inspected and photographed by us. Filter by body, budget or make, or let us find the one you have in mind.' },
   listing: { showSold: true, newDays: 21, ...LISTING_DEFAULTS },
+  // The handover photos built into the site (deliveryPhotos in config.js)
+  // show in the Across India gallery until the admin moves them into its
+  // Deliveries tab, where they can be edited like any other; then this turns
+  // false and the gallery shows the admin's photos only.
+  gallery: { builtIn: true },
   // The settings of the home page's former "Across India" map (places, an
   // introduction, a delivered total). The section now shows the handover
   // photographs and the figures in config.js instead; these are kept so

@@ -52,7 +52,8 @@ export function createCinema({ onProgress, onFailure }) {
   // back before the car moves (lookAroundWeight in storyboard.js).
   const orbit = { yaw: 0 };
   const hint = stage.querySelector('.turn-hint');
-  let lastProgress = 0, looked = false, idle = 0;
+  let lastProgress = 0, looked = false, idle = 0, lookLabel = null;
+  const lookCanvas = document.querySelector('#showroom');
   const lookable = () => typeReady && orbitWeight(playhead.progress) === 1;
   const gesture = createTurnGesture(document.querySelector('#showroom'), {
     enabled: lookable,
@@ -91,6 +92,9 @@ export function createCinema({ onProgress, onFailure }) {
     lastProgress = p;
     if (orbitWeight(p) === 0 && !gesture.active) { gsap.killTweensOf(orbit); orbit.yaw = 0; }
     showroom.setOrbit(orbit.yaw * orbitWeight(p));
+    // The loupe offers the gesture while the car can be looked around.
+    const canLook = lookable();
+    if (canLook !== lookLabel) { lookLabel = canLook; lookCanvas.dataset.cursor = canLook ? 'Drag' : ''; }
     const bonnet = bonnetProgress(p);
     const door = doorProgress(p);
     // The showroom is already lit at the opening and comes to full as the car rolls in.

@@ -333,6 +333,28 @@ export const models = {
     },
   },
   // BMW i7 M70 xDrive, converted from the supplied FBX (tools/fbx-to-glb.py).
+  // The X7 M60i (supplied as bmw_x7_m60i.glb; npm run model:x7m60): the
+  // About page's inspection. Its body's normals are faired when the model
+  // is prepared (tools/fair-surface.mjs), so the paint can be gloss.
+  x7m60: {
+    url: "/models/x7m60.glb",
+    shadow: "/models/x7m60-shadow.jpg",
+    still: "/stills/x7m60.webp", // INSPECTION=1 npm run stills
+    paint: "x7m60_paint",
+    // Its wheels share the gloss black of the trim: a burnished dark alloy
+    // where that sits on a wheel, so the spokes read against the tyre.
+    rim: { material: "inmx7m60i_black", color: 0x5b5e63, metalness: 1, roughness: 0.28 },
+    drl: "x7m60_drl",
+    openings: {},
+    ambient: {},
+    parts: {
+      x7m60_glass: GLASS,
+      x7m60_tail: { color: 0x7a0a12, emissive: 0x5a0408, emissiveIntensity: 0.6, metalness: 0, roughness: 0.1, clearcoat: 1 },
+      x7m60_drl: { color: 0xf4f7ff, emissive: 0xdfe8ff, emissiveIntensity: 0.6, roughness: 0.2 },
+      x7m60_tyre: { color: 0x151515, metalness: 0, roughness: 0.88 },
+      x7m60_tyre_wall: { color: 0x1a1a1a, metalness: 0, roughness: 0.8 },
+    },
+  },
   i7: {
     url: "/models/i7.glb",
     shadow: "/models/i7-shadow.jpg",

@@ -14,16 +14,18 @@
       // Renders the showcase cars on a transparent background for fallbacks.
       // Driven by tools/render-stills.mjs; not part of the site. `?only=gls,x7`
       // renders just those; `?fleet` renders the collection drive's repainted
-      // cars instead, as `<id>-fleet`.
+      // cars instead, as `<id>-fleet`; `?inspection` the About page's X7 M60i.
       import * as THREE from "three";
       import { EXRLoader } from "three/addons/loaders/EXRLoader.js";
       import { loadCar } from "/src/car.js";
       import { models } from "/src/models.js";
-      import { showcase, fleetVehicles } from "/src/config.js";
+      import { showcase, fleetVehicles, inspectionVehicle } from "/src/config.js";
       import { vehicleParts } from "/src/vehicle-parts.js";
       const params = new URLSearchParams(location.search);
       const only = params.get("only")?.split(",");
-      const entries = params.has("fleet")
+      const entries = params.has("inspection")
+        ? [{ ...inspectionVehicle, model3d: inspectionVehicle.id, key: `${inspectionVehicle.id}-inspection` }]
+        : params.has("fleet")
         ? fleetVehicles.filter(item => item.paint).map(item => ({ ...item, model3d: item.id, key: `${item.id}-fleet` }))
         : showcase.filter(item => !only || only.includes(item.id)).map(item => ({ ...item, model3d: item.id }));
 

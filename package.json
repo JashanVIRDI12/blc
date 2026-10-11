@@ -11,6 +11,8 @@
     "model:x7": "node tools/prep-x7.mjs 2019_bmw_x7_xdrive40i.glb build/x7-clean.glb public/models/x7.glb && blender -b --python tools/bake-shadow.py -- build/x7-clean.glb public/models/x7-shadow.jpg",
     "model:defender": "node tools/prep-defender.mjs land_rover_defender_-_edition_grasmere_green.glb build/defender-clean.glb public/models/defender.glb && blender -b --python tools/bake-shadow.py -- build/defender-clean.glb public/models/defender-shadow.jpg",
     "model:fleet": "blender -b --python tools/fbx-to-glb.py -- \"source/i7/BMW i7 M70.FBX\" build/i7-raw.glb && for id in sclass i7 landcruiser; do node tools/prep-fleet.mjs $id && blender -b --python tools/bake-shadow.py -- build/$id-clean.glb public/models/$id-shadow.jpg; done",
+    "model:s90": "node --max-old-space-size=8192 tools/prep-s90.mjs",
+    "model:x7m60": "node tools/prep-fleet.mjs x7m60 && blender -b --python tools/bake-shadow.py -- build/x7m60-clean.glb public/models/x7m60-shadow.jpg",
     "stills": "node tools/render-stills.mjs",
     "model:studio": "node tools/prep-studio.mjs",
     "model:showroom": "node tools/prep-showroom.mjs",

@@ -23,7 +23,7 @@ export function renderSettings(view, app) {
       <fieldset class="a-fieldset a-span-2"><legend>Sold cars show no price, and only</legend><div class="a-checks a-checks--tight">${SOLD_FACTS.map(([key, label]) => `<label class="a-check"><input type="checkbox" name="soldFacts" value="${key}"${(listing.soldFacts || []).includes(key) ? ' checked' : ''} /><span>${label}</span></label>`).join('')}</div></fieldset>
     </div>
     <div class="a-inline-actions"><button type="submit" class="a-button a-button--primary">Save the rules</button><button type="button" class="a-button a-button--ghost" data-reset-rules>Back to the defaults</button></div></form>
-  <form class="a-card a-concierge" data-concierge><div class="a-card-head"><h2>Baba Concierge</h2><span class="a-hint">On every car’s page: buyers choose what they’d like done to the car and send it to you.</span></div>
+  <form class="a-card a-concierge" data-concierge><div class="a-card-head"><h2>Concierge</h2><span class="a-hint">On every car’s page: buyers choose what they’d like done to the car and send it to you.</span></div>
     <div class="a-grid">
       <label class="a-field">WhatsApp number<input name="whatsapp" type="tel" maxlength="22" value="${esc(app.settings.concierge.whatsapp)}" placeholder="+91 85108 30242" /><small>Requests open a WhatsApp chat with this number. Call-back requests arrive in Enquiries.</small></label>
       <label class="a-field">Introduction<textarea name="intro" rows="3" maxlength="320">${esc(app.settings.concierge.intro)}</textarea></label>

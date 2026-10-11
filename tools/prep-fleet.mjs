@@ -1,7 +1,8 @@
 // Prepare the supplied S-Class Maybach, BMW i7 and Land Cruiser models for
-// the home page's collection drive (src/fleet-drive.js).
+// the home page's collection drive (src/fleet-drive.js), and the X7 M60i for
+// the About page's inspection (src/inspection.js).
 //
-//   node tools/prep-fleet.mjs sclass|i7|landcruiser
+//   node tools/prep-fleet.mjs sclass|i7|landcruiser|x7m60
 //   (npm run model:fleet prepares all three and bakes their shadows)
 //
 // Writes build/<id>-clean.glb (uncompressed, for the shadow bake) and
@@ -13,18 +14,21 @@
 //   - split tyres modelled one per axle into a left and a right
 //   - group each tyre with the parts centred on its axle under
 //     Wheel_FL/FR/RL/RR, origin on the axle, so the page can roll them
-//   - merge parts that share a material, simplify, WebP textures at 1024 px
+//   - merge parts that share a material, fair the body's normals where a
+//     car asks for it (fair-surface.mjs), simplify, WebP textures at 1024 px
 //     at most, meshopt-compress
 //
 // In the output the car's nose points at +Z and its left side faces +X.
 import { NodeIO, PropertyType, getBounds } from '@gltf-transform/core';
-import { ALL_EXTENSIONS } from '@gltf-transform/extensions';
-import { clearNodeTransform, dedup, flatten, join, meshopt, prune, simplifyPrimitive, textureCompress, transformMesh, weld } from '@gltf-transform/functions';
+import { ALL_EXTENSIONS, EXTMeshoptCompression } from '@gltf-transform/extensions';
+import { clearNodeTransform, dedup, flatten, join, meshopt, prune, quantize, reorder, simplifyPrimitive, textureCompress, transformMesh, weld } from '@gltf-transform/functions';
 import { MeshoptDecoder, MeshoptEncoder, MeshoptSimplifier } from 'meshoptimizer';
 import sharp from 'sharp';
+import { fairSurface } from './fair-surface.mjs';
 
 // Lengths: mercedes-benz.co.in (Maybach S 580, 5,469 mm), bmw.in (i7,
-// 5,391 mm), toyotabharat.com (Land Cruiser 300, 4,985 mm).
+// 5,391 mm), toyotabharat.com (Land Cruiser 300, 4,985 mm), bmw.co.uk (X7
+// M60i, 5,181 mm).
 const CARS = {
   sclass: {
     src: '2021_mercedes-benz_s-class_maybach(1).glb', length: 5.469, yaw: 0,
@@ -49,6 +53,21 @@ const CARS = {
     tyre: 'i7_tyre',
     // The source's blank number plates.
     drop: /^Object_1[12]$/,
+  },
+  x7m60: {
+    src: 'bmw_x7_m60i.glb', length: 5.181, yaw: 0,
+    materials: {
+      inmx7m60i_body: 'x7m60_paint', inmx7m60i_glass: 'x7m60_glass',
+      mm_tire_protector_F: 'x7m60_tyre', mm_tire_sidewall_F: 'x7m60_tyre_wall',
+      inmx7m60i_red: 'x7m60_tail', inmx7m60i_taillight: 'x7m60_tail',
+      inmx7m60i_running_l: 'x7m60_drl', inmx7m60i_running_r: 'x7m60_drl',
+    },
+    tyre: 'x7m60_tyre',
+    // Its body came light on triangles, and its normals wander with them:
+    // the panels lit and reflected as if dented. Faired (fair-surface.mjs),
+    // then left alone: simplified, they would lose their curvature again.
+    fair: /^x7m60_paint$/,
+    keep: /^x7m60_paint$/,
   },
   landcruiser: {
     src: '2024_toyota_land_cruiser_lc300_vxr_409_tt(1).glb', length: 4.985, yaw: 0,
@@ -78,7 +97,44 @@ for (const mat of root.listMaterials()) {
   }
 }
 if (car.drop) for (const node of root.listNodes()) if (car.drop.test(node.getName())) node.dispose();
+// The page never plays a model's own animations, and flatten() leaves
+// animated nodes (the X7 M60i's doors) in their hierarchy, out of reach of
+// the fitting below.
+for (const animation of root.listAnimations()) animation.dispose();
 await doc.transform(prune(), flatten());
+// Instanced meshes (a door mirrored for the other side, one tyre four times)
+// each get their own copy of the vertices first, so baking one node's
+// transform never moves another's.
+{
+  const users = new Map();
+  for (const node of scene.listChildren()) { const mesh = node.getMesh(); if (mesh) users.set(mesh, (users.get(mesh) ?? 0) + 1); }
+  const kept = new Set();
+  for (const node of scene.listChildren()) {
+    const mesh = node.getMesh();
+    if (!mesh || users.get(mesh) < 2) continue;
+    if (!kept.has(mesh)) { kept.add(mesh); continue; }
+    const copy = doc.createMesh(mesh.getName());
+    for (const original of mesh.listPrimitives()) {
+      const prim = original.clone();
+      for (const semantic of prim.listSemantics()) prim.setAttribute(semantic, prim.getAttribute(semantic).clone());
+      if (prim.getIndices()) prim.setIndices(prim.getIndices().clone());
+      copy.addPrimitive(prim);
+    }
+    node.setMesh(copy);
+  }
+  // Some exporters share vertex streams between different meshes, too.
+  const streams = new Map();
+  for (const prim of root.listMeshes().flatMap(m => m.listPrimitives())) {
+    for (const semantic of prim.listSemantics()) {
+      const accessor = prim.getAttribute(semantic);
+      if (streams.has(accessor)) prim.setAttribute(semantic, accessor.clone());
+      else streams.set(accessor, prim);
+    }
+    const indices = prim.getIndices();
+    if (indices && streams.has(indices)) prim.setIndices(indices.clone());
+    else if (indices) streams.set(indices, prim);
+  }
+}
 for (const node of scene.listChildren()) clearNodeTransform(node);
 const meshNodes = () => scene.listChildren().filter(n => n.getMesh());
 const fit = matrix => { const done = new Set(); for (const node of meshNodes()) { const mesh = node.getMesh(); if (!done.has(mesh)) { transformMesh(mesh, matrix); done.add(mesh); } } };
@@ -206,6 +262,21 @@ for (const prim of root.listMeshes().flatMap(m => m.listPrimitives())) {
   prim.setAttribute('NORMAL', doc.createAccessor().setType('VEC3').setArray(out).setBuffer(position.getBuffer()));
 }
 await doc.transform(join({ keepNamed: false }), prune());
+// Fair the body: its shape stays, its normals are taken from the whole panel
+// round each point rather than from the few faces that meet there.
+if (car.fair) for (const prim of root.listMeshes().flatMap(m => m.listPrimitives())) {
+  if (!car.fair.test(prim.getMaterial()?.getName() ?? '') || !prim.getIndices()) continue;
+  const extra = prim.listSemantics().filter(semantic => semantic !== 'POSITION' && semantic !== 'NORMAL');
+  if (extra.length) throw new Error(`Cannot fair a surface that carries ${extra.join(', ')}`);
+  const position = prim.getAttribute('POSITION'), before = prim.getIndices().getCount() / 3;
+  const faired = fairSurface(position.getArray(), prim.getIndices().getArray());
+  const buffer = position.getBuffer();
+  prim.setAttribute('POSITION', doc.createAccessor().setType('VEC3').setArray(faired.position).setBuffer(buffer));
+  prim.setAttribute('NORMAL', doc.createAccessor().setType('VEC3').setArray(faired.normal).setBuffer(buffer));
+  prim.setIndices(doc.createAccessor().setType('SCALAR').setArray(faired.index).setBuffer(buffer));
+  console.log(`  faired ${prim.getMaterial().getName()}: ${before} triangles to ${faired.index.length / 3}, normals turned ${faired.turned.median.toFixed(1)} degrees at the median`);
+}
+await doc.transform(prune());
 
 const triangles = () => root.listMeshes().flatMap(m => m.listPrimitives()).reduce((t, p) => t + (p.getIndices()?.getCount() ?? 0) / 3, 0);
 const fb = getBounds(scene);
@@ -218,13 +289,30 @@ for (const prim of root.listMeshes().flatMap(m => m.listPrimitives())) {
   // Paint and glass are thin double layers: simplified coarsely they fold
   // through each other, so they keep nearly every triangle.
   const fine = /_(paint|glass)/.test(prim.getMaterial()?.getName() ?? '');
+  if (car.keep?.test(prim.getMaterial()?.getName() ?? '')) continue;
   if (prim.getIndices()) simplifyPrimitive(prim, { simplifier: MeshoptSimplifier, ratio: 0, error: fine ? 0.00015 : car.error ?? 0.0006, lockBorder: true });
 }
 await doc.transform(
   textureCompress({ encoder: sharp, targetFormat: 'webp', resize: [1024, 1024], quality: 84 }),
   dedup({ propertyTypes: [PropertyType.ACCESSOR, PropertyType.MESH, PropertyType.TEXTURE] }),
   prune(),
-  meshopt({ encoder: MeshoptEncoder, level: 'high' }),
 );
+if (!car.fair) await doc.transform(meshopt({ encoder: MeshoptEncoder, level: 'high' }));
+else {
+  // meshopt() packs every normal into 8 bits, and a faired body mirrors the
+  // studio's lights: 8-bit normals step, and the steps show as a ragged edge
+  // on every reflection. So, what meshopt() does at its 'medium' level, with
+  // the faired normals kept at 12 bits.
+  await doc.transform(reorder({ encoder: MeshoptEncoder, target: 'size' }));
+  const fine = root.listMeshes().flatMap(m => m.listPrimitives()).filter(prim => car.fair.test(prim.getMaterial()?.getName() ?? ''))
+    .map(prim => [prim, Float32Array.from(prim.getAttribute('NORMAL').getArray())]);
+  await doc.transform(quantize({ quantizeNormal: 8 }));
+  for (const [prim, normals] of fine) {
+    const packed = Int16Array.from(normals, v => Math.round(Math.round(v * 2047) / 2047 * 32767));
+    prim.setAttribute('NORMAL', doc.createAccessor().setType('VEC3').setNormalized(true).setArray(packed).setBuffer(prim.getAttribute('POSITION').getBuffer()));
+  }
+  await doc.transform(prune());
+  doc.createExtension(EXTMeshoptCompression).setRequired(true).setEncoderOptions({ method: EXTMeshoptCompression.EncoderMethod.QUANTIZE });
+}
 console.log(`  compressed: ${triangles() | 0} triangles`);
 await io.write(`public/models/${id}.glb`, doc);

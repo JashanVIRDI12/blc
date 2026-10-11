@@ -5,32 +5,45 @@ export { escapeHTML as esc } from '../util.js';
 export const $ = (selector, root = document) => root.querySelector(selector);
 export const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
 
-// A toast says what just happened; "Undo" puts it back.
+// A toast says what just happened; "Undo" puts it back. Each carries an
+// icon for its tone and a line that runs down the time it stays; pointing at
+// it holds it. At most three stand at once.
+const TOAST_ICONS = { ok: 'check', error: 'alert', info: 'info' };
 export function toast(message, { tone = 'ok', action, onAction, duration = 5200 } = {}) {
   const holder = $('#toasts');
   const item = document.createElement('div');
+  const life = tone === 'error' ? 9000 : duration;
   item.className = `toast toast--${tone}`;
-  item.innerHTML = `<span></span>`;
-  item.firstChild.textContent = message;
+  item.setAttribute('role', tone === 'error' ? 'alert' : 'status');
+  item.style.setProperty('--life', `${life}ms`);
+  item.innerHTML = `<i class="toast-icon">${icon[TOAST_ICONS[tone] || 'check']}</i><span class="toast-text"></span><button type="button" class="toast-close" aria-label="Dismiss">${icon.x}</button><i class="toast-time" aria-hidden="true"></i>`;
+  $('.toast-text', item).textContent = message;
+  let timer = 0, left = life, started = 0, gone = false;
+  const close = () => { if (gone) return; gone = true; clearTimeout(timer); item.classList.add('is-leaving'); setTimeout(() => item.remove(), 260); };
+  const run = () => { started = Date.now(); timer = setTimeout(close, left); };
   if (action) {
     const button = document.createElement('button');
     button.type = 'button';
+    button.className = 'toast-action';
     button.textContent = action;
     button.addEventListener('click', () => { onAction?.(); close(); });
-    item.append(button);
+    $('.toast-close', item).before(button);
   }
+  $('.toast-close', item).addEventListener('click', close);
+  item.addEventListener('pointerenter', () => { clearTimeout(timer); left -= Date.now() - started; item.classList.add('is-held'); });
+  item.addEventListener('pointerleave', () => { item.classList.remove('is-held'); run(); });
   holder.append(item);
-  const close = () => { item.classList.add('is-leaving'); setTimeout(() => item.remove(), 300); };
-  setTimeout(close, tone === 'error' ? 9000 : duration);
+  [...holder.children].filter(other => !other.classList.contains('is-leaving')).slice(0, -3).forEach(other => other.querySelector('.toast-close')?.click());
+  run();
 }
 export const fail = error => { console.error(error); toast(error?.message || 'Something went wrong. Please try again.', { tone: 'error' }); };
 
 // A promise-returning confirm, in the portal's own dialog.
-export function confirmDialog({ title, body = '', confirm = 'Confirm', cancel = 'Cancel', danger = false, extra }) {
+export function confirmDialog({ title, body = '', confirm = 'Confirm', cancel = 'Cancel', danger = false, extra, extraDanger = false, tone = '' }) {
   return new Promise(resolve => {
     const dialog = document.createElement('dialog');
     dialog.className = 'a-dialog a-confirm';
-    dialog.innerHTML = `<h2></h2><p></p><div class="a-dialog-actions">${extra ? '<button type="button" class="a-button" data-extra></button>' : ''}<button type="button" class="a-button a-button--ghost" data-cancel></button><button type="button" class="a-button ${danger ? 'a-button--danger' : 'a-button--primary'}" data-ok></button></div>`;
+    dialog.innerHTML = `${tone ? `<i class="a-dialog-icon a-dialog-icon--${tone}">${icon[tone === 'warn' ? 'alert' : 'info']}</i>` : ''}<h2></h2><p></p><div class="a-dialog-actions">${extra ? `<button type="button" class="a-button${extraDanger ? ' a-button--danger' : ''}" data-extra></button>` : ''}<button type="button" class="a-button a-button--ghost" data-cancel></button><button type="button" class="a-button ${danger ? 'a-button--danger' : 'a-button--primary'}" data-ok></button></div>`;
     $('h2', dialog).textContent = title;
     $('p', dialog).textContent = body;
     $('[data-cancel]', dialog).textContent = cancel;
@@ -39,7 +52,9 @@ export function confirmDialog({ title, body = '', confirm = 'Confirm', cancel = 
     if (extra) { $('[data-extra]', dialog).textContent = extra; $('[data-extra]', dialog).addEventListener('click', () => { answer = 'extra'; dialog.close(); }); }
     $('[data-cancel]', dialog).addEventListener('click', () => dialog.close());
     $('[data-ok]', dialog).addEventListener('click', () => { answer = true; dialog.close(); });
-    dialog.addEventListener('close', () => { dialog.remove(); resolve(answer); });
+    // A click on the dim backdrop is a cancel.
+    dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
+    dialog.addEventListener('close', () => { dialog.classList.add('is-leaving'); setTimeout(() => dialog.remove(), 180); resolve(answer); });
     document.body.append(dialog);
     dialog.showModal();
     $('[data-ok]', dialog).focus();
@@ -117,6 +132,10 @@ export const icon = {
   rows: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="16" height="5" rx="1"/><rect x="4" y="14" width="16" height="5" rx="1"/></svg>',
   plate: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="2.5" y="7" width="19" height="10" rx="1.5"/><path d="M6 10v4M9 10h3M9 12h2.5M9 14h3M15 10h3v4h-3"/></svg>',
   lock: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="5" y="10.5" width="14" height="9.5" rx="1.5"/><path d="M8 10.5V8a4 4 0 0 1 8 0v2.5"/></svg>',
+  calendar: '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="15" rx="2"/><path d="M3.5 10h17M8 3v4M16 3v4"/></svg>',
+  left: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m14 6-6 6 6 6"/></svg>',
+  right: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="m10 6 6 6-6 6"/></svg>',
+  info: '<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5M12 7.8v.4"/></svg>',
 };
 
 // "just now", "5 min ago", "yesterday", "3 Oct".
@@ -131,10 +150,23 @@ export function timeAgo(value) {
   return then.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: then.getFullYear() === new Date().getFullYear() ? undefined : 'numeric' });
 }
 
-// Copies text, falling back to a prompt where the clipboard is refused.
+// Copies text; where the browser refuses the clipboard, the text opens in a
+// dialog, selected, ready to copy by hand.
 export async function copyText(text) {
   try { await navigator.clipboard.writeText(text); return true; }
-  catch { window.prompt('Copy this:', text); return false; }
+  catch {
+    const dialog = document.createElement('dialog');
+    dialog.className = 'a-dialog';
+    dialog.innerHTML = `<h2>Copy this</h2><p>The browser didn’t allow copying straight away. It’s selected below: press ⌘C or Ctrl+C.</p><textarea class="a-copy-text" readonly rows="8"></textarea><div class="a-dialog-actions"><button type="button" class="a-button a-button--primary" data-ok>Done</button></div>`;
+    $('textarea', dialog).value = text;
+    $('[data-ok]', dialog).addEventListener('click', () => dialog.close());
+    dialog.addEventListener('click', event => { if (event.target === dialog) dialog.close(); });
+    dialog.addEventListener('close', () => dialog.remove());
+    document.body.append(dialog);
+    dialog.showModal();
+    $('textarea', dialog).select();
+    return false;
+  }
 }
 
 // Saves rows as a CSV file Excel and Google Sheets open directly.

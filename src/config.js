@@ -12,6 +12,13 @@ export const dealer = {
   enquiryEndpoint: '',
 };
 
+// The dealership's other lines, as published on babaluxurycar.com (the sales
+// and WhatsApp line is `dealer.phone`, set in the admin). On the About page.
+export const dealerLines = [
+  { label: 'Sell your car', phone: '+91 85958 44904' },
+  { label: 'Customer support', phone: '+91 85108 30242' },
+];
+
 // The dealership's own figures, on the home page's "Across India" section
 // (src/across-india.js). `value` rolls up as the section comes into view;
 // `suffix` follows it.
@@ -28,11 +35,11 @@ export const figures = [
 // there and add a line. While this list is empty, the photos uploaded in the
 // admin's Deliveries page are shown instead.
 export const deliveryPhotos = [
-  { city: 'Jammu & Kashmir', card: '/deliveries/jammu-kashmir-card.webp', full: '/deliveries/jammu-kashmir.webp' },
-  { city: 'Punjab', card: '/deliveries/punjab-card.webp', full: '/deliveries/punjab.webp' },
-  { city: 'Dehradun', card: '/deliveries/dehradun-card.webp', full: '/deliveries/dehradun.webp' },
-  { city: 'Tamil Nadu', card: '/deliveries/tamil-nadu-card.webp', full: '/deliveries/tamil-nadu.webp' },
-  { city: 'Nagaland', card: '/deliveries/nagaland-card.webp', full: '/deliveries/nagaland.webp' },
+  { id: '3f1c2a50-6b1e-4c7a-9a51-0d1e7b2c4a01', city: 'Jammu & Kashmir', card: '/deliveries/jammu-kashmir-card.webp', full: '/deliveries/jammu-kashmir.webp' },
+  { id: '3f1c2a50-6b1e-4c7a-9a51-0d1e7b2c4a02', city: 'Punjab', card: '/deliveries/punjab-card.webp', full: '/deliveries/punjab.webp' },
+  { id: '3f1c2a50-6b1e-4c7a-9a51-0d1e7b2c4a03', city: 'Dehradun', card: '/deliveries/dehradun-card.webp', full: '/deliveries/dehradun.webp' },
+  { id: '3f1c2a50-6b1e-4c7a-9a51-0d1e7b2c4a04', city: 'Tamil Nadu', card: '/deliveries/tamil-nadu-card.webp', full: '/deliveries/tamil-nadu.webp' },
+  { id: '3f1c2a50-6b1e-4c7a-9a51-0d1e7b2c4a05', city: 'Nagaland', card: '/deliveries/nagaland-card.webp', full: '/deliveries/nagaland.webp' },
 ];
 
 // The supplied GLBs are showcase vehicles, not evidence of stock or condition.
@@ -88,6 +95,16 @@ export const filmVehicles = { first: 'gls' };
 // side, pause for the introduction, and drive away. `near` takes the lane
 // closer to the camera.
 export const aboutVehicles = { near: 'x7', far: 'defender' };
+
+// The car the About page's inspection goes over (src/inspection.js): the
+// supplied Volvo S90 Recharge, loaded whole (src/detail-car.js;
+// npm run model:s90), in Volvo's Onyx Black metallic. A showcase model, not
+// stock.
+export const inspectionCar = { base: '/models/s90/', name: 'Volvo S90 Recharge', shadow: '/models/sclass-shadow.jpg', paint: { color: '#060607', name: 'Onyx Black metallic' } };
+// The car on the inspection's turntable (src/inspect-stage.js): the
+// Defender 110 in Land Rover's Santorini Black metallic, with the black
+// contrast roof. A showcase model, not stock.
+export const inspectionVehicle = { id: 'defender', paint: { color: '#060607', name: 'Santorini Black metallic', finish: 'metallic' } };
 // The collection, parked on an arc at the back of the showroom after the film
 // (src/lineup.js), left to right as seen from the stage. The film's car takes
 // its place among them.

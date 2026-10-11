@@ -3,9 +3,12 @@ import { safeURL } from './util.js';
 import { live, supabase } from './data.js';
 
 // With Supabase connected, every enquiry and valuation lands in the admin's
-// inbox (the enquiries table: visitors may add one, never read any).
+// inbox (the enquiries table: visitors may add one, never read any). A
+// one-to-one consultation is a concierge request, about the call itself.
+const CONSULTATION = '1:1 consultation call';
 export async function saveEnquiry(type, data) {
   const { name, phone, email, interest, message, ...details } = data;
+  if (type === 'consultation') return saveEnquiry('concierge', { name, phone, email, interest: CONSULTATION, message, ...details });
   const response = await fetch(`${supabase.url}/rest/v1/enquiries`, {
     method: 'POST',
     headers: { apikey: supabase.key, Authorization: `Bearer ${supabase.key}`, 'Content-Type': 'application/json', Prefer: 'return=minimal' },
@@ -26,6 +29,13 @@ export function setupForms() {
     enquiry.showModal();
   }
   document.querySelectorAll('[data-enquire]').forEach(button => button.addEventListener('click', event => { if (button.matches('a')) event.preventDefault(); openEnquiry(button.dataset.subject || ''); }));
+  // The one-to-one consultation: a call booked in its own dialog.
+  const consult = document.querySelector('#consult-dialog');
+  function openConsultation() {
+    const result = consult.querySelector('.form-result'); result.hidden = true; result.replaceChildren();
+    consult.showModal();
+  }
+  document.querySelectorAll('[data-consult]').forEach(button => button.addEventListener('click', event => { if (button.matches('a')) event.preventDefault(); openConsultation(); }));
   document.querySelectorAll('dialog').forEach(dialog => {
     dialog.querySelector('[data-close]').addEventListener('click', () => dialog.close());
     dialog.addEventListener('click', event => { if (event.target !== dialog) return; const r = dialog.getBoundingClientRect(); if (event.clientX<r.left || event.clientX>r.right || event.clientY<r.top || event.clientY>r.bottom) dialog.close(); });
@@ -43,7 +53,9 @@ export function setupForms() {
     if (dealer.email) addContact(dealer.email, `mailto:${dealer.email}`);
     if (dealer.address) addContact(dealer.address);
     if (dealer.hours) addContact(dealer.hours);
-    if (dealer.enquiryEndpoint || live) document.querySelectorAll('[data-lead-form]').forEach(form => { form.querySelector('[data-submit-label]').textContent = form.dataset.leadForm === 'valuation' ? 'Request a valuation' : 'Send enquiry'; });
+    if (dealer.enquiryEndpoint || live) document.querySelectorAll('[data-lead-form]').forEach(form => { form.querySelector('[data-submit-label]').textContent = { valuation: 'Request a valuation', consultation: 'Book my call' }[form.dataset.leadForm] || 'Send enquiry'; });
+    const whatsapp = dealer.whatsapp.replace(/\D/g, '');
+    document.querySelectorAll('[data-consult-whatsapp]').forEach(link => { link.hidden = !whatsapp; link.href = `https://wa.me/${whatsapp}?text=${encodeURIComponent('Hello Baba Luxury Cars, I’d like a one-to-one call to find the right car for me.')}`; });
   }
   renderContact();
 
@@ -64,7 +76,7 @@ export function setupForms() {
         submit.disabled = true; heading.textContent = 'Sending your enquiry…';
         try {
           if (!company) await saveEnquiry(type, data);
-          heading.textContent = type === 'valuation' ? 'Thank you. Your car’s details have reached us, and we’ll call you about its valuation shortly.' : 'Thank you. Your enquiry has reached us, and we’ll get back to you shortly.';
+          heading.textContent = { valuation: 'Thank you. Your car’s details have reached us, and we’ll call you about its valuation shortly.', consultation: 'Thank you. Your request has reached us, and we’ll call you to confirm a time for your consultation.' }[type] || 'Thank you. Your enquiry has reached us, and we’ll get back to you shortly.';
           if (dealer.whatsapp) { const link = document.createElement('a'); link.className = 'text-link'; link.textContent = 'Or message us on WhatsApp now'; link.href = `https://wa.me/${dealer.whatsapp.replace(/\D/g, '')}`; link.target = '_blank'; link.rel = 'noopener'; const actions = document.createElement('div'); actions.className = 'result-actions'; actions.append(link); result.append(actions); }
           form.reset(); form.dispatchEvent(new Event('input')); result.focus(); return;
         } catch {
@@ -84,13 +96,14 @@ export function setupForms() {
       } else {
         heading.textContent = hasContact() ? 'Your enquiry is ready. Choose how you would like to share it.' : 'Your enquiry is ready to save. Online delivery is not connected yet, so nothing has been sent.';
       }
-      const labels = {vehicle:'Vehicle',registration:'Registration',kilometres:'Kilometres',name:'Name',phone:'Phone',exchange:'Exchange',interest:'Interested in',message:'Message'};
-      const draft = [`${dealer.name} — ${type==='valuation'?'Valuation enquiry':'Vehicle enquiry'}`, '', ...Object.entries(data).filter(([,v])=>String(v).trim()).map(([key,value])=>`${labels[key] || key}: ${key==='exchange'?'Yes':String(value).trim()}`)].join('\n');
+      const labels = {vehicle:'Vehicle',registration:'Registration',kilometres:'Kilometres',name:'Name',phone:'Phone',exchange:'Exchange',interest:'Interested in',message:'Message',callVia:'Call by',when:'Best time',budget:'Budget'};
+      const brand = `${dealer.name === 'BABA' ? 'Baba' : dealer.name} ${dealer.descriptor}`;
+      const draft = [`${brand} — ${{ valuation: 'Valuation enquiry', consultation: 'One-to-one consultation request' }[type] || 'Vehicle enquiry'}`, '', ...Object.entries(data).filter(([,v])=>String(v).trim()).map(([key,value])=>`${labels[key] || key}: ${key==='exchange'?'Yes':String(value).trim()}`)].join('\n');
       const pre = document.createElement('pre'); pre.textContent = draft; result.append(pre);
       const actions = document.createElement('div'); actions.className='result-actions'; result.append(actions);
       const action = (label, href, handler) => { const el=document.createElement(href?'a':'button'); el.className='text-link'; el.textContent=label; if(href){el.href=href;el.target='_blank';el.rel='noopener';} else {el.type='button';el.addEventListener('click',handler);} actions.append(el); return el; };
       if(dealer.whatsapp) action('Share on WhatsApp', `https://wa.me/${dealer.whatsapp.replace(/\D/g,'')}?text=${encodeURIComponent(draft)}`);
-      if(dealer.email) action('Open email', `mailto:${dealer.email}?subject=${encodeURIComponent(`${dealer.name} ${type} enquiry`)}&body=${encodeURIComponent(draft)}`);
+      if(dealer.email) action('Open email', `mailto:${dealer.email}?subject=${encodeURIComponent(`${brand} ${type} enquiry`)}&body=${encodeURIComponent(draft)}`);
       action('Copy enquiry', null, async e => {
         try { await navigator.clipboard.writeText(draft); e.currentTarget.textContent='Copied'; }
         catch { const selection=window.getSelection(); const range=document.createRange(); range.selectNodeContents(pre); selection.removeAllRanges();selection.addRange(range);heading.textContent='Enquiry selected. Use your browser’s Copy command.'; }

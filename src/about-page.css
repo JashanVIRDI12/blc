@@ -1,0 +1,315 @@
+/* About Baba Luxury Cars (/about/): black lacquer, ivory type, gold only in
+   the details, one coachline at the head of each movement. */
+.about-page{background:#000;--gold-text:#d5b27b;--muted:#a79c8d}
+.about-page .site-header{background:linear-gradient(180deg,rgba(0,0,0,.72),rgba(0,0,0,0))}
+.about-page main section{position:relative}
+.ab-head h2,.ab-handovers h2,.ab-visit h2{color:#f2ede4}
+.ab-head h2 em,.ab-handovers h2 em,.ab-visit h2 em,.ab-title em{color:var(--gold-text)}
+.about-page .eyebrow{color:var(--gold-text)}
+.ab-intro{max-width:52ch;margin-top:24px;font-size:16px;line-height:1.7;color:rgba(239,233,222,.66)}
+.ab-figures:before,.ab-dossier:before,.ab-handovers:before,.ab-visit:before{content:'';position:absolute;left:0;right:0;top:0;z-index:3;height:1px;background:var(--coachline);opacity:.55}
+
+/* ------------------------------------------------------------ the unveiling */
+.ab-unveil{height:100vh;height:100svh;min-height:620px;overflow:hidden;background:#040405;color:var(--ivory);isolation:isolate}
+.ab-stage{position:absolute;inset:0;z-index:0}
+.ab-canvas{display:block;width:100%;height:100%;opacity:0;transition:opacity 1.8s var(--ease)}
+.is-ready>.ab-stage .ab-canvas,.ab-inspect.is-ready .ab-canvas{opacity:1}
+.ab-poster{display:none;position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.is-static .ab-poster{display:block}
+.is-static .ab-canvas{display:none}
+/* The still is a cut-out render: whole, to the right of the words. */
+.ab-unveil .ab-poster{inset:auto 0 8% auto;width:min(62vw,1080px);height:78%;object-fit:contain;object-position:100% 100%}
+.is-static .ab-cue{display:none}
+/* The words keep to the dark: a shade on their side of the stage. */
+.ab-veil{position:absolute;inset:0;z-index:1;pointer-events:none;background:linear-gradient(90deg,rgba(4,4,5,.88),rgba(4,4,5,.5) 30%,rgba(4,4,5,0) 52%),linear-gradient(0deg,rgba(4,4,5,.7),rgba(4,4,5,0) 26%)}
+.ab-hero{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:center;height:100%;max-width:min(56vw,820px);padding:var(--header-height) var(--gutter) 40px}
+.ab-kicker{display:flex;align-items:center;gap:14px;margin:0;font:600 11px/1.4 var(--font-text);letter-spacing:.22em;text-transform:uppercase;color:var(--gold-text)}
+.ab-kicker i{display:block;width:34px;height:1px;background:linear-gradient(90deg,var(--gold-lo),var(--gold-hi))}
+.ab-title{margin:26px 0 30px;font:300 clamp(58px,7.6vw,132px)/.94 var(--font-display);letter-spacing:-.045em;color:#f4efe6}
+.ab-title em{font-style:italic}
+.ab-line{display:block;overflow:hidden;padding:0 .1em .1em 0;margin:0 -.1em -.1em 0}
+.ab-line>span{display:inline-block;will-change:transform}
+/* Until the page's script brings the words in (about-page.js: at once, not
+   when the stage behind them has loaded), they wait out of sight. */
+@media(prefers-reduced-motion:no-preference){
+  .ab-unveil:not(.is-in) .ab-line>span{transform:translateY(130%)}
+  .ab-unveil:not(.is-in) [data-hero-reveal],.ab-unveil:not(.is-in) .ab-cue{opacity:0}
+}
+.ab-lede{max-width:40ch;font-size:16.5px;line-height:1.7;color:rgba(239,233,222,.72)}
+.ab-cue{position:absolute;left:var(--gutter);bottom:clamp(28px,5vh,52px);z-index:2;display:flex;align-items:center;gap:16px;font:600 10px/1.4 var(--font-text);letter-spacing:.24em;text-transform:uppercase;color:var(--muted);opacity:calc(1 - var(--unveil,0) * 7)}
+.ab-cue-line{position:relative;display:block;width:1px;height:46px;background:rgba(213,178,123,.22);overflow:hidden}
+.ab-cue-line i{position:absolute;left:0;top:-40%;width:1px;height:40%;background:linear-gradient(180deg,transparent,var(--gold-hi));animation:ab-cue 2.2s var(--ease) infinite}
+@keyframes ab-cue{to{top:110%}}
+.ab-load{display:block;width:90px;height:1px;background:rgba(213,178,123,.18);overflow:hidden;transition:opacity .8s}
+.ab-load b{display:block;height:100%;background:var(--brushed-gold);transform:scaleX(0);transform-origin:left;transition:transform .5s var(--ease)}
+.is-ready .ab-load,.is-static .ab-load{opacity:0}
+@media(max-width:760px),(max-aspect-ratio:4/5){
+  .ab-hero{justify-content:flex-start;max-width:none;padding-top:calc(var(--header-height) + 32px)}
+  .ab-title{font-size:clamp(46px,12.5vw,84px);margin:18px 0 20px}
+  .ab-lede{font-size:15px;max-width:34ch}
+  .ab-veil{background:linear-gradient(180deg,rgba(4,4,5,.92),rgba(4,4,5,.55) 34%,rgba(4,4,5,0) 52%),linear-gradient(0deg,rgba(4,4,5,.6),rgba(4,4,5,0) 20%)}
+  .ab-unveil .ab-poster{width:100%;height:46%;inset:auto 0 12% 0;object-position:50% 100%}
+  .ab-cue{display:none}
+}
+
+/* --------------------------------------------------------------- our story */
+.ab-manifesto{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2.7fr);column-gap:clamp(18px,2.4vw,40px);padding:clamp(120px,13vw,210px) var(--gutter) clamp(110px,12vw,190px);background:#000}
+/* Set to be read, at a reading size and measure: the luxury is the space. */
+.ab-statement{grid-column:2;max-width:33em;margin:0;font:300 clamp(21px,1.85vw,30px)/1.52 var(--font-display);letter-spacing:-.006em;color:#efe9de;text-wrap:pretty}
+.ab-statement em{font-style:italic;color:var(--gold-text)}
+.sr-word{display:inline-block;will-change:opacity,filter,transform}
+.ab-sign{grid-column:2;display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:clamp(40px,5vw,64px);font:600 11px/1.4 var(--font-text);letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.ab-sign span+span:before{content:'';display:inline-block;width:28px;height:1px;margin:0 22px 3px 0;vertical-align:middle;background:var(--gold-lo)}
+
+/* ------------------------------------------------------------ the mastheads */
+/* A section's head, and nothing more than it needs: the title steps down in
+   two lines (the second in gold italic, indented under the first), and one
+   sentence hangs at the right, on the title's last line. */
+.ab-mast{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,34ch);align-items:end;column-gap:clamp(18px,2.4vw,40px)}
+.ab-mast h2{margin:0;font-size:clamp(40px,5vw,88px);line-height:1;color:#f2ede4;text-wrap:nowrap}
+.ab-mast-a,.ab-mast-b{display:block;overflow:hidden;padding:.06em .12em .17em 0;margin:-.06em -.12em -.17em 0}
+.ab-mast-b{margin-left:1.2em;font-style:italic;font-weight:300;color:var(--gold-text)}
+.ab-mast-a>span,.ab-mast-b>span{display:block}
+.ab-mast-intro{margin:0 0 .55em;font:400 14.5px/1.65 var(--font-text);color:rgba(239,233,222,.62)}
+@media(max-width:760px){
+  .ab-mast,.ab-manifesto{grid-template-columns:minmax(0,1fr);row-gap:18px}
+  .ab-mast h2{font-size:clamp(34px,10vw,58px);text-wrap:balance}
+  .ab-mast-b{margin-left:.7em}
+  .ab-mast-intro{margin:0;font-size:14px}
+  .ab-statement,.ab-sign{grid-column:1}
+}
+
+/* -------------------------------------------------------------- the figures */
+/* The rotating display fills the stage; the words hold the top and foot of
+   the frame, and the display is fitted into the slot between them. */
+.ab-figures{height:100vh;height:100svh;min-height:640px;overflow:hidden;background:#050506;color:var(--ivory);isolation:isolate}
+.fa-stage{position:absolute;inset:0;z-index:0}
+.fa-stage:after{content:'';position:absolute;inset:0;pointer-events:none;background:radial-gradient(130% 95% at 50% 60%,transparent 52%,rgba(5,5,6,.8)),linear-gradient(180deg,rgba(5,5,6,.82),rgba(5,5,6,0) 34%)}
+.ab-figures.is-ready .ab-canvas{opacity:1}
+.fa-frame{position:relative;z-index:2;display:flex;flex-direction:column;height:100%;padding:calc(var(--header-height) + clamp(12px,3vh,40px)) var(--gutter) clamp(20px,4vh,42px);pointer-events:none}
+/* The head keeps to one band (the title, its introduction beside it), so the
+   display below has the height: it is the subject. */
+.fa-head.ab-mast h2{font-size:clamp(34px,4vw,70px)}
+.fa-slot{flex:1 1 auto;min-height:0;margin:clamp(10px,2vh,26px) 0 clamp(34px,6.5vh,72px)}
+.ab-figures.is-static{height:auto;min-height:0}
+.ab-figures.is-static .fa-stage,.ab-figures.is-static .fa-slot{display:none}
+.ab-figures.is-static .fa-frame{height:auto;padding-top:clamp(110px,12vw,190px);padding-bottom:0}
+.fa-readings{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1px;margin:0;padding:clamp(48px,6vw,88px) var(--gutter) clamp(100px,11vw,170px);position:relative;z-index:2}
+.fa-readings div{display:flex;flex-direction:column-reverse;gap:14px;padding:28px 0 0;border-top:1px solid rgba(213,178,123,.22)}
+.fa-readings dd{margin:0;font:300 clamp(64px,8vw,132px)/.9 var(--font-display);letter-spacing:-.04em;color:#f4efe6}
+.fa-readings small{font-size:.38em;font-style:italic;vertical-align:top;color:var(--gold-text)}
+.fa-readings dt{font:600 11px/1.4 var(--font-text);letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.fa-readings .fa-reach{grid-column:1/-1;flex-direction:column}
+.fa-readings .fa-reach dd{font-size:clamp(30px,3.4vw,52px);font-style:italic;color:var(--gold-text)}
+@media(max-width:760px),(max-aspect-ratio:4/5){
+  .fa-slot{margin:clamp(12px,2.4vh,28px) 0}
+  .fa-readings{grid-template-columns:1fr;gap:0}
+}
+@media(max-width:760px) and (max-height:760px){.fa-head .ab-mast-intro{display:none}}
+
+/* ----------------------------------------------------------- the inspection */
+/* On paper, where the rest of the page is black: the sheet down the left,
+   and beside it the car on its turntable (inspect-stage.js). The scroll
+   turns the table; the check it has come to is read out, and those it has
+   passed are ticked. The header is set in ink while this section is under it. */
+.ab-inspect{--paper:#f2f0eb;--ink:#14130f;--ink-soft:#6a655d;--gold-ink:#8f6228;--hair:rgba(20,19,15,.14);height:100vh;height:100svh;min-height:600px;overflow:hidden;background:var(--paper);color:var(--ink);isolation:isolate}
+.ab-inspect:before,.ab-inspect:after{content:'';position:absolute;left:0;right:0;z-index:3;height:1px;background:var(--coachline);opacity:.7}
+.ab-inspect:before{top:0}
+.ab-inspect:after{bottom:0}
+.ins-stage{position:absolute;inset:0 0 0 35%;z-index:0;-webkit-mask-image:linear-gradient(90deg,transparent,#000 10%);mask-image:linear-gradient(90deg,transparent,#000 10%)}
+.ab-inspect .ab-poster{object-fit:contain;object-position:50% 56%;padding:0 var(--gutter) 0 0;box-sizing:border-box}
+.ins-frame{position:relative;z-index:1;display:flex;flex-direction:column;box-sizing:border-box;width:42%;height:100%;padding:calc(var(--header-height) + clamp(14px,3.4vh,44px)) 0 clamp(26px,4.6vh,52px) var(--gutter);pointer-events:none}
+.ab-inspect .ab-mast{grid-template-columns:minmax(0,1fr)}
+.ab-inspect .ab-mast h2{font-size:clamp(36px,4vw,70px);color:var(--ink)}
+.ab-inspect .ab-mast-b{color:var(--gold-ink)}
+.ab-inspect .ab-mast-intro{max-width:36ch;margin:clamp(12px,2vh,20px) 0 0;color:var(--ink-soft)}
+.ins-list{list-style:none;margin:auto 0 0;padding:0}
+.ins-list li{position:relative;display:grid;grid-template-columns:40px minmax(0,1fr) 22px;align-items:baseline;padding:clamp(8px,1.5vh,14px) 0;border-top:1px solid var(--hair);opacity:.3;transition:opacity .6s}
+.ins-list li:last-child{border-bottom:1px solid var(--hair)}
+.ins-list li.is-on{opacity:.62}
+.ins-list li.is-current{opacity:1}
+.ins-list i{font:600 10.5px/1 var(--font-text);font-style:normal;letter-spacing:.2em;font-variant-numeric:tabular-nums;color:var(--gold-ink)}
+.ins-list b{font:300 clamp(21px,2vw,31px)/1.15 var(--font-display);letter-spacing:-.018em;color:var(--ink)}
+.ins-list span{grid-column:2;max-height:0;overflow:hidden;font-size:13.5px;line-height:1.5;color:var(--ink-soft);opacity:0;transition:max-height .7s var(--ease),opacity .45s,margin-top .7s var(--ease)}
+.ins-list li.is-current span{max-height:4.6em;margin-top:5px;opacity:1}
+/* The tick, set down when the table has come to the check; and the rule
+   drawn under the one being read. */
+.ins-list s{grid-column:3;grid-row:1;justify-self:end;align-self:center;width:12px;height:6px;border-left:1.5px solid var(--gold-ink);border-bottom:1.5px solid var(--gold-ink);transform:translateY(-3px) rotate(-45deg) scale(0);opacity:0;transition:transform .6s cubic-bezier(.3,1.5,.5,1),opacity .3s;text-decoration:none}
+.ins-list li.is-on s{transform:translateY(-3px) rotate(-45deg) scale(1);opacity:1}
+.ins-list u{position:absolute;left:0;right:0;bottom:-1px;z-index:1;height:1px;background:linear-gradient(90deg,var(--gold-lo),var(--gold));transform:scaleX(0);transform-origin:0 50%;transition:transform 1.1s var(--ease);text-decoration:none}
+.ins-list li.is-current u{transform:scaleX(1)}
+/* Still (reduced motion): the sheet filled in, beside a photograph. */
+.ab-inspect.is-plain{height:auto;min-height:100vh;min-height:100svh}
+.ab-inspect.is-plain .ins-list li{opacity:1}
+.ab-inspect.is-plain .ins-list span{max-height:none;margin-top:5px;opacity:1}
+.ab-inspect.is-plain .ins-list s{transform:translateY(-3px) rotate(-45deg);opacity:1}
+@media(min-width:761px) and (max-height:700px){.ab-inspect .ab-mast-intro{display:none}}
+.about-page .site-header.is-light{background:linear-gradient(180deg,rgba(242,240,235,.94),rgba(242,240,235,0))}
+@media(max-width:760px),(max-aspect-ratio:4/5){
+  .ins-stage{inset:25% 0 21% 0;-webkit-mask-image:none;mask-image:none}
+  .ins-frame{width:100%;padding:calc(var(--header-height) + 22px) var(--gutter) clamp(22px,4vh,36px)}
+  .ab-inspect .ab-mast-intro{display:none}
+  /* One check at a time: the one the table has come to. */
+  .ins-list{min-height:5.6em}
+  .ins-list li{display:none;border:0;padding:0}
+  .ins-list li:last-child{border:0}
+  .ins-list li.is-current{display:grid}
+  .ab-inspect.is-plain{height:auto;min-height:0}
+  .ab-inspect.is-plain .ins-stage{position:relative;inset:auto;height:44vh}
+  .ab-inspect.is-plain .ins-frame{height:auto}
+  .ab-inspect.is-plain .ins-list li{display:grid;padding:14px 0;border-top:1px solid var(--hair)}
+}
+
+/* ------------------------------------------------------------ the paperwork */
+/* The dossier: a card for each paper. Each has a tab along its top (its
+   number and what it is), the paper itself, drawn, and beside it its name
+   and a sentence. On a large screen (.is-stacked, about-page.js) the section
+   is pinned and each card is dealt onto the last, each standing one tab
+   lower than the one before: the ones beneath step back and dim, and their
+   tabs stay in sight above the one on top, as a file's do. */
+.ab-dossier{padding:clamp(110px,12vw,190px) var(--gutter);background:#000;overflow:hidden}
+.ab-dossier .ab-mast{margin-bottom:clamp(40px,5vw,72px)}
+.ab-stack{position:relative;width:100%;max-width:1280px;margin:0 auto}
+.ab-doc{--dim:0;position:relative;display:grid;grid-template:auto minmax(0,1fr)/minmax(0,1.05fr) minmax(0,1fr);align-items:center;column-gap:clamp(24px,4vw,80px);background:linear-gradient(158deg,#19191c,#0c0c0d 56%,#070708);border:1px solid rgba(196,136,58,.24);border-radius:3px;box-shadow:0 -8px 26px rgba(0,0,0,.42),0 40px 90px rgba(0,0,0,.7);overflow:hidden;will-change:transform}
+.ab-doc:before{content:'';position:absolute;left:0;right:0;top:0;z-index:2;height:1px;background:var(--coachline)}
+/* Beneath another, a card dims below its tab, which stays to be read. */
+.ab-doc:after{content:'';position:absolute;inset:28px 0 0;z-index:3;background:#000;opacity:var(--dim);pointer-events:none}
+.ab-doc-tab{grid-column:1/-1;display:flex;align-items:center;gap:18px;height:28px;margin:0;padding:0 clamp(18px,2.2vw,34px);border-bottom:1px solid rgba(213,178,123,.13);font:600 9.5px/1 var(--font-text);letter-spacing:.24em;text-transform:uppercase;color:rgba(239,233,222,.62)}
+.ab-doc-tab span{color:var(--gold-text);font-variant-numeric:tabular-nums}
+.ab-doc-tab b{font-weight:600}
+.ab-doc-art{display:grid;place-items:center;min-height:25em;padding:2.4em 0;font-size:clamp(9px,1.15vw,14px)}
+.ab-doc-copy{padding:clamp(24px,3vw,44px) clamp(22px,3vw,56px) clamp(24px,3vw,44px) 0}
+.ab-doc-copy h3{margin:0;font:300 clamp(36px,3.8vw,62px)/1 var(--font-display);letter-spacing:-.035em;color:#f4efe6}
+.ab-doc-copy p{max-width:36ch;margin:clamp(14px,2.2vh,22px) 0 0;font-size:15.5px;line-height:1.68;color:rgba(239,233,222,.68)}
+.ab-dossier:not(.is-stacked) .ab-doc+.ab-doc{margin-top:24px}
+/* Stacked: the cards share the one place, each a tab lower than the last,
+   and the papers are sized by the stack's height, so each sits whole in its
+   card on any screen. */
+.ab-dossier.is-stacked{display:flex;flex-direction:column;box-sizing:border-box;height:100vh;height:100svh;min-height:700px;padding:calc(var(--header-height) + clamp(14px,3vh,40px)) var(--gutter) clamp(26px,4.4vh,48px)}
+.ab-dossier.is-stacked .ab-mast{margin-bottom:0}
+.ab-dossier.is-stacked .ab-stack{flex:1;min-height:0;margin-top:clamp(18px,3.2vh,40px);container-type:size}
+.ab-dossier.is-stacked .ab-doc{position:absolute;inset:calc(var(--i,0) * 28px) 0 0;transform-origin:50% 0%}
+.ab-dossier.is-stacked .ab-doc-art{min-height:0;height:100%;padding:0;font-size:clamp(8px,2.75cqh,16px)}
+@media(max-width:760px){
+  .ab-doc{grid-template:auto auto auto/minmax(0,1fr)}
+  .ab-doc-art{min-height:22em;font-size:clamp(9px,2.9vw,13px)}
+  .ab-doc-copy{padding:0 22px 28px}
+}
+
+/* The papers themselves: ivory paper and card with a little grain, gold where
+   gold would be. They are drawn in ems, so each scales with its card. A band
+   of light (--sheen) crosses each as its card lands. */
+.doc{--grain:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 .32 0 0 0 0 .25 0 0 0 0 .16 0 0 0 .11 0'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)'/%3E%3C/svg%3E");position:relative;display:block;transform:rotate(-3deg);color:#3d3326;font-family:var(--font-text);box-shadow:0 .08em .16em rgba(0,0,0,.5),0 .5em 1em rgba(0,0,0,.35),0 1.8em 3.4em rgba(0,0,0,.6),inset 0 .07em 0 rgba(255,255,255,.6)}
+.doc:after{content:'';position:absolute;inset:0;z-index:4;border-radius:inherit;background:linear-gradient(105deg,rgba(255,255,255,0) 38%,rgba(255,255,255,.7) 49%,rgba(255,255,255,.2) 54%,rgba(255,255,255,0) 63%) no-repeat;background-size:260% 100%;background-position:var(--sheen,100%) 0;mix-blend-mode:soft-light;pointer-events:none}
+.doc i,.doc em{display:block;font-style:normal}
+.doc-head{display:grid;gap:.2em;padding-bottom:.75em;border-bottom:1px solid rgba(132,80,44,.35)}
+.doc-head b,.doc-top b{font:600 .7em/1.2 var(--font-text);letter-spacing:.16em;text-transform:uppercase;color:#5b4428}
+.doc-head i,.doc-top i{font:400 italic .84em/1.2 var(--font-display);color:#8a6c45}
+.doc-lines{display:grid;gap:.62em;margin-top:1em}
+.doc-lines i{height:.4em;border-radius:.3em;background:rgba(61,51,38,.15)}
+.doc-lines i:nth-child(3n+2){width:72%}
+.doc-lines i:nth-child(3n){width:86%}
+/* The RC: a smart card, guilloche under a hologram, a gold chip. */
+.doc--rc{width:26em;aspect-ratio:1.586;padding:1.35em 1.5em;border-radius:1em;background:var(--grain),repeating-radial-gradient(circle at 78% 40%,rgba(132,80,44,.07) 0 .11em,transparent .11em .42em),linear-gradient(130deg,#f8f1e3,#e8d9ba 55%,#d0b88d)}
+.doc-top{display:grid;gap:.2em}
+.doc-chip{position:absolute;left:1.5em;top:46%;width:3.25em;height:2.5em;border-radius:.45em;background:linear-gradient(135deg,#f8dc92,#b8823e 50%,#f2c46a);box-shadow:inset 0 0 0 1px rgba(90,60,20,.35),0 .06em .12em rgba(60,40,10,.35)}
+.doc-chip:before,.doc-chip:after{content:'';position:absolute;inset:.5em 0;border-top:1px solid rgba(90,60,20,.35);border-bottom:1px solid rgba(90,60,20,.35)}
+.doc-chip:after{inset:0 1.1em;border:0;border-left:1px solid rgba(90,60,20,.35);border-right:1px solid rgba(90,60,20,.35)}
+.doc-holo{position:absolute;right:1.4em;top:1.25em;width:3.6em;height:2.75em;border-radius:50%;background:conic-gradient(from 40deg,#f2d9a0,#cfe0d8,#e9c9e0,#f4e0a6,#d5e3ef,#f2d9a0);opacity:.78;box-shadow:inset 0 0 0 1px rgba(255,255,255,.55)}
+.doc-fields{position:absolute;left:6em;right:1.5em;top:46%;display:grid;gap:.56em}
+.doc-fields i{height:.4em;border-radius:.3em;background:rgba(61,51,38,.2)}
+.doc-fields i:nth-child(2){width:70%}.doc-fields i:nth-child(3){width:84%}.doc-fields i:nth-child(4){width:52%}
+.doc-strip{position:absolute;left:0;right:0;bottom:1.1em;height:.6em;background:linear-gradient(90deg,#84502c,#f2bf5e,#84502c);opacity:.75}
+/* The policy: a schedule, stamped. */
+.doc--policy{width:17em;aspect-ratio:.8;padding:1.7em 1.6em 1.6em;background:var(--grain),linear-gradient(180deg,#fcf8f0,#f1e9da)}
+.doc--policy:before{content:'';position:absolute;left:0;right:0;top:0;height:.5em;background:linear-gradient(90deg,#84502c,#f2bf5e,#84502c)}
+.doc-stamp{position:absolute;right:1.4em;bottom:1.9em;padding:.5em .9em;border:.13em solid rgba(160,100,40,.75);border-radius:.4em;font:700 .75em/1 var(--font-text);letter-spacing:.2em;text-transform:uppercase;color:rgba(160,100,40,.85);transform:rotate(-12deg)}
+/* The service record: two pages, a row of dealer stamps. */
+.doc--book{width:25em;aspect-ratio:1.36;padding:1.4em 1.5em;background:var(--grain),linear-gradient(90deg,#f5eee0 46%,#e6dbc3 49.4%,#cdbf9f 50%,#e9dfc9 50.6%,#f5eee0 54%);border-radius:.25em}
+.doc-rows{display:grid;grid-template-columns:1fr 1fr;gap:1em 2.5em;margin-top:1.1em}
+.doc-rows i{position:relative;height:2.9em;border-bottom:1px solid rgba(61,51,38,.2)}
+.doc-rows em{position:absolute;right:.25em;top:.25em;width:2.4em;height:2.4em;border-radius:50%;border:.13em solid rgba(160,100,40,.7);box-shadow:inset 0 0 0 .25em rgba(160,100,40,.12);transform:rotate(-14deg)}
+.doc-rows i:before{content:'';position:absolute;left:0;top:1em;width:46%;height:.4em;border-radius:.3em;background:rgba(61,51,38,.18)}
+/* Ownership: the transfer forms, tabbed. */
+.doc--forms{width:17em;aspect-ratio:.78;padding:1.9em 1.6em 1.6em;background:var(--grain),#fcf8f0;box-shadow:.85em .85em 0 -.12em #e7dcc6,.85em .85em 0 -.06em rgba(132,80,44,.25),0 .5em 1em rgba(0,0,0,.35),0 1.8em 3.4em rgba(0,0,0,.6)}
+.doc-tab{position:absolute;top:-.9em;left:1.4em;padding:.4em .75em .5em;border-radius:.4em .4em 0 0;background:#f2bf5e;font:700 .62em/1 var(--font-text);letter-spacing:.14em;text-transform:uppercase;color:#4a3518}
+.doc-tab--b{left:7.5em;background:#e7dcc6;color:#7a5f3c}
+.doc-sign{position:absolute;left:1.6em;right:40%;bottom:1.9em;height:1.6em;border-bottom:1px solid rgba(61,51,38,.35)}
+.doc-sign:before{content:'';position:absolute;left:.5em;bottom:.4em;width:5.6em;height:1.4em;border:.12em solid transparent;border-top-color:rgba(40,40,80,.7);border-radius:50%/100% 100% 0 0;transform:rotate(-8deg)}
+/* Finance: a letter, its figures, a gold seal. */
+.doc--finance{width:17em;aspect-ratio:.82;padding:1.6em;background:var(--grain),linear-gradient(180deg,#fcf8f0,#efe6d4)}
+.doc-figure{display:flex;align-items:flex-end;gap:.5em;height:4em;margin-top:1.1em}
+.doc-figure i{flex:1;border-radius:.2em .2em 0 0;background:linear-gradient(180deg,#e6b765,#a8763a)}
+.doc-figure i:nth-child(1){height:46%}.doc-figure i:nth-child(2){height:72%}.doc-figure i:nth-child(3){height:100%}
+.doc-seal{position:absolute;right:1.5em;bottom:1.5em;width:3.9em;height:3.9em;border-radius:50%;background:radial-gradient(circle at 35% 30%,#f8dc92,#b8823e 60%,#7a5124);box-shadow:0 .25em .6em rgba(80,50,20,.4),inset 0 0 0 .3em rgba(255,240,200,.25)}
+
+/* ------------------------------------------------------------ the handovers */
+/* A run of photographs, each whole and at its own shape, that the scroll
+   draws past (about-page.js); on small screens it is swiped. Under each,
+   its number and where the car went. Nothing else. */
+.ab-handovers{display:flex;flex-direction:column;box-sizing:border-box;min-height:100vh;min-height:100svh;padding:calc(var(--header-height) + clamp(18px,4vh,52px)) 0 clamp(26px,4.5vh,52px);background:#050506;overflow:hidden}
+.ab-handovers[hidden]{display:none}
+.ab-handovers .ab-mast{padding:0 var(--gutter)}
+.ab-handovers .ab-mast h2{font-size:clamp(30px,3.4vw,60px)}
+.ab-run{flex:1;display:flex;align-items:center;min-height:0;margin-top:clamp(18px,3.4vh,44px)}
+.ab-run-track{display:flex;align-items:flex-start;gap:clamp(18px,2.6vw,48px);padding:0 var(--gutter);will-change:transform}
+.ab-shot{flex:none;margin:0}
+.ab-shot img{display:block;height:clamp(190px,calc(100vh - 440px),520px);height:clamp(190px,calc(100svh - 440px),520px);width:auto;max-width:none;border-radius:2px;background:#0e0e10;-webkit-user-drag:none;user-select:none}
+.ab-shot figcaption{display:flex;align-items:baseline;gap:14px;margin-top:14px}
+.ab-shot figcaption i{font:600 10px/1 var(--font-text);font-style:normal;letter-spacing:.2em;font-variant-numeric:tabular-nums;color:var(--gold-text)}
+.ab-shot figcaption b{font:italic 300 clamp(17px,1.4vw,21px)/1.2 var(--font-display);color:#efe9de}
+.ab-run-foot{display:flex;align-items:center;gap:18px;margin:clamp(14px,2.6vh,30px) var(--gutter) 0;font:600 10.5px/1 var(--font-text);letter-spacing:.2em;font-variant-numeric:tabular-nums;color:var(--muted)}
+.ab-run-foot i{position:relative;flex:1;height:1px;background:rgba(213,178,123,.18);overflow:hidden}
+.ab-run-foot b{position:absolute;inset:0;background:linear-gradient(90deg,var(--gold-lo),var(--gold-hi));transform:scaleX(0);transform-origin:left}
+.ab-run-foot span:first-child{color:#e9dcc6}
+/* Swiped, where it is not drawn by the scroll. */
+.ab-handovers:not(.is-drawn){min-height:0;padding-top:clamp(110px,12vw,180px)}
+.ab-handovers:not(.is-drawn) .ab-run{overflow-x:auto;scroll-snap-type:x proximity;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+.ab-handovers:not(.is-drawn) .ab-run::-webkit-scrollbar{display:none}
+.ab-handovers:not(.is-drawn) .ab-shot{scroll-snap-align:center}
+.ab-handovers:not(.is-drawn) .ab-run-foot{display:none}
+@media(max-width:760px){.ab-shot img{height:clamp(220px,62vw,360px)}}
+.ab-handovers:not(.is-drawn) .ab-shot img{height:clamp(220px,min(62vw,52vh),460px)}
+
+/* -------------------------------------------------------------- the showroom */
+.ab-visit{display:grid;grid-template-columns:minmax(0,1.1fr) minmax(0,.9fr);align-items:center;gap:clamp(40px,6vw,120px);padding:clamp(120px,13vw,200px) var(--gutter);background:#000}
+.ab-visit .ab-mast{grid-template-columns:minmax(0,1fr)}
+.ab-visit .ab-mast h2{font-size:clamp(44px,5.4vw,96px)}
+.ab-address{max-width:22ch;margin-top:32px;font:300 clamp(22px,2vw,31px)/1.3 var(--font-display);color:#efe9de}
+.ab-status{display:flex;align-items:center;gap:12px;margin-top:18px;font-size:14px;color:var(--steel)}
+.ab-status i{width:9px;height:9px;border-radius:50%;background:#4a433a}
+.ab-status.is-open i{background:#f2bf5e;box-shadow:0 0 0 0 rgba(242,191,94,.5);animation:ab-open 2.4s ease-out infinite}
+.ab-status.is-open{color:#e9dcc6}
+@keyframes ab-open{70%,100%{box-shadow:0 0 0 10px rgba(242,191,94,0)}}
+.ab-visit-actions{display:flex;flex-wrap:wrap;gap:14px;margin-top:38px}
+.ab-lines{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,auto));gap:22px 44px;margin:52px 0 0;padding-top:28px;border-top:1px solid var(--graphite)}
+.ab-lines div{display:grid;gap:6px}
+.ab-lines dt{font:600 10px/1.4 var(--font-text);letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.ab-lines dd{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;margin:0;font-size:16px}
+.ab-lines a{color:#efe9de;transition:color .3s}
+.ab-lines a:hover{color:var(--gold-hi)}
+.ab-lines .ab-wa{font-size:12px;letter-spacing:.06em;color:var(--gold-text)}
+.ab-social{display:flex;gap:26px;margin-top:30px;font-size:13px}
+.ab-social a{color:rgba(239,233,222,.7);background:linear-gradient(var(--gold),var(--gold)) 0 100%/0 1px no-repeat;padding-bottom:4px;transition:background-size .5s var(--ease),color .3s}
+.ab-social a:hover{color:var(--ivory);background-size:100% 1px}
+.ab-clock{justify-self:center;width:min(440px,100%);margin:0;filter:drop-shadow(0 40px 60px rgba(0,0,0,.7))}
+.ab-clock svg{display:block;width:100%;height:auto}
+/* A real clock: polished gold case, a sunburst dial under a domed crystal,
+   applied batons, faceted hands that throw their shadows on the dial. The
+   metals and the glass are gradients drawn in about-page.js. */
+.ck-mark{stroke:rgba(239,233,222,.42);stroke-width:1.1}
+.ck-num{fill:#f1ebdf;font:300 31px var(--font-display);text-anchor:middle;dominant-baseline:central}
+.ck-shadows{fill:#000;opacity:.6;filter:blur(2.4px)}
+.ck-lit{fill:#fbf7ee}
+.ck-shade{fill:#b3ab9c}
+.ck-second{fill:#e9b560}
+.ck-cap{fill:url(#ck-gold-cap)}
+.ck-pin{fill:#2a1d0c}
+.ab-clock figcaption{display:grid;justify-items:center;gap:4px;margin-top:22px}
+.ab-clock figcaption span{font:600 10px/1.4 var(--font-text);letter-spacing:.22em;text-transform:uppercase;color:var(--muted)}
+.ab-clock figcaption b{font:300 28px/1 var(--font-display);color:#efe9de;font-variant-numeric:tabular-nums}
+@media(max-width:900px){.ab-visit{grid-template-columns:1fr}.ab-clock{width:min(340px,86%)}}
+
+@media(prefers-reduced-motion:reduce){
+  .ab-cue-line i,.ab-status.is-open i{animation:none}
+}

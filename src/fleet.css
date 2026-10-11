@@ -48,6 +48,14 @@
 .fleet-plate .fleet-note{grid-area:note;justify-self:start;max-width:34ch;margin-bottom:calc(var(--title) * .32 - 7px)}
 .fleet-plate .fleet-actions{grid-area:actions;justify-self:end;margin-bottom:calc(var(--title) * .32)}
 @media(max-height:640px){.fleet-plate .fleet-note{display:none}}
+/* The collection page's plate, under its title and parked cars: the line
+   centred over two lines, the introduction at the left and the actions at
+   the right, all three set on the line's last baseline. */
+.fleet-plate--stage{align-items:last baseline}
+.fleet-plate--stage .fleet-line{grid-area:title;font-size:clamp(30px,2.7vw,46px);line-height:1.02;letter-spacing:-.025em;text-align:center}
+.fleet-plate--stage .fleet-line em{display:block}
+.fleet--stage .fleet-plate--stage .fleet-note{max-width:38ch;margin:0}
+.fleet--stage .fleet-plate--stage .fleet-actions{margin:0}
 @media(max-width:1100px){
   .fleet-plate{--title:clamp(36px,min(6.4vw,8vh),64px);grid-template-columns:minmax(0,1fr);grid-template-areas:'title' 'note' 'actions';justify-items:center;gap:14px;text-align:center}
   .fleet-plate .fleet-note,.fleet-plate .fleet-actions{justify-self:center;margin:0}

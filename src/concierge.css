@@ -118,3 +118,47 @@
   .k-card{padding:20px}
   .k-card-facts div{grid-template-columns:100px minmax(0,1fr)}
 }
+
+/* Modifications (modifications.js): a black band between the brief and the
+   steps. The words at the left; at the right a BMW X7, grey and unlit, lit
+   in its own blue behind a gold line that sweeps across it (--scan, 0 to 1),
+   with the work we can do marked on its parts as the line reaches them
+   (--on, 0 to 1). */
+.k-mods{position:relative;isolation:isolate;display:grid;gap:clamp(36px,5vw,72px);align-items:center;padding:var(--space) var(--gutter);overflow:hidden;color:var(--ivory);background:#08080a;scroll-margin-top:var(--header-height)}
+.k-mods:before{content:'';position:absolute;left:0;right:0;top:0;height:1px;background:var(--coachline);opacity:.8}
+@media(min-width:1001px){.k-mods{grid-template-columns:minmax(0,.82fr) minmax(0,1.18fr)}}
+@media(min-width:1001px) and (min-height:640px){.k-mods{min-height:100svh;padding-block:calc(var(--header-height) + 4svh) 5svh}}
+.k-mods .eyebrow{margin-bottom:22px;color:var(--gold)}
+.k-mods h2{margin:0;font:300 clamp(40px,4.3vw,72px)/1 var(--font-display);letter-spacing:-.035em;color:#f2ede4}
+.k-mods h2 em{color:var(--gold)}
+.k-mods-line{display:block;overflow:hidden;padding-bottom:.1em;margin-bottom:-.1em}
+.k-mods-line>span{display:block}
+.k-mods-lede{max-width:46ch;margin:26px 0 0;font-size:16.5px;line-height:1.7;color:var(--steel)}
+.k-mods-scope{margin:18px 0 0;padding-left:14px;font:italic 400 18px/1.4 var(--font-display);color:#e6d9c0;border-left:1px solid var(--gold)}
+.k-mods-actions{display:flex;flex-wrap:wrap;align-items:center;gap:16px 30px;margin-top:34px}
+.theme-light .k-mods .text-link{color:var(--ivory);background-image:linear-gradient(var(--gold),var(--gold))}
+
+/* The car. Labels stand above and below it, so the stage keeps room there. */
+.k-mods-car{margin:0;padding:clamp(48px,9%,96px) 0 clamp(44px,8%,84px)}
+.k-mods-stage{--scan:1;position:relative;aspect-ratio:1800/793;container-type:inline-size}
+.k-mods-stage img{position:absolute;inset:0;display:block;width:100%;height:100%;object-fit:contain}
+.k-mods-before{filter:grayscale(1) brightness(.38) contrast(1.15)}
+.k-mods-after{clip-path:inset(-20% calc((1 - var(--scan)) * 100%) -20% 0);filter:drop-shadow(0 30px 50px rgba(196,136,58,.12))}
+.k-mods-scan{position:absolute;top:-6%;bottom:-6%;left:calc(var(--scan) * 100%);width:1px;background:linear-gradient(180deg,transparent,var(--gold-hi) 18%,var(--gold-hi) 82%,transparent);box-shadow:0 0 18px 2px rgba(242,191,94,.45);opacity:calc(min(var(--scan) * 30, (1 - var(--scan)) * 30, 1));pointer-events:none}
+/* A mark: a gold point on the part, a hairline, and the work it names. */
+.k-mods-tags{position:absolute;inset:0;margin:0;padding:0;list-style:none;pointer-events:none}
+.k-tag{--on:1;--len:20;--reach:calc(var(--len) * 1cqw / 2.27);position:absolute;left:var(--x);top:var(--y);width:0;height:0}
+.k-tag-dot{position:absolute;left:-5px;top:-5px;width:10px;height:10px;border-radius:50%;background:var(--gold-hi);box-shadow:0 0 0 4px rgba(242,191,94,.18),0 0 16px rgba(242,191,94,.6);transform:scale(var(--on));opacity:var(--on)}
+.k-tag-line{position:absolute;left:0;top:0;width:1px;height:var(--reach);background:linear-gradient(180deg,var(--gold-hi),rgba(242,191,94,.25));transform-origin:top;transform:scaleY(var(--on))}
+.k-tag span{position:absolute;left:0;top:calc(var(--reach) + 6px);padding:7px 12px;font:600 12.5px/1 var(--font-text);letter-spacing:.02em;white-space:nowrap;color:var(--ivory);background:rgba(20,21,24,.82);border:1px solid rgba(242,191,94,.32);border-radius:999px;-webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);opacity:var(--on);transform:translate(var(--shift,-8px),calc((1 - var(--on)) * 10px))}
+.k-tag[data-up] .k-tag-line{top:auto;bottom:0;transform-origin:bottom}
+.k-tag[data-up] span{top:auto;bottom:calc(var(--reach) + 6px);transform:translate(var(--shift,-8px),calc((1 - var(--on)) * -10px))}
+.k-tag[data-end]{--shift:calc(-100% + 8px)}
+.k-tag[data-centre]{--shift:-50%}
+@media(max-width:1000px){.k-mods-car{padding-inline:4px}}
+@media(max-width:600px){
+  .k-tag span{padding:6px 9px;font-size:11px}
+  /* Narrow: the wrap's label stands higher, clear of the paint film's. */
+  .k-mods-car{padding-top:76px}
+  .k-tag:nth-child(2){--len:74 !important}
+}

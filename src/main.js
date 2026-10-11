@@ -1,26 +1,23 @@
-import './styles.css';
-import './about.css';
-import './film.css';
-import './fleet.css';
-import './india.css';
-import './featured.css';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import { setupFeatured } from './inventory.js';
+import { createConsultation } from './consultation.js';
 import { setupForms } from './forms.js';
 import { setupMenu, previewBanner } from './chrome.js';
 import { loadSite } from './data.js';
 import { dealer, lightsVehicles } from './config.js';
 import { models } from './models.js';
 import { prefetchModels } from './model-cache.js';
+import { setupFx } from './fx/index.js';
 gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const loader = document.querySelector('#loader');
-let cinema, smoother, aboutDrive, fleetDrive, cancelled = false;
+let cinema, smoother, aboutDrive, fleetDrive, consult, cancelled = false;
 const { renderContact } = setupForms();
 setupFeatured();
+setupFx();
 loadSite().then(site=>{renderContact();previewBanner(site);});
 document.querySelector('#year').textContent = new Date().getFullYear();
 document.body.classList.add('is-loading');
@@ -35,6 +32,8 @@ function goTo(target, instant = false) {
   // The pinned About drive lands where the cars have stopped and the copy is set.
   if(element.id==='about'&&aboutDrive){aboutDrive.scrollTo(undefined,instant);return;}
   if(element.id==='fleet'&&fleetDrive){fleetDrive.scrollTo(undefined,instant);return;}
+  // The consultation band is pinned: links land where its words are set.
+  if(element.id==='consultation'&&consult){consult.scrollTo(instant);return;}
   // Sections land at the very top; the glass header sits over their own padding.
   if(smoother) smoother.scrollTo(element,!instant,'top top');
   else scrollTo({top:element.getBoundingClientRect().top+scrollY,behavior:instant||reduced.matches?'instant':'smooth'});
@@ -53,6 +52,7 @@ document.addEventListener('click',event=>{
 });
 document.querySelector('#skip-film').addEventListener('click',()=>goTo('#fleet'));
 document.addEventListener('layout:change',()=>ScrollTrigger.refresh());
+const loadCount=document.querySelector('#load-count'),shownLoad={value:0};
 function finishLoading() {
   loader.classList.add('is-complete');loader.inert=true;
   cinema?.playIntro();
@@ -120,7 +120,7 @@ async function start() {
   try {
     const { createCinema }=await import('./cinema.js');
     if(cancelled){initPractical();return;}
-    cinema=createCinema({onProgress:value=>{document.querySelector('#load-bar').style.transform=`scaleX(${value})`;document.querySelector('#load-percent').textContent=`${Math.round(value*100)}%`;},onFailure:staticExperience});
+    cinema=createCinema({onProgress:value=>{document.querySelector('#load-bar').style.transform=`scaleX(${value})`;document.querySelector('#load-percent').textContent=`${Math.round(value*100)}%`;gsap.to(shownLoad,{value:value*100,duration:.7,ease:'power2.out',overwrite:true,onUpdate:()=>{loadCount.textContent=Math.round(shownLoad.value);}});},onFailure:staticExperience});
     // The collection drive's cars download behind the film's at a lower
     // priority (model-cache.js), so they are in hand by the time the film
     // ends instead of starting then.
@@ -132,3 +132,5 @@ async function start() {
 }
 reduced.addEventListener('change',()=>{if(reduced.matches){smoother?.kill();smoother=null;staticExperience();ScrollTrigger.refresh();}});
 start();
+// After start(), so its pin is made inside the smooth scroller.
+consult=createConsultation(document.querySelector('#consultation'),{reduced:reduced.matches});

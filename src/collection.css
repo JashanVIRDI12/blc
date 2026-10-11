@@ -18,52 +18,49 @@ html{scroll-behavior:smooth}
 .digit:nth-child(2) .digit-strip{transition-delay:.1s}.digit:nth-child(3) .digit-strip{transition-delay:.2s}
 
 /* -------------------------------------- the promises, from Baba's own words
-   Four columns between hairlines that draw themselves in as the band comes
-   into view (collection-page.js): an index whose last digit rolls into
-   place, the promise rising out of its line, a note beneath. Under a fine
-   pointer a soft gold light follows the pointer in its column. */
-.c-promises{--rule:1;position:relative;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:0 22px;margin:0;padding:0 var(--gutter);list-style:none;background:var(--paper)}
+   Four promises, each under its hallmark (hallmarks.js): a gold-foil seal,
+   the promise, a note. Open columns under a hairline that draws itself in;
+   the seals press into the paper as the band comes into view. */
+.c-promises{--rule:1;position:relative;overflow-x:clip;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:44px 22px;margin:0;padding:clamp(48px,6vw,84px) var(--gutter) clamp(52px,6vw,88px);list-style:none;background:var(--paper)}
 .c-promises:before{content:'';position:absolute;left:var(--gutter);right:var(--gutter);top:0;height:1px;background:var(--hair-2);transform:scaleX(var(--rule));transform-origin:left}
-.c-promise{position:relative;display:grid;grid-template-columns:auto minmax(0,1fr);align-items:baseline;align-content:start;gap:6px 16px;padding:26px 0 28px;border-bottom:1px solid var(--hair);isolation:isolate}
-.c-promise-rule{display:none}
-.c-promise-index{display:inline-flex;align-items:baseline;font:italic 400 15px/1.2 var(--font-display);color:var(--gold-ink);font-variant-numeric:lining-nums tabular-nums;transition:color .5s}
-.c-promise-digit{display:inline-block;height:1.2em;overflow:hidden;vertical-align:top}
-.c-promise-drum{display:flex;flex-direction:column;transform:translateY(calc(var(--to) * -5%))}
-.c-promise-drum span{display:block;height:1.2em;line-height:1.2}
-.c-promise-copy{display:grid;gap:9px;min-width:0}
-.c-promise-title{justify-self:start;padding-bottom:2px;font:400 clamp(17px,1.45vw,21px)/1.3 var(--font-display);letter-spacing:-.005em;color:var(--ink);background:linear-gradient(90deg,var(--gold-ink),#c49a5c) 0 100%/0 1px no-repeat;transition:background-size .8s var(--ease)}
-.c-promise-note{max-width:34ch;font:400 12.5px/1.6 var(--font-text);color:var(--muted)}
-.c-promise:after{content:'';position:absolute;inset:0;z-index:-1;background:radial-gradient(280px circle at var(--x,50%) var(--y,50%),rgba(147,102,46,.085),transparent 72%);opacity:0;transition:opacity .7s var(--ease);pointer-events:none}
-@media(hover:hover) and (pointer:fine){
-  .c-promise:hover:after{opacity:1}
-  .c-promise:hover .c-promise-title{background-size:100% 1px}
-  .c-promise:hover .c-promise-index{color:#b8833e}
-}
-@media(min-width:900px){
-  .c-promises{grid-template-columns:repeat(4,minmax(0,1fr));gap:0}
-  .c-promise{grid-template-columns:1fr;gap:18px;padding:34px 28px 38px;border-bottom:0}
-  .c-promise:first-child{padding-left:0}
-  .c-promise-rule{display:block;position:absolute;left:0;top:0;bottom:0;width:1px;background:var(--hair);transform-origin:top}
-  .c-promise:first-child .c-promise-rule{display:none}
-}
-@media(max-width:599px){.c-promises{grid-template-columns:1fr}}
+.c-promise{display:grid;justify-items:center;align-content:start;gap:24px;min-width:0;text-align:center}
+/* The seal: the die itself, and the ring of pressure it leaves in the paper. */
+.c-seal{position:relative;display:block;width:clamp(92px,8.6vw,132px);aspect-ratio:1;perspective:600px}
+.c-seal-die{position:absolute;inset:0;display:block;transform-style:preserve-3d;will-change:transform;
+  filter:drop-shadow(0 1px 0 rgba(255,255,255,.9)) drop-shadow(0 6px 10px rgba(110,70,25,.16))}
+.c-seal svg{display:block;width:100%;height:100%;overflow:visible}
+.c-seal text{font-family:var(--font-display);letter-spacing:.02em}
+.c-seal-ring{position:absolute;inset:-6%;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(147,102,46,.32),0 0 24px rgba(147,102,46,.16);opacity:0;pointer-events:none}
+.c-promise-copy{display:grid;justify-items:center;gap:10px;min-width:0}
+.c-promise-title{padding-bottom:3px;font:400 clamp(19px,1.6vw,24px)/1.25 var(--font-display);letter-spacing:-.01em;color:var(--ink);background:linear-gradient(90deg,var(--gold-ink),#c49a5c) 50% 100%/0 1px no-repeat;transition:background-size .8s var(--ease);text-wrap:balance}
+.c-promise-note{max-width:30ch;font:400 13.5px/1.62 var(--font-text);color:var(--muted)}
+@media(hover:hover) and (pointer:fine){.c-promise:hover .c-promise-title{background-size:100% 1px}}
+@media(min-width:900px){.c-promises{grid-template-columns:repeat(4,minmax(0,1fr));gap:0 clamp(20px,2.4vw,44px)}}
+@media(max-width:520px){.c-promises{gap:40px 14px}.c-promise{gap:18px}.c-promise-title{font-size:18px}.c-promise-note{font-size:12.5px}}
 
-/* ----------------------------------------- the marques we source, on paper */
-.marques{position:relative;display:grid;align-items:center;height:clamp(104px,8.6vw,128px);margin:0;padding:0 var(--gutter);color:var(--ink);background:var(--paper)}
+/* ----------------------------------------- the marques we source, on paper
+   Chrome badges on a slowly turning drum (collection-page.js): each turns
+   towards the visitor as it comes round to the front, larger and brighter
+   there, and catches the glint of a light hung over the middle of the strip
+   as it passes beneath it. The light itself falls warm on the paper. */
+.marques{position:relative;display:grid;align-items:center;height:clamp(128px,10.4vw,164px);margin:0;padding:0 var(--gutter);color:var(--ink);background:var(--paper);overflow:hidden}
+.marques:before{content:'';position:absolute;left:50%;top:50%;width:min(720px,60vw);height:200%;transform:translate(-50%,-50%);background:radial-gradient(closest-side,rgba(214,170,98,.16),rgba(214,170,98,0));pointer-events:none}
 .marques-rule{position:absolute;left:var(--gutter);right:var(--gutter);top:0;height:1px;background:var(--hair);transform-origin:50% 50%}
 .marques-rule--bottom{top:auto;bottom:0}
-.marques-window{position:relative;height:100%;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent);mask-image:linear-gradient(90deg,transparent,#000 10%,#000 90%,transparent)}
+.marques-window{position:relative;height:100%;overflow:hidden;-webkit-mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent);mask-image:linear-gradient(90deg,transparent,#000 12%,#000 88%,transparent)}
 .marques-track{display:flex;align-items:center;width:max-content;height:100%;margin:0;padding:0;list-style:none;will-change:transform}
-.marques-track li{flex:none;display:flex;align-items:center;padding:0 clamp(20px,2.2vw,34px)}
-.marque{display:block;width:var(--w,36px);height:var(--h,32px);padding:0;color:inherit;opacity:.6;transition:opacity .6s var(--ease),transform .7s var(--ease)}
+.marques-track li{flex:none;display:flex;align-items:center;padding:0 clamp(22px,2.4vw,38px);will-change:transform;transition:opacity .5s var(--ease)}
+.marque{--lit:.6;--glint:50%;display:block;width:var(--w,36px);height:var(--h,32px);padding:0;color:inherit;opacity:calc(.28 + var(--lit) * .72)}
 .marque svg{display:block;width:100%;height:100%;fill:currentColor}
-.marque-mask{display:block;width:100%;height:100%;background:currentColor;-webkit-mask:var(--mask) center/contain no-repeat;mask:var(--mask) center/contain no-repeat}
-.marques.is-pointing .marque{opacity:.16}
-.marques.is-pointing .marque.is-on,.marque:focus-visible{opacity:1;transform:translateY(-2px)}
+/* Polished chrome: dark metal with a bright band that moves across the badge
+   with the light (--glint). */
+.marque-mask{display:block;width:100%;height:100%;background:linear-gradient(100deg,#8c8780 0%,#3a3733 26%,#24221f 38%,#f6f1e7 50%,#3d3a36 61%,#6f6a64 78%,#a29d95 100%) var(--glint) 0/360% 100% no-repeat;-webkit-mask:var(--mask) center/contain no-repeat;mask:var(--mask) center/contain no-repeat}
+.marques.is-pointing li{opacity:.22}
+.marques.is-pointing li:has(.is-on),.marques-track li:has(:focus-visible){opacity:1}
 .marque:focus-visible{outline:1px solid var(--gold-ink);outline-offset:8px}
-.marques-cursor{position:absolute;left:0;bottom:clamp(20px,2vw,28px);width:0;height:1px;background:linear-gradient(90deg,var(--gold-lo),var(--gold-hi),var(--gold-lo));opacity:0;pointer-events:none}
+.marques-cursor{position:absolute;left:0;bottom:clamp(18px,1.8vw,26px);width:0;height:1px;background:linear-gradient(90deg,var(--gold-lo),var(--gold-hi),var(--gold-lo));opacity:0;pointer-events:none}
 @media(max-width:900px){
-  .marques{height:92px;padding:0}
+  .marques{height:108px;padding:0}
   .marques-rule{left:0;right:0}
   .marques-window{-webkit-mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent);mask-image:linear-gradient(90deg,transparent,#000 14%,#000 86%,transparent)}
 }
@@ -154,13 +151,14 @@ html{scroll-behavior:smooth}
 .c-grid.is-list .vehicle-visual{grid-row:1/span 5;align-self:start}
 .c-grid.is-list .vehicle-card-heading{padding-top:4px}
 .c-grid.is-list .vehicle-name{font-size:clamp(26px,2.6vw,40px)}
-.c-grid.is-list .view-vehicle{display:none}
 .c-grid.is-list .shortlist-button{top:34px;right:auto;left:calc(34% - 54px)}
 @media(max-width:760px){
   .c-grid.is-list .vehicle-link{grid-template-columns:42% minmax(0,1fr)}
   .c-grid.is-list .vehicle-name{font-size:24px}
   .c-grid.is-list .vehicle-card-heading{display:block}
-  .c-grid.is-list .vehicle-price{display:block;padding-top:10px}
+  .c-grid.is-list .vehicle-price-block{justify-items:start;margin-top:10px;text-align:left}
+  .c-grid.is-list .vehicle-note{justify-self:start;text-align:left}
+  .c-grid.is-list .vehicle-price b{font-size:26px}
   .c-grid.is-list .vehicle-keyspecs,.c-grid.is-list .car-badge[data-tone=preview]{display:none}
   .c-grid.is-list .shortlist-button{left:calc(42% - 50px);width:38px;height:38px}
 }

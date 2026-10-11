@@ -1,9 +1,5 @@
 // A car's own page (/car/?id=…): its photographs, price and facts, how to
 // arrange a viewing, its specification and inspection, and similar cars.
-import './styles.css';
-import './light.css';
-import './collection.css';
-import './vehicle.css';
 import gsap from 'gsap';
 import { setupPage } from './chrome.js';
 import { saveEnquiry } from './forms.js';
@@ -54,7 +50,7 @@ async function init() {
   stage.querySelectorAll('img').forEach(framePhoto);
   const tag = badge(car, settings);
   if (tag) { const element = $('[data-badge]'); element.dataset.tone = tag.tone; element.textContent = tag.label; element.hidden = false; }
-  const counter = $('[data-counter]');
+  const counter = $('[data-counter]'), progress = $('[data-progress]');
   const thumbs = $('[data-thumbs]');
   let current = 0;
   const show = (index, smooth = true) => {
@@ -63,7 +59,8 @@ async function init() {
     sync();
   };
   const sync = () => {
-    counter.textContent = `${current + 1} / ${photos.length}`;
+    counter.lastChild.textContent = `${current + 1} / ${photos.length}`;
+    progress.style.setProperty('--at', ((current + 1) / photos.length).toFixed(4));
     thumbs.querySelectorAll('button').forEach((button, i) => { button.setAttribute('aria-current', String(i === current)); if (i === current) button.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: reduced ? 'instant' : 'smooth' }); });
   };
   if (photos.length > 1) {
@@ -97,17 +94,27 @@ async function init() {
   lightbox.addEventListener('close', () => show(current, false));
   if (!car.preview) stage.addEventListener('click', event => { if (event.target.closest('.v-slide')) openLight(current); });
   else stage.classList.add('is-static');
+  counter.addEventListener('click', () => openLight(current));
 
   // ------------------------------------------------------------ panel
   $('[data-make]').textContent = car.make;
   $('[data-name]').textContent = car.model;
-  if (car.variant) { $('[data-variant]').textContent = car.variant; $('[data-variant]').hidden = false; }
+  if (car.variant) { $('[data-variant]').textContent = car.variant; $('[data-variant-line]').hidden = false; }
+  // Where the car stands, beside the make: a live dot while it is for sale.
+  const standing = car.preview ? ['preview', 'Showcase model'] : { available: ['available', 'Available now'], reserved: ['reserved', 'Reserved'], coming_soon: ['coming_soon', 'Coming soon'], sold: ['sold', 'Sold'] }[car.status];
+  if (standing) { const pill = $('[data-status]'); pill.dataset.tone = standing[0]; pill.lastChild.textContent = standing[1]; pill.hidden = false; }
+  // The dealership's highlights, as chips under the name.
+  if (car.highlights.length && !sold) { $('[data-chips]').innerHTML = car.highlights.slice(0, 6).map(item => `<li>${escapeHTML(item)}</li>`).join(''); $('[data-chips]').hidden = false; }
   const plate = sold ? '' : plateLabel(car, listing);
   if (plate) { const chip = $('[data-plate]'); chip.dataset.tone = car.plateTag; chip.lastChild.textContent = plate; chip.hidden = false; }
   const price = $('[data-price]');
   if (car.status === 'sold') price.textContent = 'Sold';
   else if (car.preview) price.textContent = 'Price on enquiry';
-  else if (numeric(car.price)) { price.innerHTML = `${escapeHTML(priceLabel(car))}<span>${escapeHTML(formatPriceFull(car.price))}</span>`; }
+  else if (numeric(car.price)) {
+    // "₹48 lakh": the figure large, the rupee sign in gold; the full amount beneath.
+    const [, figure = '', unit = ''] = /^₹\s?([\d.,]+)\s*(.*)$/.exec(priceLabel(car)) || [];
+    price.innerHTML = figure ? `<span class="v-price-main"><i>₹</i><b data-figure="${escapeHTML(figure)}">${escapeHTML(figure)}</b>${unit ? `<small>${escapeHTML(unit)}</small>` : ''}</span><span class="v-price-full">${escapeHTML(formatPriceFull(car.price))}</span>` : escapeHTML(priceLabel(car));
+  }
   else price.textContent = 'Price on request';
   price.classList.toggle('is-quiet', !numeric(car.price) || car.status === 'sold');
   if (car.note) { $('[data-note]').textContent = car.note; $('[data-note]').hidden = false; }
@@ -119,8 +126,13 @@ async function init() {
     year: ['Year', car.year], driven: [listing.drivenLabel || 'Driven', formatDriven(car.kilometres)], owners: ['Ownership', formatOwners(car.owners)], fuel: ['Fuel', car.fuel],
     transmission: ['Gearbox', car.transmission], body: ['Body', car.body], colour: ['Colour', car.colour], registration: ['Registration', car.registration], insurance: ['Insurance', insurance], location: ['Location', car.location],
   };
-  const facts = (sold ? listing.soldFacts || ['year', 'fuel', 'body'] : Object.keys(all)).map(key => all[key]).filter(pair => pair && present(pair[1]));
-  $('[data-facts]').innerHTML = facts.map(([key, value]) => `<div><dt>${key}</dt><dd>${escapeHTML(value)}</dd></div>`).join('');
+  // The four a buyer compares first, large; the rest in the details below.
+  const keys = sold ? listing.soldFacts || ['year', 'fuel', 'body'] : ['year', 'driven', 'fuel', 'owners'];
+  const pairs = list => list.map(key => all[key]).filter(pair => pair && present(pair[1]));
+  const key = pairs(keys), rest = sold ? [] : pairs(Object.keys(all).filter(name => !keys.includes(name)));
+  $('[data-key]').innerHTML = key.map(([label, value]) => `<div><dt>${label}</dt><dd>${escapeHTML(value)}</dd></div>`).join('');
+  $('[data-facts]').innerHTML = rest.map(([label, value]) => `<div><dt>${label}</dt><dd>${escapeHTML(value)}</dd></div>`).join('');
+  $('[data-more]').hidden = !rest.length;
   $('[data-preview-note]').hidden = !car.preview;
 
   // How to take the next step depends on where the car stands.
@@ -130,26 +142,27 @@ async function init() {
     : car.status === 'reserved' ? ['Join the waiting list', `${title} — reserved; please contact me if it becomes available (${car.slug})`]
     : ['Arrange a viewing', `${title} — viewing (${car.slug})`];
   const enquire = $('[data-enquire-car]');
-  enquire.textContent = next[0];
+  enquire.firstChild.textContent = next[0];
   enquire.addEventListener('click', () => openEnquiry(next[1]));
   const digits = dealer.whatsapp.replace(/\D/g, '');
-  if (digits) { const link = $('[data-whatsapp]'); link.href = `https://wa.me/${digits}?text=${encodeURIComponent(`Hello Baba, I’m interested in the ${title}: ${location.href}`)}`; link.hidden = false; }
-  if (dealer.phone) { const link = $('[data-call]'); link.href = `tel:${dealer.phone.replace(/[^+\d]/g, '')}`; link.textContent = `Call ${dealer.phone}`; link.hidden = false; }
-  $('[data-save]').replaceWith(shortlistButton(car, 'shortlist-button v-save'));
+  if (digits) { const link = $('[data-whatsapp]'); link.href = `https://wa.me/${digits}?text=${encodeURIComponent(`Hello Baba Luxury Cars, I’m interested in the ${title}: ${location.href}`)}`; link.hidden = false; }
+  if (dealer.phone) { const link = $('[data-call]'); link.href = `tel:${dealer.phone.replace(/[^+\d]/g, '')}`; $('[data-call-number]').textContent = dealer.phone; link.hidden = false; }
+  $('[data-save]').replaceWith(shortlistButton(car, 'shortlist-button v-tool v-save'));
   const share = $('[data-share]');
   share.addEventListener('click', async () => {
     const data = { title, text: `The ${title} at Baba Luxury Cars`, url: location.href };
+    const say = text => { share.setAttribute('aria-label', text); share.dataset.said = text; setTimeout(() => { share.setAttribute('aria-label', 'Share this car'); delete share.dataset.said; }, 2600); };
     try {
       if (navigator.share) { await navigator.share(data); return; }
       await navigator.clipboard.writeText(location.href);
-      share.textContent = 'Link copied';
-    } catch (error) { if (error?.name !== 'AbortError') share.textContent = 'Copy the address above to share'; }
-    setTimeout(() => { share.textContent = 'Share this car'; }, 2600);
+      say('Link copied');
+    } catch (error) { if (error?.name !== 'AbortError') say('Copy the address above to share'); }
   });
 
   // ---------------------------------------------------------- details
   if (sold) $('[data-sold-note]').hidden = false;
-  if (car.highlights.length && !sold) {
+  // More highlights than the panel shows are listed in the details.
+  if (car.highlights.length > 6 && !sold) {
     $('[data-highlights] ul').innerHTML = car.highlights.map(item => `<li>${escapeHTML(item)}</li>`).join('');
     $('[data-highlights]').hidden = false;
   }
@@ -194,7 +207,7 @@ async function init() {
   // ------------------------------------------------- phone enquiry dock
   const dock = $('[data-dock]');
   $('[data-dock-name]').textContent = carName(car);
-  $('[data-dock-price]').textContent = price.firstChild?.textContent || '';
+  $('[data-dock-price]').textContent = numeric(car.price) && !sold && !car.preview ? priceLabel(car) : price.textContent;
   $('[data-dock-enquire]').textContent = car.status === 'available' && !car.preview ? 'Enquire' : next[0].split(' ').slice(0, 2).join(' ');
   $('[data-dock-enquire]').addEventListener('click', () => openEnquiry(next[1]));
   dock.hidden = false;
@@ -220,6 +233,37 @@ async function init() {
   page.removeAttribute('aria-busy');
   page.classList.add('is-ready');
   page.classList.toggle('is-sold', car.status === 'sold');
+  arrive(page);
+}
+
+// The page arrives as one moment: the photograph opens upward and settles,
+// the thumbnails follow; beside it the name rises out of its lines, the
+// highlights come in, the price counts up to its figure, the four facts and
+// the next step follow, and a light runs once across the button. Reduced
+// motion shows the page set.
+function arrive(page) {
+  if (reduced) return;
+  const q = selector => page.querySelectorAll(selector);
+  const figure = page.querySelector('.v-price-main b');
+  const target = figure ? parseFloat(figure.dataset.figure.replace(/,/g, '')) : NaN;
+  const places = figure ? (figure.dataset.figure.split('.')[1] || '').length : 0;
+  const count = { value: 0 };
+  const tl = gsap.timeline({ defaults: { ease: 'expo.out' } })
+    .fromTo('.v-stage-wrap', { clipPath: 'inset(100% 0% 0% 0%)' }, { clipPath: 'inset(0% 0% 0% 0%)', duration: 1.3, ease: 'expo.inOut', clearProps: 'clipPath' }, 0)
+    .fromTo('.v-slide:first-child img', { scale: 1.14 }, { scale: 1, duration: 2, clearProps: 'transform' }, .15)
+    .from(q('.v-thumbs button, .v-progress'), { autoAlpha: 0, y: 14, duration: .9, stagger: .035, clearProps: 'all' }, .7)
+    .from(q('.v-panel-top > *'), { autoAlpha: 0, y: 10, duration: .9, stagger: .08, clearProps: 'all' }, .25)
+    .from(q('#car-title .v-line > *'), { yPercent: 110, duration: 1.3, stagger: .1, clearProps: 'transform' }, .3)
+    .from(q('.v-panel > .plate-chip, .v-chips li'), { autoAlpha: 0, y: 12, scale: .94, duration: .8, stagger: .045, clearProps: 'all' }, .6)
+    .from(q('.v-price-row'), { autoAlpha: 0, y: 16, duration: 1, clearProps: 'all' }, .7)
+    .from(q('.v-key > div'), { autoAlpha: 0, y: 18, duration: 1, stagger: .07, clearProps: 'all' }, .85)
+    .from(q('.v-actions > *, .v-trust li'), { autoAlpha: 0, y: 18, duration: 1, stagger: .07, clearProps: 'all' }, 1)
+    .fromTo('.v-cta', { '--sheen': '-60%' }, { '--sheen': '160%', duration: 1.4, ease: 'power2.inOut' }, 1.9);
+  if (Number.isFinite(target)) {
+    tl.fromTo(count, { value: 0 }, { value: target, duration: 1.8, ease: 'power3.out', onUpdate: () => {
+      figure.textContent = count.value.toLocaleString('en-IN', { minimumFractionDigits: places, maximumFractionDigits: places });
+    }, onComplete: () => { figure.textContent = figure.dataset.figure; } }, .75);
+  }
 }
 
 // Baba Concierge: whatever a buyer would like done to the car (a wrap, new
@@ -236,17 +280,24 @@ function concierge(car, title, settings) {
   $('[data-concierge-intro]').textContent = settings.intro || '';
   $('[data-sheet-car]').textContent = title;
   const photo = $('[data-sheet-photo]');
-  photo.src = thumbImage(cover(car)) || '/vehicle-placeholder.svg';
+  photo.src = safeImage(cover(car)) || '/vehicle-placeholder.svg';
   photo.closest('.v-sheet-photo').dataset.photo = car.preview ? 'cutout' : 'full';
-  $('[data-concierge-menu]').innerHTML = groups.map((group, g) => `<fieldset class="v-menu-group"><legend><span>${String(g + 1).padStart(2, '0')}</span>${escapeHTML(group.title)}</legend><div class="v-menu-items">${group.items.map(item => `<button type="button" class="v-chip" aria-pressed="false" data-item="${escapeHTML(item)}"><i aria-hidden="true"></i>${escapeHTML(item)}</button>`).join('')}</div></fieldset>`).join('');
+  $('[data-concierge-menu]').innerHTML = groups.map((group, g) => `<fieldset class="v-menu-group"><legend><span>${String(g + 1).padStart(2, '0')}</span>${escapeHTML(group.title)}</legend><div class="v-menu-items">${group.items.map(item => `<button type="button" class="v-chip" aria-pressed="false" data-item="${escapeHTML(item)}"><span>${escapeHTML(item)}</span><i aria-hidden="true"><svg class="v-chip-add" viewBox="0 0 24 24"><path d="M12 6v12M6 12h12"/></svg><svg class="v-chip-on" viewBox="0 0 24 24"><path d="m6 12.5 4 4 8-9"/></svg></i></button>`).join('')}</div></fieldset>`).join('');
 
   const message = () => [
-    `Hello Baba Concierge, I’m looking at the ${title}${car.preview ? '' : ` (${location.href})`}.`,
+    `Hello Baba Luxury Cars concierge, I’m looking at the ${title}${car.preview ? '' : ` (${location.href})`}.`,
     chosen.length ? `I’d like:\n${chosen.map(item => `• ${item}`).join('\n')}` : 'I’d like to talk about changes to it.',
     note.value.trim() ? `Also: ${note.value.trim()}` : '',
   ].filter(Boolean).join('\n\n');
+  let shown = 0;
   const sync = () => {
-    $('[data-sheet-count]').textContent = chosen.length;
+    const count = $('[data-sheet-count]');
+    count.textContent = chosen.length;
+    count.classList.toggle('is-on', chosen.length > 0);
+    // The count gives a small jump each time it changes.
+    if (chosen.length !== shown && !reduced) gsap.fromTo(count, { scale: 1.45 }, { scale: 1, duration: .7, ease: 'elastic.out(1, .4)' });
+    shown = chosen.length;
+    $('[data-sheet-whatsapp-label]').textContent = chosen.length ? `Send my build sheet (${chosen.length}) on WhatsApp` : 'WhatsApp the concierge';
     $('[data-sheet-empty]').hidden = chosen.length > 0;
     const link = $('[data-sheet-whatsapp]');
     link.hidden = !digits;
@@ -322,14 +373,24 @@ function concierge(car, title, settings) {
   $('[data-concierge-link]').hidden = false;
   $('[data-concierge-link]').addEventListener('click', event => { event.preventDefault(); section.scrollIntoView({ behavior: reduced ? 'instant' : 'smooth', block: 'start' }); });
 
-  // The menu settles in as it comes into view.
+  // The section arrives as it comes into view: the title rises out of its
+  // lines, the three steps follow along their line, then the options settle
+  // in group by group and the build sheet slides up beside them.
   if (!reduced && 'IntersectionObserver' in window) {
-    const chips = section.querySelectorAll('.v-chip, .v-menu-group legend');
-    gsap.set(chips, { autoAlpha: 0, y: 12 });
-    new IntersectionObserver(([entry], observer) => {
-      if (!entry.isIntersecting) return;
-      observer.disconnect();
-      gsap.to(chips, { autoAlpha: 1, y: 0, duration: .9, ease: 'expo.out', stagger: .018, clearProps: 'all' });
-    }, { rootMargin: '0px 0px -15% 0px' }).observe(section);
+    const q = selector => section.querySelectorAll(selector);
+    gsap.set(q('.v-cline > span'), { yPercent: 110 });
+    gsap.set(q('.v-concierge-title > p, .v-concierge-steps li, .v-menu-group legend, .v-chip, .v-concierge-more'), { autoAlpha: 0, y: 14 });
+    gsap.set('.v-sheet', { autoAlpha: 0, y: 40 });
+    gsap.set('.v-concierge-steps', { '--line': 0 });
+    const watch = (target, play) => new IntersectionObserver(([entry], observer) => { if (!entry.isIntersecting) return; observer.disconnect(); play(); }, { rootMargin: '0px 0px -12% 0px' }).observe(target);
+    watch(section.querySelector('.v-concierge-head'), () => gsap.timeline({ defaults: { ease: 'expo.out' } })
+      .to(q('.v-cline > span'), { yPercent: 0, duration: 1.3, stagger: .1 }, 0)
+      .to(q('.v-concierge-title > p'), { autoAlpha: 1, y: 0, duration: 1, stagger: .08, clearProps: 'all' }, .2)
+      .to('.v-concierge-steps', { '--line': 1, duration: 1.4, ease: 'expo.inOut' }, .35)
+      .to(q('.v-concierge-steps li'), { autoAlpha: 1, y: 0, duration: 1, stagger: .14, clearProps: 'all' }, .45));
+    watch(section.querySelector('.v-concierge-body'), () => gsap.timeline({ defaults: { ease: 'expo.out' } })
+      .to(q('.v-menu-group legend, .v-chip'), { autoAlpha: 1, y: 0, duration: .9, stagger: .02, clearProps: 'all' }, 0)
+      .to('.v-sheet', { autoAlpha: 1, y: 0, duration: 1.2, clearProps: 'all' }, .15)
+      .to(q('.v-concierge-more'), { autoAlpha: 1, y: 0, duration: 1, clearProps: 'all' }, .6));
   }
 }
