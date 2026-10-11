@@ -101,6 +101,10 @@ export const aboutVehicles = { near: 'x7', far: 'defender' };
 // npm run model:s90), in Volvo's Onyx Black metallic. A showcase model, not
 // stock.
 export const inspectionCar = { base: '/models/s90/', name: 'Volvo S90 Recharge', shadow: '/models/sclass-shadow.jpg', paint: { color: '#060607', name: 'Onyx Black metallic' } };
+// How many handover photographs the About page shows: the newest, which are
+// the first of the admin's Deliveries tab (a new photo goes to the front).
+// The home page's gallery shows them all.
+export const ABOUT_DELIVERIES = 6;
 // The car on the inspection's turntable (src/inspect-stage.js): the
 // Defender 110 in Land Rover's Santorini Black metallic, with the black
 // contrast roof. A showcase model, not stock.

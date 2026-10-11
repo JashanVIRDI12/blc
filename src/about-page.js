@@ -24,7 +24,7 @@ import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import { SplitText } from 'gsap/SplitText';
 import { setupPage } from './chrome.js';
 import { loadSite } from './data.js';
-import { dealer, dealerLines, deliveryPhotos, figures } from './config.js';
+import { ABOUT_DELIVERIES, dealer, dealerLines, deliveryPhotos, figures } from './config.js';
 import { escapeHTML, safeImage, thumbImage } from './util.js';
 gsap.registerPlugin(ScrollTrigger, ScrollSmoother, SplitText);
 
@@ -314,9 +314,11 @@ loadSite().then(site => {
   const builtIn = site.settings.gallery?.builtIn === false ? [] : deliveryPhotos;
   places = [...site.deliveries.map(delivery => delivery.city), ...builtIn.map(photo => photo.city)].filter(Boolean);
   fascia?.setDestinations(places);
+  // The six newest handovers: the first six of the admin's Deliveries tab,
+  // where a new photograph goes to the front (ABOUT_DELIVERIES in config.js).
   buildRun([
     ...site.deliveries.filter(delivery => safeImage(delivery.photo)),
     ...builtIn.map(({ city, card, full, caption }) => ({ city, caption, photo: full, card })),
-  ]);
+  ].slice(0, ABOUT_DELIVERIES));
   ScrollTrigger.refresh();
 }).catch(error => console.error('The page data is unavailable.', error));

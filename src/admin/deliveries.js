@@ -1,17 +1,18 @@
 // Deliveries: photographs of cars handed over to their new owners, shown in
-// the home page's "Across India" gallery and on the collection page. Drop in
+// the home page's "Across India" gallery, on the collection page, and (the
+// first six on the site, marked here) on the About page. Drop in
 // as many as you like; give each the place it went to and a line ("Mr Sharma
 // and his Defender"), hide or reorder them.
 import { $, esc, toast, fail, confirmDialog, icon, compressImage } from './ui.js';
 import { siteURL } from './cars.js';
 import { safeImage, thumbImage } from '../util.js';
-import { deliveryPhotos } from '../config.js';
+import { ABOUT_DELIVERIES, deliveryPhotos } from '../config.js';
 
 let adopting = null; // the move of the site's own photos, while it runs
 const uuid = () => crypto.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`;
 
 export function renderDeliveries(view, app) {
-  view.innerHTML = `<header class="a-head"><div><h1>Deliveries</h1><p class="a-sub">Handover photos for the home page’s Across India gallery, in the order they show. Drag a photo to move it; click its place or caption to change it.</p></div>
+  view.innerHTML = `<header class="a-head"><div><h1>Deliveries</h1><p class="a-sub">Handover photos for the home page’s Across India gallery, in the order they show. The About page shows the first ${ABOUT_DELIVERIES} that are on the site; a new photo goes to the front. Drag a photo to move it; click its place or caption to change it.</p></div>
     <div class="a-head-actions"><a class="a-button" href="${esc(siteURL(app, '/'))}#india" target="_blank" rel="noopener">View the gallery ${icon.out}</a><label class="a-button a-button--primary">${icon.plus}Add photos<input type="file" accept="image/*" multiple hidden data-file></label></div></header>
     <section class="a-card a-gallery-card" data-drop>
       <div class="a-gallery-bar"><p class="a-gallery-count" data-count></p><p class="a-hint" data-progress hidden></p></div>
@@ -22,10 +23,12 @@ export function renderDeliveries(view, app) {
   const rows = () => [...(app.deliveries || [])].sort((a, b) => a.sort_order - b.sort_order || Date.parse(b.created_at || 0) - Date.parse(a.created_at || 0));
   const draw = () => {
     const list = rows(), shown = list.filter(row => row.visible).length;
+    // The About page's: the first few that are on the site.
+    const about = new Set(list.filter(row => row.visible).slice(0, ABOUT_DELIVERIES).map(row => row.id));
     $('[data-count]', view).textContent = !list.length ? 'No photos yet' : `${list.length} ${list.length === 1 ? 'photo' : 'photos'}${shown === list.length ? ', all on the site' : `, ${shown} on the site`}`;
     grid.innerHTML = `<li class="a-delivery-add"><label>${icon.plus}<b>Add photos</b><small>or drop them anywhere here</small><input type="file" accept="image/*" multiple hidden data-file></label></li>` + list.map((row, i) => `<li class="a-delivery${row.visible ? '' : ' is-muted'}" data-id="${esc(row.id)}" draggable="true">
       <figure><img src="${esc(thumbImage(row.photo))}" data-full="${esc(safeImage(row.photo))}" alt="" loading="lazy" draggable="false" />
-        <span class="a-delivery-n" aria-hidden="true">${i + 1}</span>${row.visible ? '' : '<span class="a-delivery-off">Hidden</span>'}
+        <span class="a-delivery-n" aria-hidden="true">${i + 1}</span>${row.visible ? '' : '<span class="a-delivery-off">Hidden</span>'}${about.has(row.id) ? '<span class="a-delivery-about">About page</span>' : ''}
         <span class="a-delivery-tools"><button type="button" class="a-delivery-tool a-delivery-tool--back" data-move="-1" aria-label="Move earlier" ${i === 0 ? 'disabled' : ''}>${icon.up}</button><button type="button" class="a-delivery-tool a-delivery-tool--on" data-move="1" aria-label="Move later" ${i === list.length - 1 ? 'disabled' : ''}>${icon.down}</button><button type="button" class="a-delivery-tool a-delivery-tool--delete" data-delete aria-label="Delete this photo">${icon.trash}</button></span></figure>
       <div class="a-delivery-text"><input class="a-delivery-city" data-city maxlength="60" placeholder="Where it went" aria-label="Where it went: city or state" value="${esc(row.city || '')}" /><input class="a-delivery-caption" data-caption maxlength="120" placeholder="Add a caption" aria-label="Caption" value="${esc(row.caption || '')}" /></div>
       <label class="a-switch a-switch--small a-delivery-show"><input type="checkbox" data-visible${row.visible ? ' checked' : ''} /><span>${row.visible ? 'On the site' : 'Hidden'}</span></label>

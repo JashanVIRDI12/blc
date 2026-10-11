@@ -193,6 +193,8 @@ async function fetchSite() {
       cars = draft.cars.filter(row => row.status !== 'hidden').map(fromRow);
       collections = draft.collections.filter(row => row.visible).sort((a, b) => a.sort_order - b.sort_order).map(({ slug, title, subtitle, cover }) => ({ slug, title, subtitle: subtitle || '', cover: cover || '' }));
       saved = draft.settings || {};
+      // As the database gives them: those on the site, in the portal's order.
+      deliveries = (draft.deliveries || []).filter(row => row.visible).sort((a, b) => a.sort_order - b.sort_order || Date.parse(b.created_at || 0) - Date.parse(a.created_at || 0)).map(({ id, photo, caption, city }) => ({ id, photo, caption, city }));
       source = 'preview';
     }
   }
