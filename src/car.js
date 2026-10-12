@@ -95,12 +95,14 @@ function splitPieces(root, { node: name, box, material: { inherit, ...look } }) 
 
 // Loads one car (a spec from models.js) and dresses it in its real-world
 // materials and the paint it's for sale in. `invalidate` asks the studio for
-// a redraw.
-export async function loadCar(spec, paintSpec, { invalidate, onProgress }) {
+// a redraw. `pace`, for a car loaded while something else is on screen, is
+// awaited before each heavy step (idle.js).
+export async function loadCar(spec, paintSpec, { invalidate, onProgress, pace }) {
   // The file is fetched once per page (model-cache.js); each scene parses its
   // own copy of the car, since each dresses and lights it its own way.
   const bytes = await fetchModel(spec.url, { onProgress });
   const gltf = await loader.parseAsync(bytes, spec.url.slice(0, spec.url.lastIndexOf('/') + 1));
+  await pace?.();
   const root = gltf.scene;
   root.updateMatrixWorld(true);
 
@@ -189,6 +191,8 @@ export async function loadCar(spec, paintSpec, { invalidate, onProgress }) {
     const node = root.getObjectByName(name);
     if (node) parts[name] = { node, ...openSpec, open: 0, tween: { value: 0 }, wanted: false };
   }
+  // The cabin's light strips are laid by casting rays onto the trim.
+  await pace?.();
   const ambient = createAmbient(root, chassis, spec, made);
   const cabin = createCabin(root, chassis, spec);
   await mountPlates(chassis, spec.partMap?.plates);

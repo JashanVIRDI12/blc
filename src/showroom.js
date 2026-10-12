@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
+import './area-lights.js';
 import { loadCar } from './car.js';
 import { models } from './models.js';
 import { vehicleParts } from './vehicle-parts.js';
@@ -11,6 +12,7 @@ import { createVehicleLighting } from './vehicle-lighting.js';
 import { createTypePlane } from './type-plane.js';
 import { createRenderDensity } from './render-density.js';
 import { createFloorMaterial } from './showroom-floor.js';
+import { gpuDone } from './compile.js';
 
 // Draw order: the room, then the film's headlines, then the cars. A car that
 // crosses a headline passes in front of it; the room never covers the type.
@@ -361,9 +363,23 @@ export function createShowroom(canvas, onFailure) {
     // Film headlines: [{ id, element, color, front }]. Behind the cars unless `front`.
     layoutType(next) { headings = next; type.layout(headings, canvas.getBoundingClientRect()); invalidate(); },
     typeLines: id => type.lineCount(id),
-    setActive(value) { enabled = value; if (value) invalidate(); },
+    // Back on screen, the canvas still holds its last frame: draw only if
+    // something changed meanwhile. (A needless frame here landed on the very
+    // frames in which the stage below hands over, and cost them.)
+    setActive(value) { enabled = value; if (value) schedule(); },
+    // Draw the frame that is set, now, and resolve once the GPU has drawn it.
+    drawn() { dirty = false; renderFrame(); return gpuDone(renderer); },
     // Radians the shot is turned about the parked car; applied by setFrame.
     setOrbit(value) { orbit = value; },
+    // Milliseconds a frame costs: the page's own share (cpu), and with the
+    // GPU's (total; reading a pixel back waits on it).
+    bench(frames = 30) {
+      const gl = renderer.getContext(), pixel = new Uint8Array(4);
+      let cpu = 0;
+      const started = performance.now();
+      for (let i = 0; i < frames; i++) { const t = performance.now(); renderFrame(); cpu += performance.now() - t; gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel); }
+      return { cpu: +(cpu / frames).toFixed(2), total: +((performance.now() - started) / frames).toFixed(2), calls: renderer.info.render.calls, triangles: renderer.info.render.triangles };
+    },
     snapshot: () => ({ orbit, type: type.snapshot(), pointer: { x: pointer.x, y: pointer.y }, studio: Boolean(studio), viewSurface: viewSurface(), camera: camera.position.toArray(), target: frame?.shot.target, dpr: ratio, render: { ...renderer.info.render }, vehicles: [...vehicles].map(([id, v]) => ({ id, position: v.holder.position.toArray(), yaw: v.holder.rotation.y, scale: v.holder.scale.toArray(), wheel: v.car.wheels[0].rotation.x, steer: v.car.wheels[0].parent.rotation.y, visible: v.holder.visible, door:v.car.root.getObjectByName('Door_FL')?.rotation.y??0, lights:v.lighting.snapshot(), screens: v.car.cabin.screens.map(m=>({name:m.name,lit:m.emissiveIntensity,texture:Boolean(m.emissiveMap)})) })) }),
   };
 }

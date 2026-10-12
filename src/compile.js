@@ -10,16 +10,24 @@
 export async function compileAhead(renderer, scene, camera, targetScene = null) {
   if (renderer.extensions.has('KHR_parallel_shader_compile')) return renderer.compileAsync(scene, camera, targetScene);
   renderer.compile(scene, camera, targetScene);
+  await gpuDone(renderer, 16);
+}
+
+// Resolves, with the milliseconds it took, once the GPU has done everything
+// asked of it so far. The page stays live meanwhile: a fence is set at the end
+// of the GPU's queue and watched every `every` ms.
+export function gpuDone(renderer, every = 4) {
   const gl = renderer.getContext();
-  if (typeof gl.fenceSync !== 'function') return;
+  if (typeof gl.fenceSync !== 'function') return Promise.resolve(0);
   const fence = gl.fenceSync(gl.SYNC_GPU_COMMANDS_COMPLETE, 0);
   gl.flush();
   const started = performance.now();
-  await new Promise(resolve => {
+  return new Promise(resolve => {
     const watch = () => {
-      if (gl.isContextLost() || gl.getSyncParameter(fence, gl.SYNC_STATUS) === gl.SIGNALED || performance.now() - started > 8000) { gl.deleteSync(fence); resolve(); }
-      else setTimeout(watch, 16);
+      const waited = performance.now() - started;
+      if (gl.isContextLost() || gl.getSyncParameter(fence, gl.SYNC_STATUS) === gl.SIGNALED || waited > 8000) { gl.deleteSync(fence); resolve(waited); }
+      else setTimeout(watch, every);
     };
-    setTimeout(watch, 16);
+    setTimeout(watch, every);
   });
 }

@@ -219,14 +219,22 @@ export function createAcrossIndia(section, { deliveries = [], settings = {}, red
   const staged = !reduced && !!stage && matchMedia(STAGED).matches;
   let night = null, count = () => {};
   if (!reduced && road) {
-    import('./night-drive.js').then(({ createNightDrive }) => {
-      if (disposed) return;
-      night = createNightDrive(road, { input: stage });
-      if (!night) return;
-      section.classList.add('has-drive');
-      stage.dataset.cursor = 'Hold';
-      cleanups.push(() => night.dispose());
-    }).catch(error => console.error('The night drive is unavailable.', error));
+    // The road is a WebGL stage of its own: it is made as the section comes
+    // near, not while the visitor is still at the top of the page.
+    const near = new IntersectionObserver(entries => {
+      if (!entries.some(entry => entry.isIntersecting)) return;
+      near.disconnect();
+      import('./night-drive.js').then(({ createNightDrive }) => {
+        if (disposed) return;
+        night = createNightDrive(road, { input: stage });
+        if (!night) return;
+        section.classList.add('has-drive');
+        stage.dataset.cursor = 'Hold';
+        cleanups.push(() => night.dispose());
+      }).catch(error => console.error('The night drive is unavailable.', error));
+    }, { rootMargin: '250% 0px' });
+    near.observe(section);
+    cleanups.push(() => near.disconnect());
   }
   if (staged) {
     // The road opens from a window to the whole screen, then holds while it

@@ -10,6 +10,7 @@ import { dealer, lightsVehicles } from './config.js';
 import { models } from './models.js';
 import { prefetchModels } from './model-cache.js';
 import { setupFx } from './fx/index.js';
+import { lull } from './idle.js';
 gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
@@ -54,10 +55,12 @@ document.querySelector('#skip-film').addEventListener('click',()=>goTo('#fleet')
 document.addEventListener('layout:change',()=>ScrollTrigger.refresh());
 const loadCount=document.querySelector('#load-count'),shownLoad={value:0};
 function finishLoading() {
-  loader.classList.add('is-complete');loader.inert=true;
-  cinema?.playIntro();
+  // Measure the page while the loader still covers it: the refresh holds the
+  // page for a moment, and the opening title should start on a clear frame.
   document.body.classList.remove('is-loading');
   ScrollTrigger.refresh();
+  const reveal=()=>{loader.classList.add('is-complete');loader.inert=true;cinema?.playIntro();};
+  if(cinema&&!document.hidden)requestAnimationFrame(reveal);else reveal();
   if(location.hash && document.getElementById(location.hash.slice(1))) setTimeout(()=>goTo(location.hash,true),100);
 }
 function staticExperience() {
@@ -70,8 +73,11 @@ function staticExperience() {
 }
 document.querySelector('#skip-loading').addEventListener('click',()=>{staticExperience();goTo('#inventory',true);});
 function initPractical() {
-  // Across India: the map, once the stock and its settings are in.
+  // Across India: the map, once the stock and its settings are in. It is far
+  // down the page: it is built in a quiet moment (idle.js), not over the
+  // film's opening, unless the page was opened on a section of its own.
   loadSite().then(async site=>{
+    if(!location.hash&&!cancelled)await lull(2600);
     const { createAcrossIndia }=await import('./across-india.js');
     createAcrossIndia(document.querySelector('#india'),{settings:site.settings,deliveries:site.deliveries,cars:site.cars,reduced:reduced.matches});
     ScrollTrigger.refresh();

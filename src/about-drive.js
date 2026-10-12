@@ -4,6 +4,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
+import './area-lights.js';
 import { loadCar } from './car.js';
 import { models } from './models.js';
 import { vehicleParts } from './vehicle-parts.js';
@@ -14,6 +15,7 @@ import { aboutJourneys, aboutCamera, aboutAnchor, aboutTurn, aboutTurnWeight } f
 import { carCorners, fitFrame, frameCamera, freeRegion, screenBounds } from './about-framing.js';
 import { createTurnGesture } from './turn-gesture.js';
 import { createRenderDensity } from './render-density.js';
+import { breath, lull } from './idle.js';
 gsap.registerPlugin(ScrollTrigger);
 
 const PINNED = 2.8; // viewport heights the section stays pinned
@@ -181,15 +183,16 @@ export function createAboutDrive(section, { after } = {}) {
     if (smoother) smoother.scrollTo(y, !instant); else window.scrollTo({ top: y, behavior: instant ? 'instant' : 'smooth' });
   }
 
-  const nextFrame = () => new Promise(resolve => requestAnimationFrame(() => resolve()));
+  // One car at a time and in turns (idle.js): whatever the visitor is
+  // watching further up the page never waits on these.
   async function load() {
     await after?.catch(() => {});
     if (disposed) return;
     const loader = new THREE.TextureLoader();
-    await Promise.all(ids.map(async id => {
+    for (const id of ids) {
       const item = showcase.find(entry => entry.id === id);
       const spec = { ...models[id], partMap: vehicleParts[id] };
-      const [car, shadowTexture] = await Promise.all([loadCar(spec, item.paint, { invalidate }), loader.loadAsync(spec.shadow)]);
+      const [car, shadowTexture] = await Promise.all([loadCar(spec, item.paint, { invalidate, pace: lull }), loader.loadAsync(spec.shadow)]);
       textures.push(shadowTexture);
       // Sharp at grazing angles, so the shadow never shimmers as the view moves.
       shadowTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
@@ -204,19 +207,23 @@ export function createAboutDrive(section, { after } = {}) {
       car.root.traverse(node => { if (node.isRectAreaLight) node.visible = false; });
       vehicles.set(id, { car, holder });
       scene.add(holder);
-    }));
+    }
     if (disposed) return;
     render();
+    await lull();
+    if (disposed) return;
     await renderer.compileAsync(scene, camera);
     if (disposed) return;
-    // The textures a few a frame, so the first frame in view uploads none of
-    // them in one block.
+    // The textures in turns, a large one by itself and when the page is
+    // still, so the first frame in view uploads none of them in one block.
     const maps = new Set();
     scene.traverse(node => [node.material].flat().forEach(material => material && Object.values(material).forEach(value => { if (value?.isTexture) maps.add(value); })));
-    let n = 0;
+    let small = 0;
     for (const texture of maps) {
+      const { width = 0, height = 0 } = texture.image ?? {};
+      if (width * height >= 512 * 512) await lull(200); else if (++small % 4 === 0) await breath();
+      if (disposed) return;
       renderer.initTexture(texture);
-      if (++n % 4 === 0) { await nextFrame(); if (disposed) return; }
     }
     ready = true; invalidate();
   }

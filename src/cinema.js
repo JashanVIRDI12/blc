@@ -8,9 +8,14 @@ import { cameraFrames, mobileCameraFrames, journeys, moments, tethers as tetherS
 import { vehicleParts } from './vehicle-parts.js';
 import { inventory, filmVehicles } from './config.js';
 import { createTurnGesture } from './turn-gesture.js';
+import { stir } from './idle.js';
 gsap.registerPlugin(ScrollTrigger);
 
 const TYPE_COLOR = '#f1ece2';
+// A frame from each chapter, for the rehearsal behind the loader: the car
+// rolling in with its lamps towards the camera, the walkaround, the wheel, the
+// open bonnet, the open door, the drive away with the tail lamps lit.
+const REHEARSAL = [.12, .35, .5, .63, .74, .9, 1];
 const easeOut = t => 1 - (1 - t) ** 3;
 const easeIn = t => t ** 3;
 const span = m => Math.min(.04, (m.end - m.start) * .3);
@@ -59,7 +64,7 @@ export function createCinema({ onProgress, onFailure }) {
     enabled: lookable,
     onStart() { gsap.killTweensOf(orbit); looked = true; hint?.classList.remove('is-shown'); return {}; },
     // The car follows the finger: dragging right turns its near side right.
-    onTurn(dx) { orbit.yaw -= dx / innerWidth * Math.PI * .9; render(); },
+    onTurn(dx) { orbit.yaw -= dx / innerWidth * Math.PI * .9; stir(); render(); },
     onEnd() { orbit.yaw = Math.atan2(Math.sin(orbit.yaw), Math.cos(orbit.yaw)); },
   });
   let timeline, disposed = false, typeReady = false, activeChapter = null, activeRecord = null, chapterFill = '';
@@ -84,6 +89,9 @@ export function createCinema({ onProgress, onFailure }) {
     const p = playhead.progress;
     const narrow = innerWidth <= 760;
     if (Math.abs(p - lastProgress) > 1e-5) {
+      // The film is moving under the visitor's scroll: work for the stages
+      // below waits its turn (idle.js).
+      stir();
       if (orbit.yaw && !gesture.active && !gsap.isTweening(orbit)) gsap.to(orbit, { yaw: 0, duration: .9, ease: 'power3.out', onUpdate: render });
       hint?.classList.remove('is-shown');
       clearTimeout(idle);
@@ -172,6 +180,19 @@ export function createCinema({ onProgress, onFailure }) {
     if (disposed) return;
     await document.fonts.ready;
     layoutType();
+    // Whatever first appears part-way through the film (a chapter's headline,
+    // the engine bay, the cabin, a lamp's glow) is sent to the GPU, and its
+    // pipeline built, when it is first drawn: a held frame in the middle of a
+    // scroll. So the film is drawn through once here, while the loader still
+    // covers it.
+    for (const p of REHEARSAL) {
+      playhead.progress = p; render();
+      await showroom.drawn();
+      if (disposed) return;
+    }
+    playhead.progress = 0; render();
+    await showroom.drawn();
+    if (disposed) return;
     timeline = gsap.timeline({
       scrollTrigger: {
         trigger:stage, start:'top top', end:()=>`+=${innerHeight*(innerWidth<=760?3.6:4.2)}`,
@@ -180,7 +201,7 @@ export function createCinema({ onProgress, onFailure }) {
       },
     }).to(playhead,{progress:1,duration:1,ease:'none',onUpdate:render});
     render();
-    if (import.meta.env.DEV) window.__showroom = { snapshot:()=>showroom.snapshot(), setProgress:p=>{playhead.progress=p;render();}, scrollTo:p=>{const st=timeline.scrollTrigger;window.scrollTo(0,st.start+(st.end-st.start)*p);}, trigger:()=>({start:timeline.scrollTrigger.start,end:timeline.scrollTrigger.end}) };
+    if (import.meta.env.DEV) window.__showroom = { bench:n=>showroom.bench(n), snapshot:()=>showroom.snapshot(), setProgress:p=>{playhead.progress=p;render();}, scrollTo:p=>{const st=timeline.scrollTrigger;window.scrollTo(0,st.start+(st.end-st.start)*p);}, trigger:()=>({start:timeline.scrollTrigger.start,end:timeline.scrollTrigger.end}) };
   });
   // Draw while the film is on screen, including while it scrolls away after
   // the pin, so the scrub can settle on the final frame.
@@ -198,7 +219,7 @@ export function createCinema({ onProgress, onFailure }) {
   return {
     ready,
     // The loader has cleared: the opening title rises into the lit showroom.
-    playIntro() { gsap.to(intro, { value: 1, duration: 1.9, ease: 'none', onUpdate: render }); },
+    playIntro() { gsap.to(intro, { value: 1, duration: 1.9, ease: 'none', onUpdate: () => { stir(); render(); } }); },
     dispose() { disposed=true;clearTimeout(relayout);clearTimeout(idle);gesture.dispose();gsap.killTweensOf(orbit);visibility.disconnect();timeline?.scrollTrigger?.kill(true);timeline?.kill();showroom.dispose();removeEventListener('resize',onResize);stage.classList.remove('has-type');if(import.meta.env.DEV) delete window.__showroom; },
   };
 }

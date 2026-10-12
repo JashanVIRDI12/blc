@@ -39,8 +39,13 @@ export const lightsLogo = {
 // When things happen: each car's light comes up over `rise` as the camera
 // reaches it; the studio comes up over `room`; the words rise at `words`;
 // navigation lands at `anchor`.
+//
+// Nothing in the picture changes before `still[0]` or after `still[1]`: while
+// the section rises into view, and again while it scrolls away, the stage
+// holds one frame and the page only carries it, so it need not be drawn anew.
+// All that moves, moves while the section is pinned.
 const FIRST = .25, LAST = .55;
-export const LIGHTS = { panels: lightsVehicles.map((_, i) => lerp(FIRST, LAST, along(i))), rise: .045, room: [.6, .69], words: .68, anchor: .74 };
+export const LIGHTS = { panels: lightsVehicles.map((_, i) => lerp(FIRST, LAST, along(i))), rise: .045, room: [.6, .69], words: .68, anchor: .74, still: [FIRST - .01, .74] };
 
 // A car's own light at a playhead (0, off; 1, full).
 export const bayLevel = (p, i) => smooth(interval(p, LIGHTS.panels[i], LIGHTS.panels[i] + LIGHTS.rise));
@@ -51,7 +56,8 @@ export const lampLevel = p => 1 - .9 * roomLevel(p);
 
 // The camera: it waits at the first car, tracks along them at their own
 // height (looking from the left at the first, from the right at the last),
-// then swings round and back to see them all. The last frames hold.
+// then swings round and back to see them all. It holds where it waits and
+// where it ends (LIGHTS.still).
 const pose = (at, position, target, fov, extra = {}) => ({ at, position, target, fov, offset: [0, 0], ...extra });
 const track = (view, i, at) => {
   const [x, , z] = bay(view, i), t = along(i);
@@ -60,10 +66,7 @@ const track = (view, i, at) => {
     : pose(at, [x - 8.4, 2.2, z + 6.4], [x, .86, z], 52);
 };
 export const lightsCamera = Object.fromEntries(lightsViews.map(view => {
-  const [x0, , z0] = bay(view, 0);
-  const start = view === 'wide' ? pose(0, [x0 - 4.6, 1.75, 8.6], [x0, .9, 0], 30, { hold: true }) : pose(0, [x0 - 8.7, 2.4, z0 + 8.2], [x0, .9, z0], 52, { hold: true });
-  const end = view === 'wide'
-    ? [pose(.74, [0, 2.4, 20], [0, .85, -.4], 26, { hold: true }), pose(1, [0, 2.35, 19.5], [0, .85, -.4], 26, { hold: true })]
-    : [pose(.74, [-6, 14, 23], [0, .85, -1], 34, { hold: true }), pose(1, [-5.9, 13.8, 22.5], [0, .85, -1], 34, { hold: true })];
-  return [view, [start, ...lightsVehicles.map((_, i) => track(view, i, LIGHTS.panels[i] - .01)), ...end]];
+  const start = { ...track(view, 0, 0), hold: true };
+  const last = view === 'wide' ? pose(LIGHTS.anchor, [0, 2.4, 20], [0, .85, -.4], 26, { hold: true }) : pose(LIGHTS.anchor, [-6, 14, 23], [0, .85, -1], 34, { hold: true });
+  return [view, [start, ...lightsVehicles.map((_, i) => track(view, i, LIGHTS.panels[i] - .01)), last, { ...last, at: 1 }]];
 }));

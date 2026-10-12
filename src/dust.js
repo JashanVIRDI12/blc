@@ -18,7 +18,11 @@ function sprite(rgb, softness) {
   return canvas;
 }
 
-export function createDust(stage, { scene, amount = 1 }) {
+// `when`, if given, is awaited before the dust first starts: a canvas is
+// given its memory on the GPU as it first shows, which holds every other
+// canvas on the page for a moment, so a stage that scrolls into view under a
+// moving picture starts its dust once things are still, and fades it in.
+export function createDust(stage, { scene, amount = 1, when = null }) {
   const back = document.createElement('canvas'), front = document.createElement('canvas');
   back.className = 'fleet-dust fleet-dust--back'; front.className = 'fleet-dust fleet-dust--front';
   [back, front].forEach(canvas => canvas.setAttribute('aria-hidden', 'true'));
@@ -26,7 +30,8 @@ export function createDust(stage, { scene, amount = 1 }) {
   const sprites = { light: sprite('255,248,234', .32), warm: sprite('122,94,60', .3), lightSoft: sprite('255,244,224', .12), warmSoft: sprite('150,118,80', .1) };
   const layers = [{ canvas: back, g: back.getContext('2d'), motes: [] }, { canvas: front, g: front.getContext('2d'), motes: [] }];
   const pointer = { x: 0, y: 0 };
-  let width = 1, height = 1, ratio = 1, raf = 0, last = 0, visible = false, running = false;
+  let width = 1, height = 1, ratio = 1, raf = 0, last = 0, visible = false, running = false, started = !when, disposed = false;
+  if (when) [back, front].forEach(canvas => { canvas.style.opacity = '0'; });
 
   const random = (a, b) => a + Math.random() * (b - a);
   // Depth 0 is deep behind the cars, 1 at the lens.
@@ -47,9 +52,12 @@ export function createDust(stage, { scene, amount = 1 }) {
   }
   function resize() {
     const rect = stage.getBoundingClientRect();
-    width = Math.max(1, rect.width); height = Math.max(1, rect.height);
+    const w = Math.max(1, rect.width), h = Math.max(1, rect.height);
     // Soft motes need no retina pixels: a quarter of the fill on a 2x screen.
-    ratio = Math.min(devicePixelRatio || 1, 1.25);
+    const r = Math.min(devicePixelRatio || 1, 1.25);
+    // Sizing a canvas empties it and gives up its memory: only on a real change.
+    if (w === width && h === height && r === ratio && layers[0].motes.length) return;
+    width = w; height = h; ratio = r;
     for (const { canvas, g } of layers) { canvas.width = Math.round(width * ratio); canvas.height = Math.round(height * ratio); g.setTransform(ratio, 0, 0, ratio, 0, 0); }
     populate();
   }
@@ -57,6 +65,10 @@ export function createDust(stage, { scene, amount = 1 }) {
   function frame(now) {
     raf = 0;
     if (!running) return;
+    paint(now);
+    raf = requestAnimationFrame(frame);
+  }
+  function paint(now) {
     const t = now / 1000, dt = last ? Math.min(.05, (now - last) / 1000) : 0;
     last = now;
     layers.forEach(({ g, motes }, index) => {
@@ -78,15 +90,26 @@ export function createDust(stage, { scene, amount = 1 }) {
         g.drawImage(sprites[index ? `${m.tone}Soft` : m.tone], x - size, y - size, size * 2, size * 2);
       }
     });
-    raf = requestAnimationFrame(frame);
   }
   const update = () => {
-    const should = visible && !document.hidden;
+    const should = started && visible && !document.hidden;
     if (should === running) return;
     running = should;
     if (running) { last = 0; raf = requestAnimationFrame(frame); } else cancelAnimationFrame(raf);
   };
-  const observer = new IntersectionObserver(([entry]) => { visible = entry.isIntersecting; update(); });
+  const observer = new IntersectionObserver(([entry]) => {
+    visible = entry.isIntersecting;
+    if (visible && !started && when) {
+      const wait = when; when = null;
+      wait().then(() => {
+        if (disposed) return;
+        started = true;
+        for (const canvas of [back, front]) { canvas.style.opacity = ''; canvas.animate([{ opacity: 0 }, { opacity: 1 }], { duration: 900, easing: 'ease-out' }); }
+        update();
+      });
+    }
+    update();
+  });
   observer.observe(stage);
   const resizer = new ResizeObserver(resize);
   resizer.observe(stage);
@@ -97,7 +120,7 @@ export function createDust(stage, { scene, amount = 1 }) {
     // The pointer, -1..1 across the stage, sways the motes by their depth.
     point(x, y) { pointer.x = x; pointer.y = y; },
     dispose() {
-      running = false; cancelAnimationFrame(raf);
+      disposed = true; running = false; cancelAnimationFrame(raf);
       observer.disconnect(); resizer.disconnect();
       document.removeEventListener('visibilitychange', update);
       back.remove(); front.remove();

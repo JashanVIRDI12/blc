@@ -6,6 +6,7 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import { Reflector } from 'three/addons/objects/Reflector.js';
+import './area-lights.js';
 import { loadCar } from './car.js';
 import { models } from './models.js';
 import { vehicleParts } from './vehicle-parts.js';
@@ -17,9 +18,13 @@ import { carCorners, fitFrame, frameCamera } from './about-framing.js';
 import { createRenderDensity } from './render-density.js';
 import { createDust } from './dust.js';
 import { createStudioOutput } from './studio-output.js';
+import { stir, calm, breath, lull } from './idle.js';
+import { gpuDone } from './compile.js';
 gsap.registerPlugin(ScrollTrigger);
 
 const PINNED = 2.2; // viewport heights the section stays pinned
+const SETTLE = 160; // ms without movement before the picture is drawn in full
+const REHEARSAL = .58; // a playhead at which every lamp, pool and glow is lit
 const TALL = matchMedia('(max-width: 760px), (max-aspect-ratio: 4/5)');
 const DARK = [10, 10, 11], WHITE = [255, 255, 255];
 // Broad softboxes reveal the bodywork without lifting the black background.
@@ -120,6 +125,15 @@ function lampAnchors(car, headlamps) {
 // carry no names and open nothing. Models load
 // in the background; until then, and without WebGL, the section keeps its
 // stills. Throws when WebGL is unavailable.
+//
+// Keeping it at the screen's frame rate: the picture changes only while the
+// section is pinned (LIGHTS.still), so rising into view and scrolling away
+// cost nothing; frames the scroll is driving are drawn `quick`
+// (studio-output.js) and the floor's reflection every other one of them, and
+// the full frame follows once the picture rests; a light that is off costs
+// nothing (area-lights.js). The cars are prepared in turns (idle.js), down to
+// a rehearsal of the first frame, so neither the film above nor the first
+// frame here waits on them.
 export function createLightsOn(section, { reduced = false } = {}) {
   const stage = section.querySelector('.fleet-stage');
   const canvas = stage.querySelector('canvas');
@@ -170,8 +184,9 @@ export function createLightsOn(section, { reduced = false } = {}) {
   scene.add(hemisphere, key, fill, rim);
   const camera = new THREE.PerspectiveCamera(30, 1, .5, 160);
   camera.layers.enable(DECALS);
-  // A few motes in the beams, not a starfield.
-  const dust = reduced ? null : createDust(stage, { scene: canvas, amount: .28 });
+  // A few motes in the beams, not a starfield. They start once the page is
+  // still: the stage scrolls into view under the film's last frames.
+  const dust = reduced ? null : createDust(stage, { scene: canvas, amount: .28, when: () => lull(Infinity) });
   const flood = stage.querySelector('.fleet-flood');
 
   // Soft sprites drawn once: a round pool, a headlamp's flare, its beam.
@@ -241,6 +256,10 @@ export function createLightsOn(section, { reduced = false } = {}) {
     // Its view of the room leaves out the marks on the floor.
     const reflectionCamera = floor.getReflectionCamera.bind(floor);
     floor.getReflectionCamera = viewer => { const mirror = reflectionCamera(viewer); mirror.layers.set(0); return mirror; };
+    // The mirror is the whole scene drawn a second time. Soft and faint as
+    // it is, a quick frame may keep the one before's (`mirrorHeld`).
+    const reflect = floor.onBeforeRender;
+    floor.onBeforeRender = function (...view) { if (!mirrorHeld) reflect.apply(this, view); };
     backdrop.add(floor);
   }
   scene.add(backdrop);
@@ -270,6 +289,11 @@ export function createLightsOn(section, { reduced = false } = {}) {
   const shown = { value: 0 };
   let size = { w: 1, h: 1 }, fit = { zoom: 1, offset: [0, 0] };
   let active = false, ready = false, rendered = false, dirty = true, raf = 0, dark = null, background = '', floodState = '';
+  // `pictured` is the playhead the picture was last set for. While it is
+  // `moving`, frames are drawn quick; `settle` waits for it to rest.
+  // Until the full frame's own pipelines are built (rehearse()), every frame
+  // is a quick one.
+  let pictured = -1, moving = false, settle = 0, mirrorHeld = false, mirrorFresh = false, drawnQuick = false, fullReady = false;
   const fade = { line: 0, full: 0 };
   const density = createRenderDensity({ mobile: innerWidth <= 760 });
   let ratio = density.ratio(innerWidth, innerHeight);
@@ -289,23 +313,38 @@ export function createLightsOn(section, { reduced = false } = {}) {
       bay.panel.lookAt(x, 0, z);
       bay.pool.position.set(x, .005, z);
       const car = vehicles.get(id);
-      if (car) { car.holder.position.set(x, 0, z); car.holder.rotation.y = yaw; }
+      if (car) { car.holder.position.set(x, 0, z); car.holder.rotation.y = yaw; car.holder.updateMatrix(); }
     }
   }
   place();
 
-  function invalidate() { dirty = true; if (!raf && active && ready && !disposed && !document.hidden) raf = requestAnimationFrame(draw); }
+  // A changed picture is drawn at once, on screen or off: the scroll changes
+  // it only while the stage is pinned, and whatever else does (the window's
+  // size, the full frame once the picture rests) should not be left to land
+  // on the frame in which the stage scrolls back into view.
+  function schedule() { if (!raf && dirty && ready && !disposed && !document.hidden) raf = requestAnimationFrame(draw); }
+  function invalidate() { dirty = true; schedule(); }
   function draw(now) {
     raf = 0;
-    if (!dirty || !active || !ready || disposed) return;
+    if (!dirty || !ready || disposed) return;
     dirty = false;
     if (density.slow(now) && density.step(size.w, size.h)) { ratio = density.ratio(size.w, size.h); applySize(); }
-    output.render(scene, camera);
+    paint();
+  }
+  function paint() {
+    drawnQuick = output.quality.quick && (moving || !fullReady);
+    mirrorHeld = drawnQuick && mirrorFresh; mirrorFresh = !mirrorHeld;
+    output.render(scene, camera, drawnQuick);
+    mirrorHeld = false;
     if (!rendered) { rendered = true; stage.classList.add('is-rendered'); }
   }
+  // The picture is on the move: quick frames until it has rested for a moment.
+  function unsettle() { moving = true; clearTimeout(settle); settle = setTimeout(rest, SETTLE); }
+  function rest() { moving = false; if (drawnQuick && fullReady) invalidate(); }
   function applySize() {
     renderer.setPixelRatio(ratio); renderer.setSize(size.w, size.h, false);
     output.setSize(canvas.width, canvas.height);
+    mirrorFresh = false;
     if (floor) {
       const w = Math.max(1, Math.round(canvas.width / 4)), h = Math.max(1, Math.round(canvas.height / 4));
       floor.getRenderTarget().setSize(w, h); floor.material.uniforms.texel.value.set(1 / w, 1 / h);
@@ -318,6 +357,8 @@ export function createLightsOn(section, { reduced = false } = {}) {
     if (disposed) return;
     const wanted = TALL.matches ? 'tall' : 'wide';
     if (wanted !== view) { view = wanted; place(); }
+    // A window being dragged to a new size: quick frames until it stops.
+    if (rendered) unsettle();
     size = { w: canvas.clientWidth || innerWidth, h: canvas.clientHeight || innerHeight };
     ratio = density.ratio(size.w, size.h); applySize();
     const { w, h } = size, tall = view === 'tall';
@@ -331,7 +372,7 @@ export function createLightsOn(section, { reduced = false } = {}) {
     // and is gone by their bar (in the target's pixels, from the bottom).
     fade.line = (h - copy.offsetTop) * ratio;
     fade.full = Math.max(fade.line + 24 * ratio, (h - fit.bounds.bottom) * ratio);
-    render();
+    render(true);
   }
 
   // Everything the light does at a playhead.
@@ -347,10 +388,12 @@ export function createLightsOn(section, { reduced = false } = {}) {
     ids.forEach((id, i) => {
       const bay = bays.get(id), own = bayLevel(p, i), level = Math.max(own, roomUp);
       bay.panel.intensity = level * mix(LIGHT.panelDark, LIGHT.panelLit);
-      bay.pool.material.opacity = own * LIGHT.pool * (1 - roomUp);
+      // A pool, beam or glow that has faded out is not drawn at all: these
+      // are large blended planes.
+      bay.pool.material.opacity = own * LIGHT.pool * (1 - roomUp); bay.pool.visible = bay.pool.material.opacity > .002;
       const entry = vehicles.get(id);
       if (!entry) return;
-      entry.beams.forEach(beam => { beam.material.opacity = LIGHT.beam * Math.max(0, 1 - roomUp * 2.2); });
+      entry.beams.forEach(beam => { beam.material.opacity = LIGHT.beam * Math.max(0, 1 - roomUp * 2.2); beam.visible = beam.material.opacity > .002; });
       // A lamp glares only towards the camera it faces; seen from the side
       // it dims, as a real one does.
       const yaw = marks[id].yaw;
@@ -358,20 +401,20 @@ export function createLightsOn(section, { reduced = false } = {}) {
         flare.getWorldPosition(lamp);
         const facing = (Math.sin(yaw) * (camera.position.x - lamp.x) + Math.cos(yaw) * (camera.position.z - lamp.z)) / Math.hypot(camera.position.x - lamp.x, camera.position.z - lamp.z);
         const f = Math.min(1, Math.max(0, (facing - .55) / .3));
-        flare.material.opacity = lamps * LIGHT.flare * f * f * (3 - 2 * f);
+        flare.material.opacity = lamps * LIGHT.flare * f * f * (3 - 2 * f); flare.visible = flare.material.opacity > .002;
       });
       entry.shadow.opacity = LIGHT.shadow * Math.max(.22, roomUp, own * .7);
       entry.car.setHeadlights(.25 + lamps * .75);
     });
     // The sign: lit throughout, its glow fading as the room comes up.
     signMark.opacity = signMark.map ? 1 : 0;
-    signGlow.opacity = LIGHT.signGlow * (1 - roomUp);
+    signGlow.opacity = LIGHT.signGlow * (1 - roomUp); glowPlane.visible = signGlow.opacity > .002;
     // The dark room: the cove brightens a little with every bay that comes
     // up; the gloss and the cove give way to the white.
     const lit = ids.reduce((sum, id, i) => sum + bayLevel(p, i), 0) / ids.length, dim = 1 - roomUp;
     cove.material.color.copy(coveColor).multiplyScalar(LIGHT.cove * (.5 + .5 * lit));
     cove.material.opacity = dim; cove.visible = dim > .002;
-    wash.material.opacity = LIGHT.wash * (.45 + .55 * lit) * dim;
+    wash.material.opacity = LIGHT.wash * (.45 + .55 * lit) * dim; wash.visible = dim > .002;
     if (floor) {
       const { uniforms } = floor.material;
       uniforms.gloss.value = LIGHT.gloss + (LIGHT.glossLit - LIGHT.gloss) * roomUp;
@@ -403,19 +446,32 @@ export function createLightsOn(section, { reduced = false } = {}) {
   let wordsShown = false;
   const showWords = on => { if (on === wordsShown) return; wordsShown = on; on ? words.timeScale(1).play() : words.timeScale(1.8).reverse(); };
 
-  function render() {
+  // Set the picture for the playhead. `anew` when something besides the
+  // playhead has changed it (the frame's size, the cars arriving).
+  function render(anew = false) {
     if (disposed) return;
     const p = playhead.progress;
-    // The camera's own framing while it tracks; the fitted frame as it
-    // swings back to see them all.
-    const t = smooth(interval(p, LIGHTS.room[0], LIGHTS.anchor));
-    frameCamera(camera, paths[view](p), size.w, size.h, { zoom: 1 + (fit.zoom - 1) * t, offset: fit.offset.map(v => v * t) });
-    light(p);
     // With the stills standing in, the words are set as soon as the stage is
     // well into view.
     showWords(p >= LIGHTS.words || (shown.value < .5 && p > .12));
-    invalidate();
     if (import.meta.env.DEV) window.__fleetProgress = p;
+    // Outside the pinned run the picture holds: the same frame serves, and
+    // the page carries it.
+    const at = Math.min(Math.max(p, LIGHTS.still[0]), LIGHTS.still[1]);
+    if (at !== pictured && pictured >= 0) { stir(); unsettle(); }
+    // Still scrolling, though the picture holds: the full frame can wait.
+    else if (moving) unsettle();
+    if (at === pictured && !anew) return;
+    pictured = at;
+    aim(at);
+    light(at);
+    invalidate();
+  }
+  // The camera's own framing while it tracks; the fitted frame as it swings
+  // back to see them all.
+  function aim(at) {
+    const t = smooth(interval(at, LIGHTS.room[0], LIGHTS.anchor));
+    frameCamera(camera, paths[view](at), size.w, size.h, { zoom: 1 + (fit.zoom - 1) * t, offset: fit.offset.map(v => v * t) });
   }
 
   const pin = ScrollTrigger.create({ trigger: section, start: 'top top', end: () => `+=${innerHeight * PINNED}`, pin: true, anticipatePin: 1, invalidateOnRefresh: true });
@@ -423,7 +479,7 @@ export function createLightsOn(section, { reduced = false } = {}) {
     scrollTrigger: {
       trigger: section, start: 'top bottom', end: () => `+=${innerHeight * (1 + PINNED) + section.offsetHeight}`,
       scrub: .7, invalidateOnRefresh: true,
-      onToggle: self => { active = self.isActive; if (active) invalidate(); },
+      onToggle: self => { active = self.isActive; },
       onRefresh: self => { active = self.isActive; layout(); },
     },
   }).to(playhead, { progress: 1, duration: 1, ease: 'none', onUpdate: render });
@@ -433,15 +489,29 @@ export function createLightsOn(section, { reduced = false } = {}) {
     if (smoother) smoother.scrollTo(y, !instant); else window.scrollTo({ top: y, behavior: instant ? 'instant' : 'smooth' });
   }
 
-  const nextFrame = () => new Promise(resolve => requestAnimationFrame(() => resolve()));
+  // One car at a time, each in turns (idle.js), so the film playing above
+  // never waits on them. A heavy step waits for the page to be still: less
+  // long the nearer the stage comes, and not at all once it is in view, where
+  // the visitor is waiting on the cars.
+  const patience = base => {
+    if (active) return 0;
+    const trigger = timeline.scrollTrigger, away = (trigger.start - trigger.scroll()) / innerHeight;
+    return base * Math.min(1, Math.max(0, away / 2.5));
+  };
+  const turn = (base = 200) => active ? breath() : lull(patience(base));
   async function load() {
     const loader = new THREE.TextureLoader();
-    await Promise.all(lightsVehicles.map(async ({ id, paint }) => {
+    // Not over the film's opening title, if the visitor is watching it.
+    await turn(1200);
+    if (disposed) return;
+    for (const { id, paint } of lightsVehicles) {
       const item = showcase.find(entry => entry.id === id);
       // Each car wears Baba's dealer plates, as the film's GLS does.
       const spec = { ...models[id], partMap: vehicleParts[id] };
-      const [car, shadowTexture] = await Promise.all([loadCar(spec, paint ?? item.paint, { invalidate }), loader.loadAsync(spec.shadow)]);
+      const [car, shadowTexture] = await Promise.all([loadCar(spec, paint ?? item.paint, { invalidate, pace: turn }), loader.loadAsync(spec.shadow)]);
       textures.push(shadowTexture);
+      if (disposed) return;
+      await turn();
       if (disposed) return;
       filterTexture(shadowTexture, anisotropy);
       const filtered = new Set();
@@ -471,22 +541,34 @@ export function createLightsOn(section, { reduced = false } = {}) {
       holder.add(car.root, ground, ...flares, ...beams);
       car.setCabinLight(.55);
       car.root.traverse(node => { if (node.isRectAreaLight) node.visible = false; });
+      // Parked: nothing on these cars moves, so their matrices are set once
+      // (place() moves the car as a whole).
+      holder.traverse(node => { node.updateMatrix(); node.matrixAutoUpdate = false; });
       vehicles.set(id, { car, holder, shadow, flares, beams });
       scene.add(holder);
-    }));
+    }
     if (disposed) return;
     place();
-    render();
+    render(true);
     await studio;
     if (disposed) return;
     await warm();
     if (disposed) return;
+    // The first frame, in a still moment unless the stage is already in view.
+    if (!active) await turn(600);
+    if (disposed) return;
     ready = true;
-    // Arriving unseen, the cars are simply there; arriving in view, the
-    // stills give way to them as the canvas fades in (fleet.css).
-    if (active) gsap.to(shown, { value: 1, duration: 1.2, ease: 'power2.inOut', onUpdate: render });
+    // Arriving in view, the stills give way to the cars as the canvas fades
+    // in (fleet.css). Arriving unseen, they are simply there: the first frame
+    // is drawn now, so the stage scrolls into view already showing it.
+    if (active) gsap.to(shown, { value: 1, duration: 1.2, ease: 'power2.inOut', onUpdate: () => { unsettle(); render(true); } });
     else shown.value = 1;
-    render();
+    render(true);
+    // The full frame's pipelines, at leisure: quick frames serve until then.
+    if (output.quality.quick) { await rehearse(false); output.release(); }
+    if (disposed) return;
+    fullReady = true;
+    if (!moving && drawnQuick) invalidate();
   }
   // Everything the first frames need, a little at a time, while the film
   // still plays above: each car's programs, compiled for the HDR target they
@@ -495,34 +577,92 @@ export function createLightsOn(section, { reduced = false } = {}) {
   // first frame in view built every program and uploaded every texture at
   // once, freezing the page just as the visitor scrolled into the section.
   async function warm() {
+    // Every program is asked for first: the browser builds them on its own
+    // threads while the textures go up.
+    const programs = [];
     for (const { holder } of vehicles.values()) {
-      await output.compile(holder, camera, scene);
+      await turn();
       if (disposed) return;
+      programs.push(output.compile(holder, camera, scene));
+    }
+    await turn();
+    if (disposed) return;
+    programs.push(output.compile(scene, camera));
+    for (const { holder } of vehicles.values()) {
       await upload(holder);
       if (disposed) return;
     }
-    await output.compile(scene, camera);
-    if (!disposed) await upload(scene);
+    await upload(scene);
+    if (disposed) return;
+    await Promise.all(programs);
+    if (disposed) return;
+    await rehearse(output.quality.quick);
   }
+  // A large texture is a step of its own, taken when the page is still;
+  // small ones go a few to a frame.
+  const sent = new Set();
   async function upload(root) {
     const maps = new Set();
-    root.traverse(node => [node.material].flat().forEach(material => material && Object.values(material).forEach(value => { if (value?.isTexture) maps.add(value); })));
-    let n = 0;
+    root.traverse(node => [node.material].flat().forEach(material => material && Object.values(material).forEach(value => { if (value?.isTexture && !sent.has(value)) maps.add(value); })));
+    let small = 0;
     for (const texture of maps) {
-      renderer.initTexture(texture);
-      if (++n % 4 === 0) { await nextFrame(); if (disposed) return; }
+      const { width = 0, height = 0 } = texture.image ?? {};
+      if (width * height >= 512 * 512) await turn(120); else if (++small % 4 === 0) await breath();
+      if (disposed) return;
+      renderer.initTexture(texture); sent.add(texture);
     }
-    await nextFrame();
+    await breath();
   }
-  const loaded = load().catch(error => { console.error('The lights-on drive is unavailable; keeping the stills.', error); shown.value = 0; render(); });
+  // A mesh's geometry is sent to the GPU, and the pipeline that draws it
+  // into a given target built, only when it is first drawn there. All
+  // together, on the stage's first frame, that froze the page: a fifth of a
+  // second with the browser's shader cache warm, over two seconds on a first
+  // visit, just as the stage scrolled into view. So the scene is drawn through
+  // once here, unseen, a few meshes at a time, from the last frame's camera,
+  // which sees every car; the faded pools and glows are in it too. The GPU is
+  // never asked for more than it has finished: each batch waits on the one
+  // before, and batches grow while they come back quickly and shrink when one
+  // was slow. Slow batches (pipelines being built for the first time) wait
+  // for the page to be still; the full frame's, which is only ever shown at
+  // rest, always do.
+  async function rehearse(quick) {
+    const parts = new Set();
+    scene.traverseVisible(node => { if (node.isMesh || node.isSprite) parts.add(node); });
+    for (const bay of bays.values()) parts.add(bay.pool);
+    for (const { flares, beams } of vehicles.values()) for (const glow of [...flares, ...beams]) parts.add(glow);
+    for (const glow of [wash, cove, glowPlane]) parts.add(glow);
+    const queue = [...parts];
+    let count = 2, slow = false;
+    for (let next = 0; next < queue.length && !disposed;) {
+      if (!quick) await lull(Infinity);
+      else if (slow && !active && !calm()) await lull(patience(4000));
+      if (disposed) break;
+      const batch = new Set(queue.slice(next, next + count));
+      next += batch.size;
+      const shown = queue.map(part => part.visible);
+      for (const part of queue) part.visible = batch.has(part);
+      frameCamera(camera, paths[view](LIGHTS.anchor), size.w, size.h, fit);
+      output.rehearse(scene, camera, quick);
+      queue.forEach((part, i) => { part.visible = shown[i]; });
+      if (pictured >= 0) aim(pictured);
+      // The floor's mirror now holds this batch alone.
+      mirrorFresh = false;
+      const waited = await gpuDone(renderer);
+      slow = waited > 40;
+      count = waited < 16 ? Math.min(count * 2, quick ? 32 : 12) : slow ? Math.max(1, count >> 1) : count;
+    }
+  }
+  const loaded = load().catch(error => { console.error('The lights-on drive is unavailable; keeping the stills.', error); shown.value = 0; render(true); });
 
   const resizeObserver = new ResizeObserver(() => { if (!disposed) layout(); });
   resizeObserver.observe(canvas); resizeObserver.observe(copy);
   const onVisible = () => { if (!document.hidden) invalidate(); };
   document.addEventListener('visibilitychange', onVisible);
-  const onLost = event => { event.preventDefault(); ready = false; rendered = false; stage.classList.remove('is-rendered'); gsap.killTweensOf(shown); shown.value = 0; render(); };
+  const onLost = event => { event.preventDefault(); ready = false; rendered = false; stage.classList.remove('is-rendered'); gsap.killTweensOf(shown); shown.value = 0; render(true); };
   canvas.addEventListener('webglcontextlost', onLost);
   layout();
+  // The home page's loader still covers the page here.
+  output.prime();
 
   const api = {
     loaded,
@@ -536,7 +676,7 @@ export function createLightsOn(section, { reduced = false } = {}) {
     }),
     setProgress(p) { playhead.progress = p; render(); },
     dispose() {
-      disposed = true; cancelAnimationFrame(raf); gsap.killTweensOf(shown);
+      disposed = true; cancelAnimationFrame(raf); clearTimeout(settle); gsap.killTweensOf(shown);
       words.kill(); pin.kill(true); timeline.scrollTrigger?.kill(); timeline.kill();
       resizeObserver.disconnect(); document.removeEventListener('visibilitychange', onVisible);
       canvas.removeEventListener('webglcontextlost', onLost);
@@ -558,9 +698,21 @@ export function createLightsOn(section, { reduced = false } = {}) {
   };
   if (import.meta.env.DEV) window.__fleet = {
     snapshot: api.snapshot, setProgress: api.setProgress, scrollTo: p => scrollTo(p, true),
-    tune(values) { Object.assign(LIGHT, values); renderer.toneMappingExposure = LIGHT.exposure; scene.environmentRotation.y = LIGHT.rotation; render(); return { ...LIGHT }; },
+    tune(values) { Object.assign(LIGHT, values); renderer.toneMappingExposure = LIGHT.exposure; scene.environmentRotation.y = LIGHT.rotation; render(true); return { ...LIGHT }; },
     // The gloss floor on or off, to weigh its cost.
-    reflection(on) { if (floor) { floor.visible = on; render(); } return Boolean(floor?.visible); },
+    reflection(on) { if (floor) { floor.visible = on; render(true); } return Boolean(floor?.visible); },
+    // Milliseconds a frame costs, drawn `frames` times over, full or quick:
+    // the page's own share (cpu), and with the GPU's (total; reading a pixel
+    // back waits on it).
+    bench(frames = 30, quick = false) {
+      const gl = renderer.getContext(), pixel = new Uint8Array(4), was = moving;
+      let cpu = 0;
+      const started = performance.now();
+      moving = quick;
+      for (let i = 0; i < frames; i++) { const t = performance.now(); paint(); cpu += performance.now() - t; gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel); }
+      moving = was;
+      return { cpu: +(cpu / frames).toFixed(2), total: +((performance.now() - started) / frames).toFixed(2) };
+    },
   };
   return api;
 }
