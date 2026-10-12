@@ -12,6 +12,7 @@ export const showroomRoom = {
     { id: 'front', z: 13.25, x: [-2.701, 2.701], height: 2.7 },
   ],
   // The lit Baba logo on the back (rear) wall, right of the drive-in
-  // doorway: centre x and height, and width (1200 x 376 artwork).
-  logo: { x: 6.3, y: 1.95, width: 3.4, aspect: 1200 / 376 },
+  // doorway, clear of the opening headline as the camera starts moving:
+  // centre x and height, and width (1200 x 376 artwork).
+  logo: { x: 7.5, y: 1.95, width: 3.4, aspect: 1200 / 376 },
 };

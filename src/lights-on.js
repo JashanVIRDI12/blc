@@ -673,6 +673,7 @@ export function createLightsOn(section, { reduced = false } = {}) {
       lights: ids.map((id, i) => +bayLevel(playhead.progress, i).toFixed(3)),
       words: wordsShown, pinned: pin.isActive,
       quality: { ...output.quality, anisotropy, pixelRatio: ratio },
+      rendering: { moving, fullReady, quick: drawnQuick },
     }),
     setProgress(p) { playhead.progress = p; render(); },
     dispose() {

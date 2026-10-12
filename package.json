@@ -20,6 +20,7 @@
     "test": "node --test tools/*.test.mjs",
     "audit:models": "node tools/audit-models.mjs",
     "check:browser": "node tools/browser-check.mjs",
+    "check:home": "node tools/home-performance.mjs",
     "db:schema": "supabase db query --linked --project-ref eitkxfwcbjgzmzcpkyuq -f supabase/schema.sql",
     "db:config": "supabase config diff --project-ref eitkxfwcbjgzmzcpkyuq"
   },

@@ -101,7 +101,11 @@ Every car wears a dealer number plate front and rear: black acrylic with the Bab
 
 ## Performance
 
-Both 3D stages render at one constant sharpness, moving or still (`src/render-density.js`): the screen's own density up to 2×, and on desktop screens below 2× the frame is supersampled towards 2× within a pixel budget (a 1440 × 920 Retina frame), so a 1× monitor gets smooth edges and fine detail rather than MSAA alone. MSAA stays on throughout, and car textures are filtered anisotropically. The showroom is lit by one area light, the luminous ceiling; the room's captured reflections (512 px on larger screens) and a hemisphere fill supply the wall bounce. Every area light is shaded for every car pixel, so dropping the wall lights is what makes full sharpness affordable. The floor is honed stone with no planar mirror over it: a small, mip-blurred reflection stepped and shimmered as the camera moved, ghosting the wheels across the tiles, made the stone read as wet glass, and cost a second scene render every frame; the floor's own soft sheen of the captured room and the baked contact shadows ground the car. A device that still cannot keep up steps its density down, for good, never below 1.5×: only sustained slowness counts, never the warm-up frames while textures upload. Compressed meshes decode on background workers, so the About cars arriving mid-film never stall a frame. Blurred glass is never layered over a moving 3D stage.
+The homepage film and lights-on collection keep the same render density while moving and at rest (`src/render-density.js`): native density up to 2×, with desktop supersampling towards 2× within a pixel budget. Sustained slowness can lower desktop supersampling once per measurement window, down to native density or 1.5×, whichever is higher; phones retain their target density. Car textures use anisotropic filtering. The hero retains MSAA throughout. The collection uses SMAA while scrolling and adds MSAA after settling; phones retain MSAA throughout. Its full HDR render target is released between still frames, and its reflection is reused on alternate moving frames. Geometry and model textures are unchanged.
+
+The hero rehearses its inspection shots behind the loader. The collection loads one car at a time, uploads textures in batches, compiles shaders for its actual HDR target, and rehearses geometry in small batches before appearing. Background work yields around active scrolling (`src/idle.js`); About waits for the collection to load. Area-light shading shares view and roughness calculations across lights and skips lights that are off (`src/area-lights.js`). Dust starts in a quiet moment, uses a smaller canvas, and pauses off screen. Hidden film captions no longer rewrite identical styles on every frame. See [homepage performance notes](docs/HOME-PERFORMANCE.md) for research, measurements and limits.
+
+The showroom uses one ceiling area light, captured room reflections and a hemisphere fill. Its stone floor uses the captured environment and baked contact shadows instead of a planar mirror. Blurred glass is never layered over a moving 3D stage.
 
 Every page's stylesheets are linked from its `<head>`, not imported by its script, so a page is never painted without them (in development Vite injects script-imported CSS only once the script has run, and the bare HTML showed for a moment). On the About page the hero's words arrive at once and are animated by the browser (the Web Animations API), so they come up smoothly while the stage behind them is built; the cover's settling runs a few steps to a frame; the figures' display is made only once the hero has loaded; and shaders are compiled ahead without holding the page (`src/compile.js`): where the browser cannot say when a program is ready (Firefox has no `KHR_parallel_shader_compile`), three's `compileAsync` returns at once and the first frame then waits on every program, so a fence is set behind the compile commands in the GPU's queue and watched instead. In Firefox the hero's words used to appear after about five seconds, with freezes of up to 1.6 s; they now start within half a second, and the longest freeze is about 0.4 s.
 
@@ -180,11 +184,15 @@ Use Node 22+ with Vite and a local Chrome debugging session:
 "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome" --headless --remote-debugging-port=9222 --user-data-dir=/tmp/baba-browser-review --no-first-run about:blank
 npm run check:browser
 npm run check:browser -- --smoke --retina
+npm run check:home -- http://127.0.0.1:5174
+npm run check:home -- http://127.0.0.1:5174 --mobile
 npm run stills
 STILLS=gls npm run stills   # only the listed showcase IDs
 ```
 
 The existing `FORMA_SITE_URL`, `FORMA_CDP_URL` and `FORMA_REVIEW_DIR` environment overrides remain compatible. Screenshots default to `/tmp/baba-review`. The checks never send enquiries to a configured endpoint.
+
+`check:home` measures frame gaps through the first two sections and back, then checks collection readiness, scroll reversal, overflow and browser exceptions. Use Vite or an instrumented bundle (`NODE_ENV=development npx vite build --outDir /tmp/baba-perf`) for its scene hooks. `WAIT=600` starts scrolling soon after the loader, `--cold-network` disables the HTTP cache, and `BLC_PERF_REPORT=/tmp/home-performance.json` saves the report. Run screenshots separately from timing and avoid other GPU-heavy tabs.
 
 Reduced motion skips the film and all GLB downloads. Loading failures, WebGL failure and context loss retain the practical site and vehicle stills. Local fonts and models avoid third-party runtime requests. Rendering stops when unchanged or hidden.
 

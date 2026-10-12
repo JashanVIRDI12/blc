@@ -1,0 +1,418 @@
+{
+  "recordedDate": "2026-10-12",
+  "description": "Local homepage frame-cadence traces. Desktop pause: 4000 ms. Phone pause: 600 ms, HTTP cache disabled. Shader caches not controlled. Screenshots captured separately.",
+  "chrome": {
+    "original": {
+      "date": "2026-10-12T12:01:38.735Z",
+      "url": "http://127.0.0.1:5197",
+      "viewport": {
+        "width": 1440,
+        "height": 820,
+        "dpr": 2,
+        "mobile": false
+      },
+      "loaderMs": 2915,
+      "pauseMs": 4000,
+      "coldNetwork": false,
+      "readyOnArrival": true,
+      "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+      "film": {
+        "frames": 587,
+        "averageMs": 20,
+        "p95Ms": 16.7,
+        "p99Ms": 16.8,
+        "maxMs": 1950,
+        "over50Ms": 2,
+        "over100Ms": 1,
+        "longTasks": 1,
+        "longestTaskMs": 1956
+      },
+      "fleet": {
+        "frames": 356,
+        "averageMs": 25.1,
+        "p95Ms": 49.9,
+        "p99Ms": 83.3,
+        "maxMs": 149.9,
+        "over50Ms": 12,
+        "over100Ms": 1,
+        "longTasks": 0,
+        "longestTaskMs": 0
+      },
+      "back": {
+        "frames": 659,
+        "averageMs": 19.6,
+        "p95Ms": 33.4,
+        "p99Ms": 50.1,
+        "maxMs": 83.3,
+        "over50Ms": 8,
+        "over100Ms": 0,
+        "longTasks": 0,
+        "longestTaskMs": 0
+      },
+      "afterLoader": {
+        "frames": 239,
+        "averageMs": 16.8,
+        "p95Ms": 16.7,
+        "p99Ms": 16.8,
+        "maxMs": 50,
+        "over50Ms": 0,
+        "over100Ms": 0,
+        "longTasks": 1,
+        "longestTaskMs": 57
+      },
+      "quality": {
+        "hdr": true,
+        "smaa": true,
+        "samples": 4,
+        "anisotropy": 16,
+        "pixelRatio": 2
+      },
+      "filmDpr": 2,
+      "checks": {
+        "fleet": true,
+        "reversal": true,
+        "overflow": true,
+        "exceptions": true
+      }
+    },
+    "updated": {
+      "date": "2026-10-12T12:00:03.601Z",
+      "url": "http://127.0.0.1:5196",
+      "viewport": {
+        "width": 1440,
+        "height": 820,
+        "dpr": 2,
+        "mobile": false
+      },
+      "loaderMs": 1741,
+      "pauseMs": 4000,
+      "coldNetwork": false,
+      "readyOnArrival": true,
+      "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+      "film": {
+        "frames": 591,
+        "averageMs": 16.8,
+        "p95Ms": 16.7,
+        "p99Ms": 16.8,
+        "maxMs": 66.7,
+        "over50Ms": 1,
+        "over100Ms": 0,
+        "longTasks": 0,
+        "longestTaskMs": 0
+      },
+      "fleet": {
+        "frames": 530,
+        "averageMs": 16.8,
+        "p95Ms": 16.7,
+        "p99Ms": 16.8,
+        "maxMs": 66.7,
+        "over50Ms": 2,
+        "over100Ms": 0,
+        "longTasks": 0,
+        "longestTaskMs": 0
+      },
+      "back": {
+        "frames": 759,
+        "averageMs": 17,
+        "p95Ms": 16.7,
+        "p99Ms": 33.3,
+        "maxMs": 116.7,
+        "over50Ms": 3,
+        "over100Ms": 1,
+        "longTasks": 0,
+        "longestTaskMs": 0
+      },
+      "afterLoader": {
+        "frames": 240,
+        "averageMs": 16.7,
+        "p95Ms": 16.8,
+        "p99Ms": 16.8,
+        "maxMs": 16.8,
+        "over50Ms": 0,
+        "over100Ms": 0,
+        "longTasks": 0,
+        "longestTaskMs": 0
+      },
+      "quality": {
+        "hdr": true,
+        "smaa": true,
+        "samples": 4,
+        "quick": true,
+        "anisotropy": 16,
+        "pixelRatio": 2
+      },
+      "filmDpr": 2,
+      "checks": {
+        "fleet": true,
+        "reversal": true,
+        "overflow": true,
+        "exceptions": true
+      }
+    },
+    "phone": {
+      "date": "2026-10-12T12:05:23.459Z",
+      "url": "http://127.0.0.1:5196",
+      "viewport": {
+        "width": 390,
+        "height": 844,
+        "dpr": 3,
+        "mobile": true
+      },
+      "loaderMs": 2726,
+      "pauseMs": 600,
+      "coldNetwork": true,
+      "readyOnArrival": false,
+      "browser": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/154.0.0.0 Safari/537.36",
+      "film": {
+        "frames": 585,
+        "averageMs": 17,
+        "p95Ms": 16.8,
+        "p99Ms": 33.3,
+        "maxMs": 33.4,
+        "over50Ms": 0,
+        "over100Ms": 0,
+        "longTasks": 0,
+        "longestTaskMs": 0
+      },
+      "fleet": {
+        "frames": 536,
+        "averageMs": 16.7,
+        "p95Ms": 16.7,
+        "p99Ms": 16.8,
+        "maxMs": 16.8,
+        "over50Ms": 0,
+        "over100Ms": 0,
+        "longTasks": 0,
+        "longestTaskMs": 0
+      },
+      "back": {
+        "frames": 774,
+        "averageMs": 16.7,
+        "p95Ms": 16.8,
+        "p99Ms": 16.8,
+        "maxMs": 33.3,
+        "over50Ms": 0,
+        "over100Ms": 0,
+        "longTasks": 0,
+        "longestTaskMs": 0
+      },
+      "afterLoader": {
+        "frames": 31,
+        "averageMs": 19.4,
+        "p95Ms": 16.8,
+        "p99Ms": 100.1,
+        "maxMs": 100.1,
+        "over50Ms": 1,
+        "over100Ms": 1,
+        "longTasks": 0,
+        "longestTaskMs": 0
+      },
+      "quality": {
+        "hdr": true,
+        "smaa": false,
+        "samples": 4,
+        "quick": false,
+        "anisotropy": 8,
+        "pixelRatio": 2
+      },
+      "filmDpr": 2,
+      "checks": {
+        "fleet": true,
+        "reversal": true,
+        "overflow": true,
+        "exceptions": true
+      }
+    }
+  },
+  "firefox": {
+    "original": {
+      "date": "2026-10-12T12:03:01.300Z",
+      "url": "http://127.0.0.1:5197",
+      "label": "ORIGINAL",
+      "info": {
+        "w": 1440,
+        "h": 820,
+        "dpr": 2,
+        "smoother": true,
+        "ua": "Firefox/157.0",
+        "parallel": false
+      },
+      "loaderMs": 3521,
+      "ready0": true,
+      "readyAtFleet": {
+        "ready": true,
+        "rendered": true
+      },
+      "load": "frames 15 avg 235.5 p95 1466.7 max 1466.7 | >20ms 13 >50 12 >100 9 >500 2",
+      "settle": "frames 186 avg 22.2 p95 50 max 184.1 | >20ms 12 >50 8 >100 5 >500 0",
+      "film": "frames 585 avg 23.0 p95 16.7 max 3666.9 | >20ms 5 >50 1 >100 1 >500 1",
+      "fleet": "frames 449 avg 19.9 p95 33.3 max 133.3 | >20ms 71 >50 4 >100 2 >500 0",
+      "back": "frames 728 avg 17.8 p95 33.3 max 66.7 | >20ms 44 >50 2 >100 0 >500 0",
+      "big": [
+        [
+          371,
+          150
+        ],
+        [
+          554,
+          167
+        ],
+        [
+          871,
+          184
+        ],
+        [
+          1070,
+          182
+        ],
+        [
+          1637,
+          133
+        ],
+        [
+          17570,
+          3667
+        ],
+        [
+          21521,
+          133
+        ],
+        [
+          21671,
+          133
+        ]
+      ],
+      "snap": {
+        "hdr": true,
+        "smaa": true,
+        "samples": 4,
+        "anisotropy": 16,
+        "pixelRatio": 2
+      },
+      "logs": [
+        "warn: THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported.",
+        "error: Cookie \u201c__cf_bm\u201d has been rejected for invalid domain.",
+        "error: Cookie \u201c__cf_bm\u201d has been rejected for invalid domain."
+      ]
+    },
+    "updated": {
+      "date": "2026-10-12T12:04:05.283Z",
+      "url": "http://127.0.0.1:5196",
+      "label": "UPDATED",
+      "info": {
+        "w": 1440,
+        "h": 820,
+        "dpr": 2,
+        "smoother": true,
+        "ua": "Firefox/157.0",
+        "parallel": false
+      },
+      "loaderMs": 2519,
+      "ready0": false,
+      "readyAtFleet": {
+        "ready": true,
+        "rendered": true
+      },
+      "load": "frames 27 avg 96.9 p95 216.7 max 1133.3 | >20ms 14 >50 10 >100 5 >500 1",
+      "settle": "frames 169 avg 23.8 p95 33.3 max 566.7 | >20ms 16 >50 4 >100 4 >500 1",
+      "film": "frames 576 avg 17.3 p95 17 max 83.3 | >20ms 13 >50 3 >100 0 >500 0",
+      "fleet": "frames 524 avg 17.0 p95 17 max 83.3 | >20ms 8 >50 1 >100 0 >500 0",
+      "back": "frames 770 avg 16.8 p95 16.7 max 50 | >20ms 4 >50 0 >100 0 >500 0",
+      "big": [
+        [
+          2746,
+          567
+        ],
+        [
+          3412,
+          150
+        ],
+        [
+          3679,
+          217
+        ]
+      ],
+      "snap": {
+        "hdr": true,
+        "smaa": true,
+        "samples": 4,
+        "quick": true,
+        "anisotropy": 16,
+        "pixelRatio": 2
+      },
+      "logs": [
+        "warn: THREE.WebGLRenderer: KHR_parallel_shader_compile extension not supported."
+      ]
+    }
+  },
+  "browserReview": [
+    {
+      "name": "desktop visual and settled quality",
+      "view": "wide",
+      "quality": {
+        "hdr": true,
+        "smaa": true,
+        "samples": 4,
+        "quick": true,
+        "anisotropy": 16,
+        "pixelRatio": 2
+      },
+      "rendering": {
+        "moving": false,
+        "fullReady": true,
+        "quick": false
+      },
+      "exceptions": 0
+    },
+    {
+      "name": "phone visual",
+      "view": "tall",
+      "quality": {
+        "hdr": true,
+        "smaa": false,
+        "samples": 4,
+        "quick": false,
+        "anisotropy": 8,
+        "pixelRatio": 2
+      },
+      "rendering": {
+        "moving": false,
+        "fullReady": true,
+        "quick": false
+      },
+      "exceptions": 0
+    },
+    {
+      "name": "production normal load",
+      "rendered": true,
+      "devHooks": false,
+      "exceptions": 0
+    },
+    {
+      "name": "production reduced motion",
+      "static": true,
+      "modelDownloads": 0,
+      "exceptions": 0
+    },
+    {
+      "name": "production WebGL unavailable",
+      "static": true,
+      "cards": 6,
+      "exceptions": 0
+    },
+    {
+      "name": "production WebGL context loss",
+      "static": true,
+      "cards": 6,
+      "exceptions": 0
+    }
+  ],
+  "unitTests": {
+    "passed": 45,
+    "failed": 0
+  },
+  "productionBuild": {
+    "passed": true,
+    "warning": "Three.js chunk exceeds 500 kB"
+  }
+}
