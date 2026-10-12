@@ -137,7 +137,7 @@ async function init() {
   // ------------------------------------------- stock, beside the heading
   const forSaleCount = status => pool.filter(car => car.status === status).length;
   if (!previews) {
-    const stats = [['Available now', forSaleCount('available') + forSaleCount('reserved')], ['Arriving soon', forSaleCount('coming_soon')], ...(settings.listing.showSold ? [['Delivered', sold.length]] : [])].filter(([, n], i) => i === 0 || n > 0);
+    const stats = [['Available now', forSaleCount('available') + forSaleCount('reserved')], ['Arriving soon', forSaleCount('coming_soon')]].filter(([, n], i) => i === 0 || n > 0);
     const list = $('[data-stats]');
     list.innerHTML = stats.map(([label, n]) => `<div><dt>${label}</dt><dd>${counter(n)}</dd></div>`).join('');
     list.hidden = false;
