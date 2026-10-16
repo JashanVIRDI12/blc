@@ -17,13 +17,15 @@ import { ScrollSmoother } from 'gsap/ScrollSmoother';
 gsap.registerPlugin(ScrollTrigger);
 
 const WIDE = '(min-width: 1200px) and (min-aspect-ratio: 1/1) and (min-height: 560px)';
-// The share of the pinned scroll the closed catalogue holds before the cover
-// turns (and the last spread holds after).
-const LEAD = .1;
+// The pinned scroll, in screens: the cover turns almost as soon as the
+// catalogue settles (it has been in view, closed, all the way up), so the
+// first spread is reached in OPEN; each spread after it takes a step; the
+// last holds for HOLD before the page moves on.
+const OPEN = .25, HOLD = .4;
 // Depth between leaves lying in a stack, in pixels: enough to order them,
 // too little to see.
 const LAYER = .6;
-const OPEN = 'inset(0% 0% 0% 0%)', BELOW = 'inset(100% 0% 0% 0%)';
+const SHOWN = 'inset(0% 0% 0% 0%)', BELOW = 'inset(100% 0% 0% 0%)';
 
 export function createFeaturedMotion(section) {
   const mm = gsap.matchMedia();
@@ -64,7 +66,7 @@ function cards(section) {
     onEnter: batch => batch.forEach((card, i) => {
       const { photo, image, words } = parts(card);
       gsap.timeline({ delay: i * .12, defaults: { ease: 'expo.out' } })
-        .to(photo, { clipPath: OPEN, duration: 1.3, ease: 'expo.inOut' }, 0)
+        .to(photo, { clipPath: SHOWN, duration: 1.3, ease: 'expo.inOut' }, 0)
         .to(image, { scale: 1, duration: 1.9, clearProps: 'transform' }, .08)
         .to(words, { autoAlpha: 1, y: 0, duration: 1.1, stagger: .07, clearProps: 'transform' }, .45);
     }),
@@ -175,14 +177,16 @@ function catalogue(section, context) {
     });
   });
 
-  // The scroll: a stop for the closed catalogue and one for each spread; a
-  // scroll that comes to rest between two settles on the nearer.
-  const at = s => LEAD + (1 - 2 * LEAD) * s / n;
-  const stepAt = p => gsap.utils.clamp(0, n, Math.round((p - LEAD) / (1 - 2 * LEAD) * n));
+  // The scroll: a stop for the closed catalogue, where the pin begins, and
+  // one for each spread; the catalogue shows the stop nearest the scroll,
+  // and a scroll that comes to rest between two settles on the nearer. Each
+  // turn after the first takes most of a screen; with more than four cars a
+  // little less, so the catalogue never outstays its welcome.
+  const step = n > 4 ? .6 : .8, screens = OPEN + step * (n - 1) + HOLD;
+  const at = s => s <= 0 ? 0 : (OPEN + step * (Math.min(s, n) - 1)) / screens;
+  const stepAt = p => Array.from({ length: n + 1 }, (_, s) => s).reduce((best, s) => Math.abs(at(s) - p) < Math.abs(at(best) - p) ? s : best, 0);
   pin = ScrollTrigger.create({
-    // Each turn takes most of a screen of scroll; with more than four cars a
-    // little less, so the catalogue never outstays its welcome.
-    trigger: section, start: 'top top', end: () => `+=${Math.round(innerHeight * (.4 + (n > 4 ? .6 : .8) * n))}`,
+    trigger: section, start: 'top top', end: () => `+=${Math.round(innerHeight * screens)}`,
     pin: true, anticipatePin: 1, invalidateOnRefresh: true, refreshPriority: 0,
     // The nearest stop, not the next one along: a scroll that runs a little past
     // a spread settles back on it rather than skipping the car beyond.

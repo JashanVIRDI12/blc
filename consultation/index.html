@@ -1,0 +1,161 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="Book a one-to-one call with Baba Luxury Cars: a private conversation by phone or WhatsApp, to find the car that fits you, from our collection or found for you." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
+  <link rel="preload" href="/fonts/newsreader-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- Stylesheets are linked here, not imported by the page's script, so no page is ever painted without them. -->
+  <link rel="stylesheet" href="/src/styles.css" />
+  <link rel="stylesheet" href="/src/fx.css" />
+  <link rel="stylesheet" href="/src/consult.css" />
+  <link rel="stylesheet" href="/src/consult-page.css" />
+  <title>1:1 Consultation — One call, the right car | Baba Luxury Cars</title>
+</head>
+<body class="inner-page cp-page">
+  <a class="skip-link" href="#book">Skip to booking</a>
+<!-- @include header.html -->
+  <main id="top">
+
+    <!-- The calling card: black, gilt-edged, lying on the desk under a lamp. The scroll picks it up, turns it over and lays it beside the booking (consultation-page.js). -->
+    <section class="cp-hero" aria-labelledby="cp-title">
+      <div class="cp-hero-copy">
+        <h1 id="cp-title" class="cp-title"><span class="fl-line"><span>One call.</span></span><span class="fl-line"><span><em>The right car.</em></span></span></h1>
+        <p class="cp-lede">A private conversation with our team, to find the car that fits you: from our collection, or found for you anywhere in India.</p>
+        <div class="cp-actions">
+          <a class="consult-cta" href="#book" data-book><span>Book your call</span><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M12 5v14M6 13l6 6 6-6"/></svg></i></a>
+          <a class="text-link" data-cp-whatsapp target="_blank" rel="noopener" hidden><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M4.5 19.5 5.6 16A7.8 7.8 0 1 1 8.4 18.6z"/><path d="M9 9.5c.3 2.4 2.6 4.8 5.2 5.2l1-1.2-1.6-1-1 .8a4 4 0 0 1-2.2-2.2l.8-1-1-1.6z"/></svg>Or message us on WhatsApp</a>
+        </div>
+        <p class="cp-note">By phone or on WhatsApp, whenever suits you.</p>
+      </div>
+      <div class="cp-desk" aria-hidden="true">
+        <i class="cp-lamp"></i>
+        <div class="cp-slot cp-slot--desk" data-slot="desk">
+          <i class="cp-desk-shadow" data-desk-shadow></i>
+          <div class="cp-card cp-card--still">
+            <div class="cp-card-inner">
+              <div class="cp-face cp-front">
+                <img class="cp-front-logo" src="/brand/baba-luxury-car-800.webp" alt="" width="800" height="250" />
+                <p class="cp-front-mark"><span>1</span><i></i><span>1</span></p>
+                <p class="cp-front-line">A private consultation</p>
+                <i class="cp-foil"></i>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- The booking: the form, and the card, turned over, filling in as it is answered. -->
+    <section class="cp-book" id="book" aria-labelledby="book-title">
+      <header class="cp-book-head">
+        <h2 id="book-title"><span class="fl-line"><span>Choose</span></span><span class="fl-line"><span><em>a time.</em></span></span></h2>
+        <p>Tell us how and when to call. We’ll confirm the time with you first.</p>
+      </header>
+      <div class="cp-book-body">
+        <div class="cp-slot cp-slot--book" data-slot="book" aria-hidden="true">
+          <div class="cp-card" data-card>
+            <div class="cp-card-inner" data-card-inner>
+              <div class="cp-face cp-front">
+                <img class="cp-front-logo" src="/brand/baba-luxury-car-800.webp" alt="" width="800" height="250" />
+                <p class="cp-front-mark"><span>1</span><i></i><span>1</span></p>
+                <p class="cp-front-line">A private consultation</p>
+                <i class="cp-foil"></i>
+              </div>
+              <div class="cp-face cp-back">
+                <div class="cp-back-head"><img src="/brand/baba-luxury-car-800.webp" alt="" width="800" height="250" /><span>A private consultation</span></div>
+                <dl class="cp-lines">
+                  <div><dt>For</dt><dd data-line="name"><span>Your name</span></dd></div>
+                  <div><dt>On</dt><dd data-line="day"><span>Any day</span></dd></div>
+                  <div><dt>At</dt><dd data-line="when"><span>Any time, 11 am to 8 pm IST</span></dd></div>
+                  <div><dt>By</dt><dd data-line="callVia"><span>Phone call</span></dd></div>
+                  <div><dt>About</dt><dd data-line="about"><span>The car that fits you</span></dd></div>
+                </dl>
+                <div class="cp-back-foot"><span data-card-status>We’ll call to confirm the time.</span><i class="cp-seal" data-seal><b>Baba</b><span>Requested</span></i></div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <form class="cp-form editorial-form" data-lead-form="consultation" aria-labelledby="book-title">
+          <fieldset class="cp-field">
+            <legend>How should we call?</legend>
+            <div class="cp-vias">
+              <label class="cp-via"><input type="radio" name="callVia" value="Phone call" checked><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3.5h3l1.5 4-2 1.3a10.5 10.5 0 0 0 6.2 6.2l1.3-2 4 1.5v3a1.5 1.5 0 0 1-1.6 1.5C10.6 18.5 5.5 13.4 5 5.1a1.5 1.5 0 0 1 1.5-1.6z"/></svg>Phone call</span></label>
+              <label class="cp-via"><input type="radio" name="callVia" value="WhatsApp call"><span><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5 5.6 16A7.8 7.8 0 1 1 8.4 18.6z"/><path d="M9 9.5c.3 2.4 2.6 4.8 5.2 5.2l1-1.2-1.6-1-1 .8a4 4 0 0 1-2.2-2.2l.8-1-1-1.6z"/></svg>WhatsApp call</span></label>
+            </div>
+          </fieldset>
+          <fieldset class="cp-field">
+            <legend>Which day?</legend>
+            <div class="cp-days" data-days>
+              <label class="cp-day cp-day--any"><input type="radio" name="day" value="Any day" checked><span><b>Any</b><small>day</small></span></label>
+            </div>
+          </fieldset>
+          <fieldset class="cp-field">
+            <legend>What time?</legend>
+            <div class="cp-times" data-times>
+              <label class="cp-time"><input type="radio" name="when" value="Any time" checked><span><b>Any time</b><small>11 am – 8 pm</small></span></label>
+              <label class="cp-time"><input type="radio" name="when" value="Morning" data-ends="13"><span><b>Morning</b><small>11 am – 1 pm</small></span></label>
+              <label class="cp-time"><input type="radio" name="when" value="Afternoon" data-ends="17"><span><b>Afternoon</b><small>1 – 5 pm</small></span></label>
+              <label class="cp-time"><input type="radio" name="when" value="Evening" data-ends="20"><span><b>Evening</b><small>5 – 8 pm</small></span></label>
+            </div>
+          </fieldset>
+          <div class="form-row">
+            <label>Your name<input name="name" required maxlength="80" autocomplete="name" placeholder="Full name" /></label>
+            <label>Phone number<input name="phone" type="tel" required pattern="[+0-9 ()-]{7,22}" maxlength="22" autocomplete="tel" placeholder="Your contact number" /></label>
+          </div>
+          <fieldset class="cp-field">
+            <legend>Budget <span class="optional">(optional)</span></legend>
+            <div class="form-chips">
+              <label class="form-chip"><input type="radio" name="budget" value="" checked><span>Not sure yet</span></label>
+              <label class="form-chip"><input type="radio" name="budget" value="Under ₹50 lakh"><span>Under ₹50 lakh</span></label>
+              <label class="form-chip"><input type="radio" name="budget" value="₹50 lakh – 1 crore"><span>₹50 lakh – 1 crore</span></label>
+              <label class="form-chip"><input type="radio" name="budget" value="₹1 – 2 crore"><span>₹1 – 2 crore</span></label>
+              <label class="form-chip"><input type="radio" name="budget" value="Above ₹2 crore"><span>Above ₹2 crore</span></label>
+            </div>
+          </fieldset>
+          <label>What will the car be for? <span class="optional">(optional)</span><input name="message" maxlength="300" placeholder="City driving, family trips, long highway runs, business…" /></label>
+          <p class="form-policy">Your details are used only to arrange your call.</p>
+          <button class="consult-cta cp-submit" type="submit"><span data-submit-label>Prepare request</span><i aria-hidden="true"><svg viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg></i></button>
+          <div class="form-result" role="status" tabindex="-1" hidden></div>
+        </form>
+      </div>
+    </section>
+
+    <!-- The conversation: what we'll ask, one question at a time, read as the scroll passes. -->
+    <section class="cp-talk" aria-labelledby="talk-title">
+      <div class="cp-talk-frame" data-talk>
+        <h2 id="talk-title" class="cp-talk-title" data-talk-title>We start with you, <em>not a car.</em></h2>
+        <ol class="cp-questions" data-questions>
+          <li class="cp-question"><p class="cp-q">How do you drive?</p><p class="cp-a">Office runs in city traffic, long highway drives, weekends in the hills.</p></li>
+          <li class="cp-question"><p class="cp-q">Who rides with you?</p><p class="cp-a">The family in the back, a driver at the wheel, or just you.</p></li>
+          <li class="cp-question"><p class="cp-q">What matters most?</p><p class="cp-a">Comfort, space, performance, or how it looks in the porch.</p></li>
+          <li class="cp-question"><p class="cp-q">What’s your budget?</p><p class="cp-a">Roughly, in lakh or crore. Finance through our partners, if you wish.</p></li>
+          <li class="cp-question cp-question--end"><p class="cp-q">Then, <em>a shortlist.</em></p><p class="cp-a">The cars that fit, from our collection or found for you, with their price and history, plainly.</p></li>
+        </ol>
+        <div class="cp-talk-track" aria-hidden="true"><i data-talk-bar></i></div>
+      </div>
+    </section>
+
+    <!-- The ways to talk: one row each, inked in under the pointer. -->
+    <section class="cp-ways" aria-labelledby="ways-title">
+      <header class="cp-ways-head">
+        <h2 id="ways-title"><span class="fl-line"><span>Three ways</span></span><span class="fl-line"><span><em>to talk.</em></span></span></h2>
+        <p>The same team and the same straight answers, whichever you choose.</p>
+      </header>
+      <ul class="cp-ways-list" data-ways>
+        <li class="cp-way"><a href="#book" data-book data-via="Phone call"><span class="cp-way-name">A phone call</span><span class="cp-way-text">We call you on your number, at the time you choose.</span><span class="cp-way-go">Book a phone call<i aria-hidden="true"></i></span></a></li>
+        <li class="cp-way" data-way-whatsapp><a target="_blank" rel="noopener"><span class="cp-way-name">On WhatsApp</span><span class="cp-way-text">A call or a message, with photos and links shared as we talk.</span><span class="cp-way-go">Message us<i aria-hidden="true"></i></span></a></li>
+        <li class="cp-way" data-way-visit><a target="_blank" rel="noopener" href="https://www.google.com/maps/search/?api=1&amp;query=Baba%20Luxury%20Car%2C%20B-2%2C%20Emaya%20Mall%2C%20Paschim%20Vihar%2C%20New%20Delhi%20110063"><span class="cp-way-name">At the showroom</span><span class="cp-way-text" data-visit-text>B-2, Emaya Mall, Paschim Vihar, New Delhi. Monday to Sunday, 11 am to 8 pm.</span><span class="cp-way-go">Get directions<i aria-hidden="true"></i></span></a></li>
+      </ul>
+    </section>
+
+<!-- @include footer.html -->
+  </main>
+<!-- @include dialogs.html -->
+  <script type="module" src="/src/consultation-page.js"></script>
+</body>
+</html>

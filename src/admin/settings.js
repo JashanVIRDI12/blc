@@ -3,6 +3,7 @@
 import { $, $$, esc, toast, fail, busy, confirmDialog, icon } from './ui.js';
 import { LISTING_DEFAULTS, shownRegistration, drivenText, plateLabel } from '../listing-rules.js';
 import { conciergeGroups } from '../data.js';
+import { whatsappLines } from '../config.js';
 
 const SOLD_FACTS = [['year', 'Year'], ['fuel', 'Fuel'], ['body', 'Body'], ['transmission', 'Gearbox'], ['colour', 'Colour'], ['driven', 'Driven'], ['owners', 'Ownership']];
 
@@ -31,6 +32,10 @@ export function renderSettings(view, app) {
     </div>
     <p class="a-hint" data-concierge-preview></p>
     <div class="a-inline-actions"><button type="submit" class="a-button a-button--primary">Save the concierge</button></div></form>
+  <form class="a-card a-wa" data-wa-lines novalidate><div class="a-card-head"><h2>WhatsApp lines</h2><span class="a-hint">The WhatsApp button in the corner of every page opens a card with these lines, in this order. Each opens a chat with its number, the first message already typed.</span></div>
+    <div class="a-wa-rows" data-wa-rows></div>
+    <div class="a-inline-actions"><button type="button" class="a-button a-button--small" data-wa-add>${icon.plus}Add a line</button></div>
+    <div class="a-inline-actions"><button type="submit" class="a-button a-button--primary">Save the lines</button><button type="button" class="a-button a-button--ghost" data-wa-reset>Back to the defaults</button></div></form>
   <div class="a-two">
     <form class="a-card" data-group="contact"><h2>Contact details</h2><p class="a-hint">Shown in the footer and used by every enquiry button. Leave a field empty to hide it.</p>
       <div class="a-grid">
@@ -111,6 +116,42 @@ export function renderSettings(view, app) {
     const value = { whatsapp: conciergeForm.elements.whatsapp.value.trim(), intro: conciergeForm.elements.intro.value.trim(), services: conciergeForm.elements.services.value.split('\n').map(line => line.trim()).filter(Boolean).join('\n') };
     await busy(conciergeForm.querySelector('[type=submit]'), async () => {
       try { await app.store.saveSettings('concierge', value); app.settings.concierge = { ...app.settings.concierge, ...value }; toast('Concierge saved'); }
+      catch (error) { fail(error); }
+    });
+  });
+
+  // The WhatsApp lines: a row each, added, moved and removed here, and saved
+  // together. Until saved, the site shows the built-in lines (config.js).
+  const waForm = $('[data-wa-lines]', view), waRows = $('[data-wa-rows]', view), WA_MAX = 6;
+  const waRow = (line = {}) => `<div class="a-wa-row">
+      <label class="a-field">For<input name="label" maxlength="40" placeholder="Buy a car" value="${esc(line.label || '')}" /></label>
+      <label class="a-field">WhatsApp number<input name="number" type="tel" maxlength="22" placeholder="+91 98765 43210" value="${esc(line.number || '')}" /></label>
+      <label class="a-field a-wa-message">First message <small>Optional. Typed into the chat for the visitor to send.</small><input name="message" maxlength="200" placeholder="Hello Baba Luxury Cars, …" value="${esc(line.message || '')}" /></label>
+      <div class="a-wa-tools"><button type="button" class="a-icon-button" data-wa-move="-1" aria-label="Move up">${icon.up}</button><button type="button" class="a-icon-button" data-wa-move="1" aria-label="Move down">${icon.down}</button><button type="button" class="a-icon-button" data-wa-remove aria-label="Remove this line">${icon.trash}</button></div>
+    </div>`;
+  const waDraw = lines => {
+    waRows.innerHTML = lines.length ? lines.map(waRow).join('') : '<p class="a-hint">No lines: the WhatsApp button is hidden. Add one to show it.</p>';
+    const rows = $$('.a-wa-row', waRows);
+    rows.forEach((row, i) => { row.querySelector('[data-wa-move="-1"]').disabled = i === 0; row.querySelector('[data-wa-move="1"]').disabled = i === rows.length - 1; });
+    $('[data-wa-add]', view).disabled = rows.length >= WA_MAX;
+  };
+  const waRead = () => $$('.a-wa-row', waRows).map(row => ({ label: row.querySelector('[name=label]').value.trim(), number: row.querySelector('[name=number]').value.trim(), message: row.querySelector('[name=message]').value.trim() }));
+  waDraw(app.settings.whatsapp?.lines ?? whatsappLines);
+  waRows.addEventListener('click', event => {
+    const lines = waRead(), row = event.target.closest('.a-wa-row'), at = $$('.a-wa-row', waRows).indexOf(row);
+    const move = event.target.closest('[data-wa-move]');
+    if (move) { const to = at + Number(move.dataset.waMove); [lines[at], lines[to]] = [lines[to], lines[at]]; waDraw(lines); $$('.a-wa-row', waRows)[to]?.querySelector(`[data-wa-move="${move.dataset.waMove}"]:not(:disabled)`)?.focus(); }
+    else if (event.target.closest('[data-wa-remove]')) { lines.splice(at, 1); waDraw(lines); }
+  });
+  $('[data-wa-add]', view).addEventListener('click', () => { waDraw([...waRead(), {}]); $$('.a-wa-row', waRows).at(-1)?.querySelector('input').focus(); });
+  $('[data-wa-reset]', view).addEventListener('click', () => { waDraw(whatsappLines); toast('Defaults filled in. Press Save the lines to keep them.'); });
+  waForm.addEventListener('submit', async event => {
+    event.preventDefault();
+    const lines = waRead().filter(line => line.label || line.number || line.message);
+    const missing = lines.find(line => !line.label || String(line.number).replace(/\D/g, '').length < 10);
+    if (missing) { toast(!missing.label ? 'Each line needs a name: what it is for.' : `Check the number for “${missing.label}”: it needs at least 10 digits.`, { tone: 'error' }); return; }
+    await busy(waForm.querySelector('[type=submit]'), async () => {
+      try { await app.store.saveSettings('whatsapp', { lines }); app.settings.whatsapp = { lines }; waDraw(lines); toast(lines.length ? 'WhatsApp lines saved' : 'WhatsApp lines saved: the button is hidden'); }
       catch (error) { fail(error); }
     });
   });

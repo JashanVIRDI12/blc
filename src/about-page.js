@@ -26,6 +26,7 @@ import { setupPage } from './chrome.js';
 import { loadSite } from './data.js';
 import { ABOUT_DELIVERIES, dealer, dealerLines, deliveryPhotos, figures } from './config.js';
 import { escapeHTML, safeImage, thumbImage } from './util.js';
+import { icons } from './icons.js';
 gsap.registerPlugin(ScrollTrigger, ScrollSmoother, SplitText);
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -244,8 +245,8 @@ function lines() {
   const tel = number => number.replace(/[^+\d]/g, '');
   const digits = String(dealer.whatsapp || '').replace(/\D/g, '');
   const rows = [
-    dealer.phone && `<div><dt>Sales${digits ? ' and WhatsApp' : ''}</dt><dd><a href="tel:${tel(dealer.phone)}">${escapeHTML(dealer.phone)}</a>${digits ? `<a class="ab-wa" href="https://wa.me/${digits}" target="_blank" rel="noopener">WhatsApp</a>` : ''}</dd></div>`,
-    ...dealerLines.map(line => `<div><dt>${escapeHTML(line.label)}</dt><dd><a href="tel:${tel(line.phone)}">${escapeHTML(line.phone)}</a></dd></div>`),
+    dealer.phone && `<div><dt>Sales${digits ? ' and WhatsApp' : ''}</dt><dd><a href="tel:${tel(dealer.phone)}">${icons.phone}${escapeHTML(dealer.phone)}</a>${digits ? `<a class="ab-wa" href="https://wa.me/${digits}" target="_blank" rel="noopener" data-wa-open>${icons.whatsapp}WhatsApp</a>` : ''}</dd></div>`,
+    ...dealerLines.map(line => `<div><dt>${escapeHTML(line.label)}</dt><dd><a href="tel:${tel(line.phone)}">${icons.phone}${escapeHTML(line.phone)}</a></dd></div>`),
   ].filter(Boolean);
   $('[data-visit-lines]', visit).innerHTML = rows.join('');
   if (dealer.address) $('[data-visit-address]', visit).textContent = dealer.address;

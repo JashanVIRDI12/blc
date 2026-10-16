@@ -20,11 +20,17 @@
 .india-statement em{font-style:italic;color:var(--gold-text)}
 .india-keep{white-space:nowrap}
 
-/* The figures: three, each over a hairline, digits rolling into place. */
-.india-figures{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:clamp(56px,6vw,96px) 0 0;border-top:1px solid var(--gold-line)}
-.india-figure{display:flex;flex-direction:column-reverse;justify-content:flex-end;gap:14px;min-width:0;padding:clamp(26px,2.6vw,40px) clamp(16px,2.4vw,40px) 0 0}
-.india-figure+.india-figure{padding-left:clamp(16px,2.4vw,40px);border-left:1px solid var(--gold-line)}
-.india-figure dt{font:600 10.5px/1.5 var(--font-text);letter-spacing:.2em;text-transform:uppercase;color:#a79c8d}
+/* One smoked-glass strip: the road's light diffuses through the pane,
+   with a fine polished rim and a soft reflection across its upper edge. */
+.india-figures{position:relative;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));margin:clamp(56px,6vw,96px) 0 0;padding:clamp(26px,2.8vw,44px) clamp(24px,3vw,48px);overflow:hidden;border:1px solid rgba(239,233,222,.18);border-radius:22px;
+  background:linear-gradient(115deg,rgba(255,255,255,.075),rgba(255,255,255,.015) 40%,rgba(213,178,123,.035) 72%,rgba(255,255,255,.055)),rgba(12,13,16,.42);
+  -webkit-backdrop-filter:blur(20px) saturate(1.35);backdrop-filter:blur(20px) saturate(1.35);
+  box-shadow:0 20px 56px rgba(0,0,0,.28),inset 0 1px 0 rgba(255,255,255,.22),inset 0 -1px 0 rgba(213,178,123,.08)}
+.india-figures:before{content:'';position:absolute;inset:0;pointer-events:none;border-radius:inherit;background:linear-gradient(180deg,rgba(255,255,255,.055),transparent 28%,transparent 78%,rgba(213,178,123,.025));box-shadow:inset 1px 0 0 rgba(255,255,255,.055)}
+.india-figure{position:relative;display:flex;flex-direction:column-reverse;justify-content:flex-end;gap:14px;min-width:0;padding:0 clamp(16px,2.4vw,40px) 0 0}
+.india-figure+.india-figure{padding-left:clamp(16px,2.4vw,40px);border-left:1px solid rgba(239,233,222,.14)}
+.india-figure:last-child{padding-right:0}
+.india-figure dt{font:600 10.5px/1.5 var(--font-text);letter-spacing:.2em;text-transform:uppercase;color:#c4b9aa}
 .india-figure dd{display:flex;align-items:flex-start;margin:0;font:300 clamp(64px,7.4vw,124px)/1 var(--font-display);letter-spacing:-.04em;color:#f2ede4;font-variant-numeric:lining-nums tabular-nums}
 .india-odo{display:flex}
 .india-digit{display:block;height:1.18em;overflow:hidden}
@@ -79,8 +85,9 @@
   .india-head{grid-template-columns:1fr;gap:22px}
   .india h2{font-size:clamp(58px,15vw,104px)}
   .india-statement{font-size:clamp(24px,6.4vw,32px)}
-  .india-figures{grid-template-columns:1fr}
+  .india-figures{grid-template-columns:1fr;padding:6px 24px;border-radius:18px}
   .india-figure,.india-figure+.india-figure{flex-direction:row-reverse;justify-content:space-between;align-items:baseline;padding:22px 0;border-left:0;border-bottom:1px solid var(--gold-line)}
+  .india-figure:last-child{border-bottom:0}
   .india-figure dd{font-size:clamp(52px,15vw,76px)}
   .india-figure dt{max-width:14ch;text-align:right}
   .india-track{height:calc(var(--card) * .8 + 112px)}
@@ -99,23 +106,11 @@
 .india.has-drive .india-road{opacity:1}
 .india-road canvas{position:absolute;inset:0;display:block;width:100%;height:100%}
 .india-shade{position:absolute;inset:0;z-index:1;background:linear-gradient(180deg,#070708 0%,rgba(7,7,8,.62) 26%,rgba(7,7,8,0) 50%,rgba(7,7,8,.2) 70%,rgba(7,7,8,.9) 90%,#070708 100%)}
-.india-throttle{display:none}
-.india.has-drive .india-throttle{display:flex;align-items:center;gap:14px;margin:0;font:600 10px/1.4 var(--font-text);letter-spacing:.2em;text-transform:uppercase;color:#8f8679;user-select:none;-webkit-user-select:none}
-.india-throttle i{position:relative;display:block;width:56px;height:1px;background:rgba(213,178,123,.22);overflow:hidden}
-.india-throttle b{position:absolute;inset:0;background:linear-gradient(90deg,var(--gold-lo),var(--gold-hi));transform:scaleX(.18);transform-origin:left;transition:transform 1.4s var(--ease)}
-.india-stage.is-boosting .india-throttle b{transform:scaleX(1);transition-duration:.5s}
-.india-stage.is-boosting .india-throttle{color:var(--gold-text)}
-.india-throttle-touch{display:none}
-@media(hover:none){.india-throttle-fine{display:none}.india-throttle-touch{display:inline}}
-/* Unpinned (phones, short screens): the hint sits under the figures. */
-.india:not(.is-staged) .india-throttle{justify-content:center;margin-top:28px;padding:0 var(--gutter)}
-/* Pinned: one screen, the head at the top and the figures at the foot, the
-   hint at the top right. */
+/* Pinned: one screen, the head at the top and the figures at the foot. */
 .india.is-staged{padding-top:0}
 .india.is-staged .india-stage{display:flex;flex-direction:column;height:100vh;height:100svh;min-height:700px;padding:calc(var(--header-height) + clamp(34px,5.4vh,76px)) 0 clamp(34px,5.4vh,72px);user-select:none;-webkit-user-select:none}
 .india.is-staged .india-stage>.india-inner{flex:1;display:flex;flex-direction:column;justify-content:space-between;width:100%}
 .india.is-staged .india-figures{margin-top:0}
-.india.is-staged .india-throttle{position:absolute;top:calc(var(--header-height) + clamp(34px,5.4vh,76px));right:var(--gutter)}
 .india.is-staged .india-gallery{margin-top:clamp(72px,8vw,120px)}
 /* Over the road, the figures keep a soft dark halo, as the film's notes do. */
 .india.has-drive .india-figure dd,.india.has-drive .india-figure dt,.india.has-drive .india-statement{text-shadow:0 2px 18px rgba(0,0,0,.85),0 0 2px rgba(0,0,0,.6)}

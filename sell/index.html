@@ -1,0 +1,189 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#000000" />
+  <meta name="description" content="Sell or exchange your car with Baba Luxury Cars. Share your car's details and request a personal appraisal from our team, anywhere in India." />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="apple-touch-icon" href="/brand/apple-touch-icon.png" />
+  <link rel="preload" href="/fonts/newsreader-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="/fonts/manrope-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- Stylesheets are linked here, not imported by the page's script, so no page is ever painted without them. -->
+  <link rel="stylesheet" href="/src/styles.css" />
+  <link rel="stylesheet" href="/src/light.css" />
+  <link rel="stylesheet" href="/src/fx.css" />
+  <link rel="stylesheet" href="/src/sell.css" />
+  <title>Sell your car — A personal appraisal | Baba Luxury Cars</title>
+</head>
+<body class="inner-page sl-page">
+  <a class="skip-link" href="#appraisal">Skip to the appraisal form</a>
+<!-- @include header.html -->
+  <main id="top">
+
+    <!-- The plate: an Indian high-security registration plate, its letters pressed in as they are typed (sell-page.js). -->
+    <section class="sl-hero" aria-labelledby="sell-title">
+      <div class="sl-hero-copy">
+        <h1 id="sell-title" class="sl-title"><span class="fl-line"><span>Your car deserves</span></span><span class="fl-line"><span><em>a considered offer.</em></span></span></h1>
+        <p class="sl-lede">Tell us about your car. Our team reviews its details and speaks with you about the next step.</p>
+      </div>
+      <div class="sl-hero-plate">
+        <label class="sl-plate-label" for="plate-input">Your registration number</label>
+        <div class="sl-plate-stage">
+          <div class="sl-plate" data-plate>
+            <span class="sl-plate-ind" aria-hidden="true"><i class="sl-holo"></i><b>IND</b></span>
+            <span class="sl-plate-field">
+              <input id="plate-input" class="sl-plate-input" maxlength="13" autocomplete="off" autocapitalize="characters" spellcheck="false" enterkeyhint="go" placeholder="DL 3C AB 1234" />
+              <span class="sl-plate-chars" data-plate-chars aria-hidden="true"></span>
+            </span>
+            <i class="sl-rivet sl-rivet--l" aria-hidden="true"></i><i class="sl-rivet sl-rivet--r" aria-hidden="true"></i>
+            <small class="sl-plate-pin" aria-hidden="true">IND 0019 2716 04</small>
+            <i class="sl-plate-sheen" aria-hidden="true"></i>
+          </div>
+          <!-- The plate's reflection in the lacquer floor. -->
+          <div class="sl-plate sl-plate--mirror" aria-hidden="true">
+            <span class="sl-plate-ind"><i class="sl-holo"></i><b>IND</b></span>
+            <span class="sl-plate-field"><span class="sl-plate-chars" data-plate-mirror></span></span>
+            <i class="sl-rivet sl-rivet--l"></i><i class="sl-rivet sl-rivet--r"></i>
+          </div>
+        </div>
+        <div class="sl-hero-actions">
+          <button class="solid-button" type="button" data-start><span>Start the appraisal</span></button>
+          <p class="sl-hero-call">Or call our buying team on <a href="tel:+918595844904" data-buying-line>+91 85958 44904</a></p>
+        </div>
+      </div>
+    </section>
+
+    <!-- How it goes: four steps, counted off on an odometer's last drum as the scroll reads them. -->
+    <section class="sl-steps" aria-labelledby="steps-title">
+      <div class="sl-steps-frame" data-steps>
+        <header class="sl-head sl-steps-head">
+          <h2 id="steps-title"><span class="fl-line"><span>From first look</span></span><span class="fl-line"><span><em>to handover.</em></span></span></h2>
+        </header>
+        <div class="sl-odo" data-odo aria-hidden="true"></div>
+        <ol class="sl-step-list" data-step-list>
+          <li class="sl-step"><b>1</b><h3>Tell us about it</h3><p>The car, its kilometres and how to reach you. A few minutes, no more.</p></li>
+          <li class="sl-step"><b>2</b><h3>We take a look</h3><p>Our team reviews the details and arranges to see the car with you.</p></li>
+          <li class="sl-step"><b>3</b><h3>A considered offer</h3><p>Made in person, with the reasons behind it laid out plainly.</p></li>
+          <li class="sl-step"><b>4</b><h3>The handover</h3><p>The transfer papers prepared with you, and the keys handed over.</p></li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- Sell or exchange: two doors; the one under the pointer opens wider. -->
+    <section class="sl-choice" aria-labelledby="choice-title">
+      <h2 id="choice-title" class="sr-only">Sell or exchange</h2>
+      <div class="sl-panes" data-panes>
+        <article class="sl-pane sl-pane--sell" data-pane>
+          <h3><span>Sell</span> <em>it.</em></h3>
+          <div class="sl-pane-more">
+            <p>We make an offer for your car. If you accept it, we prepare the transfer with you.</p>
+            <button type="button" class="text-link" data-choose="sell">Sell my car</button>
+          </div>
+        </article>
+        <article class="sl-pane sl-pane--exchange" data-pane>
+          <h3><span>Exchange</span> <em>it.</em></h3>
+          <div class="sl-pane-more">
+            <p>Put its value towards your next car, from our collection or found for you by our concierge.</p>
+            <div class="sl-pane-links"><button type="button" class="ink-link" data-choose="exchange">Exchange my car</button><a class="ink-link" href="/collection/">See the collection</a></div>
+          </div>
+        </article>
+      </div>
+    </section>
+
+    <!-- The appraisal: the form beside the car's record, a black folio that fills in as it is answered. -->
+    <section class="sl-appraisal" id="appraisal" aria-labelledby="appraisal-title">
+      <header class="sl-head">
+        <h2 id="appraisal-title"><span class="fl-line"><span>Tell us about</span></span><span class="fl-line"><span><em>your car.</em></span></span></h2>
+        <p>Start with the details below. Our team takes it from there and calls you.</p>
+      </header>
+      <div class="sl-appraisal-body">
+        <form class="sl-form editorial-form" data-lead-form="valuation" aria-labelledby="appraisal-title">
+          <fieldset class="sl-group">
+            <legend>The car</legend>
+            <label>Make, model and variant<input name="vehicle" required maxlength="160" placeholder="Mercedes-Benz GLS 400 d" /></label>
+            <div class="form-row">
+              <label>Year<input name="year" type="number" required min="1980" max="2100" inputmode="numeric" placeholder="2021" /></label>
+              <label>Distance driven<input name="kilometres" type="number" required min="0" max="2000000" step="1" inputmode="numeric" placeholder="Kilometres" /></label>
+            </div>
+            <div class="form-row">
+              <label>City<input name="city" required maxlength="100" autocomplete="address-level2" placeholder="New Delhi" /></label>
+              <label>Registration <span class="optional">(optional)</span><input name="registration" maxlength="20" autocapitalize="characters" spellcheck="false" placeholder="DL 3C AB 1234" /></label>
+            </div>
+            <fieldset class="form-choices">
+              <legend>Owners so far <span class="optional">(optional)</span></legend>
+              <div class="form-chips">
+                <label class="form-chip"><input type="radio" name="owners" value="First owner"><span>First owner</span></label>
+                <label class="form-chip"><input type="radio" name="owners" value="Second owner"><span>Second owner</span></label>
+                <label class="form-chip"><input type="radio" name="owners" value="Third or more"><span>Third or more</span></label>
+              </div>
+            </fieldset>
+          </fieldset>
+          <fieldset class="sl-group">
+            <legend>Its care <span class="optional">(optional, choose any)</span></legend>
+            <div class="form-chips" data-care>
+              <label class="form-chip"><input type="checkbox" value="Full service history"><span>Full service history</span></label>
+              <label class="form-chip"><input type="checkbox" value="Both keys"><span>Both keys</span></label>
+              <label class="form-chip"><input type="checkbox" value="Under warranty"><span>Under warranty</span></label>
+              <label class="form-chip"><input type="checkbox" value="Insurance valid"><span>Insurance valid</span></label>
+              <label class="form-chip"><input type="checkbox" value="Accident-free"><span>Accident-free</span></label>
+            </div>
+            <input type="hidden" name="care" />
+          </fieldset>
+          <fieldset class="sl-group">
+            <legend>You</legend>
+            <div class="form-row">
+              <label>Your name<input name="name" required maxlength="80" autocomplete="name" placeholder="Full name" /></label>
+              <label>Phone number<input name="phone" type="tel" required pattern="[+0-9 ()-]{7,22}" maxlength="22" autocomplete="tel" placeholder="Your contact number" /></label>
+            </div>
+            <label class="choice-label switch-label sl-switch"><input name="exchange" type="checkbox" />I’m considering an exchange</label>
+            <label>Anything you’d like us to know <span class="optional">(optional)</span><textarea name="message" rows="3" maxlength="1500" placeholder="Recent maintenance, modifications, or the car you have in mind next…"></textarea></label>
+          </fieldset>
+          <p class="form-policy">Your details are used only for this enquiry.</p>
+          <button class="solid-button" type="submit"><span data-submit-label>Request an appraisal</span></button>
+          <div class="form-result" role="status" tabindex="-1" hidden></div>
+        </form>
+        <aside class="sl-record" data-record aria-hidden="true">
+          <div class="sl-record-inner">
+            <div class="sl-record-top"><img src="/brand/baba-luxury-car-800.webp" alt="" width="800" height="250" /><span data-record-mode>To sell</span></div>
+            <div class="plate sl-record-plate"><span class="plate-ind"><i></i>IND</span><span class="plate-number is-placeholder" data-record-plate>DL 3C AB 1234</span></div>
+            <p class="sl-record-name is-placeholder" data-record-name>Your car</p>
+            <div class="sl-record-odo"><span class="odo-drums" data-record-odo></span><span class="odo-unit">km</span></div>
+            <p class="sl-record-km" data-record-km>Distance driven</p>
+            <dl class="sl-record-facts">
+              <div><dt>Year</dt><dd data-record="year">—</dd></div>
+              <div><dt>City</dt><dd data-record="city">—</dd></div>
+              <div><dt>Owners</dt><dd data-record="owners">—</dd></div>
+            </dl>
+            <ul class="sl-record-care" data-record-care></ul>
+            <p class="sl-record-status" data-record-status>Appraised by our team, in person.</p>
+          </div>
+        </aside>
+      </div>
+    </section>
+
+    <!-- Questions owners ask. -->
+    <section class="sl-faq" aria-labelledby="faq-title">
+      <header class="sl-head">
+        <h2 id="faq-title"><span class="fl-line"><span>Questions</span></span><span class="fl-line"><span><em>owners ask.</em></span></span></h2>
+      </header>
+      <div class="sl-faq-list" data-faq>
+        <details class="sl-q"><summary><span>Do you buy cars outside Delhi?</span><i aria-hidden="true"></i></summary><div class="sl-q-body"><p>Yes. We buy and sell across India. Tell us where the car is, and we’ll talk about how to see it.</p></div></details>
+        <details class="sl-q"><summary><span>How is the offer decided?</span><i aria-hidden="true"></i></summary><div class="sl-q-body"><p>By the car itself: its specification, condition, kilometres, ownership and service history, and what cars like it are selling for. We explain the offer in person.</p></div></details>
+        <details class="sl-q"><summary><span>My car is still on a loan. Can I sell it?</span><i aria-hidden="true"></i></summary><div class="sl-q-body"><p>Yes. The loan has to be closed and the bank’s NOC issued before the RC can be transferred. Mention it when you share the details, and we’ll talk you through it.</p></div></details>
+        <details class="sl-q"><summary><span>Can I exchange it for one of your cars?</span><i aria-hidden="true"></i></summary><div class="sl-q-body"><p>Yes. Choose the exchange in the form, and your car’s value can go towards one from our collection, or one our concierge finds for you.</p></div></details>
+        <details class="sl-q"><summary><span>Who handles the transfer?</span><i aria-hidden="true"></i></summary><div class="sl-q-body"><p>We prepare the transfer papers, Forms 29 and 30, with you, and the RC moves to the new owner through the RTO.</p></div></details>
+      </div>
+      <div class="sl-talk">
+        <p>Rather talk it over?</p>
+        <a class="ink-button" href="tel:+918595844904" data-buying-line><svg class="icon" viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M6.5 3.5h3l1.5 4-2 1.3a10.5 10.5 0 0 0 6.2 6.2l1.3-2 4 1.5v3a1.5 1.5 0 0 1-1.6 1.5C10.6 18.5 5.5 13.4 5 5.1a1.5 1.5 0 0 1 1.5-1.6z"/></svg>Call our buying team</a>
+        <a class="ink-link" href="/consultation/">Book a 1:1 call</a>
+      </div>
+    </section>
+
+<!-- @include footer.html -->
+  </main>
+<!-- @include dialogs.html -->
+  <script type="module" src="/src/sell-page.js"></script>
+</body>
+</html>

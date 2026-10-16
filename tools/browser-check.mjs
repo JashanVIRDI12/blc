@@ -11,12 +11,13 @@ await fs.mkdir(out,{recursive:true});
 const tab=await(await fetch(`${debug}/json/new?about:blank`,{method:'PUT'})).json();
 const socket=new WebSocket(tab.webSocketDebuggerUrl);
 await new Promise(resolve=>socket.addEventListener('open',resolve,{once:true}));
-let sequence=0;const requests=new Map(),errors=[];let assets=[];
+let sequence=0;const requests=new Map(),errors=[],heldRequests=[];let assets=[];
 socket.addEventListener('message',event=>{
   const message=JSON.parse(event.data);
   if(message.id){requests.get(message.id)?.(message);requests.delete(message.id);}
   else if(message.method==='Runtime.exceptionThrown')errors.push(message.params.exceptionDetails.exception?.description||message.params.exceptionDetails.text);
   else if(message.method==='Network.requestWillBeSent')assets.push(message.params.request.url);
+  else if(message.method==='Fetch.requestPaused')heldRequests.push(message.params.requestId);
 });
 const send=(method,params={})=>new Promise((resolve,reject)=>{
   const id=++sequence;requests.set(id,m=>m.error?reject(m.error):resolve(m.result));socket.send(JSON.stringify({id,method,params}));
@@ -67,7 +68,27 @@ async function checkAbout(mobile) {
 }
 await send('Page.enable');await send('Runtime.enable');await send('Network.enable');
 try {
-  if(process.argv.includes('--smoke')) {
+  if(process.argv.includes('--about-loading')) {
+    // Hold a model used only by the earlier showroom. About must still
+    // load its own pair once it is visible, even if that stage never finishes.
+    await send('Emulation.setDeviceMetricsOverride',{width:1440,height:820,deviceScaleFactor:2,mobile:false});
+    await send('Fetch.enable',{patterns:[{urlPattern:'*/models/sclass.glb'}]});
+    await navigate();
+    await waitFor('!!window.__about');
+    await aboutScroll(.48);
+    await waitFor('window.__about.snapshot().ready && window.__about.snapshot().rendered');
+    const state=await evaluate('({about:window.__about.snapshot(),fleet:window.__fleet.snapshot()})');
+    assert(heldRequests.length,'The earlier showroom model is held');
+    assert.equal(state.fleet.ready,false,'The showroom is still loading');
+    assert.deepEqual(state.about.vehicles.map(car=>car.id).sort(),Object.keys(aboutMarks).sort());
+    assert(state.about.turnable,'The loaded cars can be turned');
+    await evaluate('document.querySelector("#about-drive").dispatchEvent(new KeyboardEvent("keydown",{key:"ArrowRight",bubbles:true}))');
+    await waitFor('["x7","defender"].every(id=>window.__about.snapshot().turn[id]>0)');
+    assert.equal(await evaluate('document.documentElement.scrollWidth'),1440);
+    assert.deepEqual(errors,[],'No uncaught browser exceptions');
+    await shot('about-independent-loading');
+    console.log('PASS About loading: both interactive cars render while the earlier showroom is stalled.');
+  } else if(process.argv.includes('--smoke')) {
     await send('Emulation.setDeviceMetricsOverride',{width:1440,height:960,deviceScaleFactor:process.argv.includes('--retina')?2:1,mobile:false});
     await navigate();assert(await evaluate('!!window.__showroom'),'Showroom should load');
     await evaluate('window.__showroom.setProgress(.3)');await delay(300);

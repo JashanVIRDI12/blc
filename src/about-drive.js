@@ -29,7 +29,8 @@ const STACKED = matchMedia('(max-width: 760px), (max-aspect-ratio: 4/5)');
 // always set: it never waits on the cars. The two models load in
 // the background and the stills stand in until they arrive; given `after`,
 // they wait for it (the home page's collection drive, which the visitor
-// reaches first) so the two never compete for the network and the GPU. Throws
+// reaches first) until this section comes into view. A visible stage never
+// waits on another stage's background preparation. Throws
 // when WebGL is unavailable; the section then keeps its static layout.
 export function createAboutDrive(section, { after } = {}) {
   const visual = section.querySelector('.brand-visual');
@@ -71,6 +72,8 @@ export function createAboutDrive(section, { after } = {}) {
   const playhead = { progress: 0 };
   let size = { w: 1, h: 1 }, view = 'desktop', fit = { zoom: 1, offset: [0, 0] };
   let active = false, ready = false, rendered = false, disposed = false, dirty = true, raf = 0;
+  let enter;
+  const entered = new Promise(resolve => { enter = resolve; });
   // One density, moving or still, so the cars never soften while scrolling
   // (render-density.js: native up to 2x, desktop supersampled towards 2x).
   // A device that cannot keep up steps its density down for good: once, not
@@ -88,6 +91,10 @@ export function createAboutDrive(section, { after } = {}) {
     if (!rendered) { rendered = true; visual.classList.add('is-rendered'); }
   }
   function applySize() { renderer.setPixelRatio(ratio); renderer.setSize(size.w, size.h, false); }
+  function setActive(trigger) {
+    active = Boolean(trigger.isActive);
+    if (active) { enter(); invalidate(); }
+  }
 
   // Fit the parked pair into the space the copy leaves: beside it on wider
   // screens, below it on phones. Measured from the laid-out copy.
@@ -173,8 +180,8 @@ export function createAboutDrive(section, { after } = {}) {
     scrollTrigger: {
       trigger: section, start: 'top bottom', end: () => `+=${innerHeight * (1 + PINNED) + section.offsetHeight}`,
       scrub: .7, invalidateOnRefresh: true,
-      onToggle: self => { active = self.isActive; if (active) invalidate(); },
-      onRefresh: self => { active = self.isActive; layout(); },
+      onToggle: setActive,
+      onRefresh: self => { setActive(self); layout(); },
     },
   }).to(playhead, { progress: 1, duration: 1, ease: 'none', onUpdate: render });
   const scrollPosition = progress => { const st = timeline.scrollTrigger; return st.start + (st.end - st.start) * progress; };
@@ -186,7 +193,7 @@ export function createAboutDrive(section, { after } = {}) {
   // One car at a time and in turns (idle.js): whatever the visitor is
   // watching further up the page never waits on these.
   async function load() {
-    await after?.catch(() => {});
+    if (after) await Promise.race([Promise.resolve(after).catch(() => {}), entered]);
     if (disposed) return;
     const loader = new THREE.TextureLoader();
     for (const id of ids) {
@@ -252,7 +259,7 @@ export function createAboutDrive(section, { after } = {}) {
     }),
     setProgress(p) { playhead.progress = p; render(); },
     dispose() {
-      disposed = true; cancelAnimationFrame(raf);
+      disposed = true; enter(); cancelAnimationFrame(raf);
       gesture.dispose(); canvas.removeEventListener('keydown', onKey); gsap.killTweensOf(turn);
       pin.kill(true); timeline.scrollTrigger?.kill(); timeline.kill();
       resizeObserver.disconnect(); document.removeEventListener('visibilitychange', onVisible);

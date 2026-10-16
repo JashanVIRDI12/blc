@@ -3,8 +3,10 @@
 // film (main.js); the other pages use setupPage().
 import { setupForms } from './forms.js';
 import { loadSite } from './data.js';
-import { dealer } from './config.js';
+import { dealer, social } from './config.js';
 import { setupFx } from './fx/index.js';
+import { setupWhatsApp } from './whatsapp.js';
+import { icons } from './icons.js';
 
 export function setupMenu(wrapper) {
   const menu = document.querySelector('#mobile-menu');
@@ -17,8 +19,9 @@ export function setupMenu(wrapper) {
     const digits = dealer.whatsapp.replace(/\D/g, ''), tel = dealer.phone.replace(/[^+\d]/g, '');
     const esc = text => String(text).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
     foot.innerHTML = `<p class="mm-label">Talk to us</p>
-      <div class="mm-actions">${digits ? `<a class="mm-action mm-action--gold" href="https://wa.me/${digits}" target="_blank" rel="noopener"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4.5 19.5 5.6 16A7.8 7.8 0 1 1 8.4 18.6z"/><path d="M9 9.5c.3 2.4 2.6 4.8 5.2 5.2l1-1.2-1.6-1-1 .8a4 4 0 0 1-2.2-2.2l.8-1-1-1.6z"/></svg>WhatsApp</a>` : ''}${tel ? `<a class="mm-action" href="tel:${tel}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6.5 3.5h3l1.5 4-2 1.3a10.5 10.5 0 0 0 6.2 6.2l1.3-2 4 1.5v3a1.5 1.5 0 0 1-1.6 1.5C10.6 18.5 5.5 13.4 5 5.1a1.5 1.5 0 0 1 1.5-1.6z"/></svg>Call ${esc(dealer.phone)}</a>` : ''}</div>
-      ${dealer.address || dealer.hours ? `<p class="mm-visit">${dealer.address ? `<span>${esc(dealer.address)}</span>` : ''}${dealer.hours ? `<span>${esc(dealer.hours)}</span>` : ''}</p>` : ''}`;
+      <div class="mm-actions">${digits ? `<a class="mm-action mm-action--gold" href="https://wa.me/${digits}" target="_blank" rel="noopener" data-wa-open>${icons.whatsapp}WhatsApp</a>` : ''}${tel ? `<a class="mm-action" href="tel:${tel}">${icons.phone}Call ${esc(dealer.phone)}</a>` : ''}</div>
+      ${dealer.address || dealer.hours ? `<p class="mm-visit">${dealer.address ? `<span>${icons.pin}${esc(dealer.address)}</span>` : ''}${dealer.hours ? `<span>${icons.clock}${esc(dealer.hours)}</span>` : ''}</p>` : ''}
+      <p class="mm-social">${social.map(({ name, icon, url }) => `<a href="${url}" target="_blank" rel="noopener" aria-label="Baba Luxury Car on ${name}">${icons[icon]}</a>`).join('')}</p>`;
   };
   const set = open => {
     if (open) contact();
@@ -69,5 +72,22 @@ export function setupPage(page) {
   document.querySelector('[data-top]')?.addEventListener('click', event => { event.preventDefault(); scrollTo({ top: 0, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'instant' : 'smooth' }); });
   loadSite().then(previewBanner);
   setupFx();
+  setupWhatsApp();
   return setupForms();
+}
+
+// Pages that turn to paper for a while (the seller's form, the ways to talk)
+// turn the header to paper over them, so a dark glass bar never sits on
+// ivory.
+export function paperHeader(selector) {
+  const header = document.querySelector('.site-header');
+  const sections = [...document.querySelectorAll(selector)];
+  if (!sections.length) return;
+  const update = () => {
+    const line = header.offsetHeight / 2;
+    header.classList.toggle('is-light', sections.some(section => { const box = section.getBoundingClientRect(); return box.top <= line && box.bottom > line; }));
+  };
+  addEventListener('scroll', update, { passive: true });
+  addEventListener('resize', update);
+  update();
 }

@@ -1,0 +1,190 @@
+/* The one-to-one consultation (/consultation/, consultation-page.js): a
+   black, gilt-edged calling card lies on a desk under a lamp; the scroll
+   picks it up, turns it over and lays it beside the booking, where its ivory
+   back fills in as the form is answered. Then the questions the call begins
+   with, one at a time, and the three ways to talk, on paper. The round gold
+   button is the home page's (consult.css). */
+.cp-page{--paper:#f4f0e8;--ink:#1d1915;--ink-muted:#6a6259;--hair:rgba(29,25,21,.13);--gold-ink:#93662e;--gold-text:#d9a75a}
+
+/* ------------------------------------------------------------------ hero */
+.cp-hero{position:relative;isolation:isolate;display:grid;gap:clamp(24px,4vw,56px);align-items:center;min-height:100svh;padding:calc(var(--header-height) + clamp(40px,6vw,88px)) var(--gutter) clamp(48px,6vw,88px);overflow:hidden;background:#030303}
+.cp-hero-copy{position:relative;z-index:2;min-width:0;max-width:720px}
+.cp-title{font-size:clamp(54px,6.4vw,112px);line-height:.96;letter-spacing:-.045em;color:#f2ede4}
+.cp-title em{letter-spacing:-.025em}
+.cp-title em,.cp-book-head h2 em,.cp-talk em{color:var(--gold-text)}
+.cp-lede{max-width:40ch;margin-top:30px;font-size:17px;line-height:1.7;color:var(--steel)}
+.cp-actions{display:flex;flex-wrap:wrap;align-items:center;gap:16px 30px;margin-top:40px}
+.cp-actions .text-link,.cp-book .text-link{color:var(--ivory)}
+.cp-note{margin-top:20px;font-size:13px;color:var(--steel-dim)}
+
+/* The desk: lamplight falls on a dark surface; the card lies in it, askew. */
+.cp-desk{position:relative;height:clamp(340px,44vw,660px)}
+.cp-lamp{position:absolute;inset:-18% -30% -24% -14%;z-index:-1;background:radial-gradient(42% 46% at 52% 54%,rgba(150,104,52,.36),rgba(84,56,28,.18) 46%,rgba(30,20,10,.07) 70%,transparent 82%)}
+.cp-slot{position:relative;aspect-ratio:1.6}
+.cp-slot--desk{position:absolute;left:50%;top:50%;width:min(600px,82%);translate:-50% -50%}
+/* The card's shadow, lying on the desk with it; it parts as the card lifts. */
+.cp-desk-shadow{position:absolute;inset:4%;border-radius:12px;background:rgba(0,0,0,.92);filter:blur(22px);transform:perspective(1600px) rotateX(48deg) rotateZ(-14deg) translate(4%,9%)}
+
+/* ------------------------------------------------------------------ card */
+.cp-card{position:absolute;inset:0;container-type:inline-size;pointer-events:none}
+.cp-card-inner{position:absolute;inset:0;transform-style:preserve-3d}
+.cp-card--still .cp-card-inner{transform:perspective(1600px) rotateX(48deg) rotateZ(-14deg)}
+.cp-face{position:absolute;inset:0;overflow:hidden;border-radius:7px;-webkit-backface-visibility:hidden;backface-visibility:hidden}
+/* The front: black board, an engraved frame, the crest and "1:1" in foil. */
+.cp-front{display:grid;justify-items:center;align-content:space-between;padding:7.5cqw 6cqw 6.4cqw;background:repeating-linear-gradient(118deg,rgba(255,255,255,.014) 0 1px,transparent 1px 3px),radial-gradient(120% 95% at 28% 0%,#232326,#0d0d0e 58%,#070708);border:1px solid rgba(214,166,92,.72);box-shadow:inset 0 1px 0 rgba(255,236,200,.08),0 30px 60px -24px rgba(0,0,0,.9)}
+.cp-front:before{content:'';position:absolute;inset:2.6cqw;border:1px solid rgba(214,166,92,.2);border-radius:3px;pointer-events:none}
+.cp-front-logo{display:block;width:30%;height:auto}
+.cp-front-mark{display:flex;align-items:center;gap:1.6cqw;margin:0;font:300 31cqw/.8 var(--font-display);letter-spacing:-.05em}
+/* The foil is clipped to the figures' box, and at this line height the tops
+   of the 1s rise above it: padding keeps them whole, and the margins fit the
+   box to the figures alone (top to baseline), so the crest, the figures and
+   the line are spaced evenly and the colon sits at the figures' middle. */
+.cp-front-mark span{padding:.3em .02em .12em;margin:-.21em 0 -.285em;color:transparent;background:linear-gradient(100deg,#8a552b,#c98a3c 30%,#f6d184 48%,#cf9142 64%,#84502c) var(--sheen,60%) 0/260% 100%;-webkit-background-clip:text;background-clip:text}
+.cp-front-mark i{display:grid;gap:5.4cqw}
+.cp-front-mark i:before,.cp-front-mark i:after{content:'';display:block;width:2.6cqw;height:2.6cqw;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff2c8,#e0a952 45%,#8a552b)}
+.cp-front-line{margin:0;font:italic 300 4.3cqw/1 var(--font-display);letter-spacing:-.005em;color:rgba(239,233,222,.72)}
+/* Light across the lamination, led by the pointer. */
+.cp-foil{position:absolute;inset:0;pointer-events:none;background:linear-gradient(108deg,transparent 30%,rgba(255,238,206,.09) 46%,rgba(255,238,206,.02) 54%,transparent 64%) var(--sheen,60%) 0/260% 100% no-repeat}
+
+/* The back: ivory board, a filled-in appointment. */
+.cp-back{display:grid;grid-template-rows:auto 1fr auto;padding:5.2cqw 6cqw 4.6cqw;color:var(--ink);background:repeating-linear-gradient(90deg,rgba(80,60,30,.018) 0 1px,transparent 1px 4px),radial-gradient(130% 100% at 20% 0%,#fbf8f2,#f1ebdf 70%,#e9e1d1);border:1px solid rgba(147,102,46,.45);box-shadow:inset 0 1px 0 #fff,0 34px 70px -28px rgba(0,0,0,.85);transform:rotateY(180deg)}
+.cp-back-head{display:flex;align-items:center;justify-content:space-between;gap:3cqw;padding-bottom:2.6cqw;border-bottom:1px solid rgba(147,102,46,.32)}
+.cp-back-head img{display:block;width:21%;height:auto}
+.cp-back-head span{font:italic 300 3.7cqw/1 var(--font-display);color:var(--gold-ink)}
+.cp-lines{display:grid;align-content:center;gap:0;margin:0}
+.cp-lines div{display:grid;grid-template-columns:12cqw minmax(0,1fr);align-items:baseline;gap:2cqw;padding:1.15cqw 0 .9cqw;border-bottom:1px dotted rgba(29,25,21,.22)}
+.cp-lines dt{font:600 2.15cqw/1 var(--font-text);letter-spacing:.06em;color:#8a8176}
+.cp-lines dd{margin:0;overflow:hidden;font:italic 400 3.85cqw/1.25 var(--font-display);white-space:nowrap;text-overflow:ellipsis;color:var(--ink)}
+.cp-lines dd span{display:inline-block}
+.cp-lines dd.is-empty{color:#b3aa9c}
+.cp-back-foot{display:flex;align-items:center;justify-content:space-between;gap:3cqw;padding-top:2.4cqw;font:500 2.4cqw/1.3 var(--font-text);color:#7a7166}
+/* A seal in gold foil, pressed once the request is made. */
+.cp-seal{position:absolute;right:4.4cqw;bottom:2.2cqw;display:grid;place-content:center;justify-items:center;gap:.6cqw;width:17cqw;height:17cqw;border-radius:50%;color:#5c3a17;background:radial-gradient(circle at 34% 28%,#fbe2a4,#d9a352 42%,#a8702f 74%,#7c4d22);box-shadow:inset 0 0 0 .7cqw rgba(255,240,205,.35),inset 0 0 0 1.4cqw rgba(124,77,34,.35),0 1.4cqw 2.6cqw -1cqw rgba(60,35,10,.55);opacity:0;transform:rotate(-14deg) scale(1.6)}
+.cp-seal b{font:italic 400 4.2cqw/1 var(--font-display)}
+.cp-seal span{font:700 1.7cqw/1 var(--font-text);letter-spacing:.14em;text-transform:uppercase}
+.cp-card.is-sealed .cp-seal{opacity:1;transform:rotate(-14deg)}
+
+/* The booking card, laid in its place. */
+.cp-slot--book{width:100%;max-width:580px}
+.cp-card[data-card] .cp-card-inner{transform:rotateY(180deg)}
+/* Large screens: the one card travels from the desk to here (the script
+   positions it on the screen); the desk's own copy steps aside. */
+.cp-travel .cp-card--still{visibility:hidden}
+.cp-travel .cp-card[data-card]{position:fixed;inset:auto;left:0;top:0;z-index:20;will-change:transform}
+.cp-travel .cp-card[data-card] .cp-card-inner{will-change:transform}
+
+/* --------------------------------------------------------------- booking */
+.cp-book{position:relative;padding:var(--space) var(--gutter);background:linear-gradient(180deg,#030303,#0a0a0b 40%,#060607);scroll-margin-top:var(--header-height)}
+.cp-book:before,.cp-talk:before{content:'';position:absolute;left:0;right:0;top:0;height:1px;background:var(--coachline);opacity:.7}
+.cp-book-head{display:grid;gap:26px;margin-bottom:clamp(48px,6vw,88px)}
+.cp-book-head h2,.cp-ways-head h2{font-size:clamp(46px,5.6vw,96px);line-height:.96;letter-spacing:-.04em}
+.cp-book-head h2 .fl-line:last-child,.cp-ways-head h2 .fl-line:last-child{padding-left:.9em}
+.cp-book-head p{max-width:38ch;font-size:16.5px;line-height:1.7;color:var(--steel)}
+.cp-book-body{display:grid;gap:40px}
+.cp-form{min-width:0}
+.cp-field{min-width:0;margin:0 0 30px;padding:0;border:0}
+.cp-field legend{margin-bottom:14px;padding:0;font-size:12.5px;font-weight:600;letter-spacing:.05em;color:var(--steel)}
+/* Choices: real radio buttons drawn as their labels. A gold plate glides to
+   the one chosen (the script adds it); without it, the choice simply fills. */
+.cp-vias,.cp-days,.cp-times{position:relative;isolation:isolate;display:flex;flex-wrap:wrap;gap:8px}
+.cp-via,.cp-day,.cp-time{position:relative;display:block;margin:0!important;font-size:inherit!important;letter-spacing:0!important}
+.cp-via input,.cp-day input,.cp-time input{position:absolute;inset:0;z-index:2;width:100%;height:100%;margin:0;opacity:0;cursor:pointer}
+.cp-via input:disabled,.cp-day input:disabled,.cp-time input:disabled{cursor:not-allowed}
+.cp-via span,.cp-day span,.cp-time span{position:relative;z-index:1;display:flex;color:var(--ivory);border:1px solid var(--graphite);transition:color .45s var(--ease),border-color .35s,background-color .45s}
+.cp-via span{align-items:center;gap:10px;min-height:52px;padding:0 20px 0 16px;font:500 14px/1 var(--font-text);border-radius:999px}
+.cp-via svg{flex:none;width:19px;height:19px;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linejoin:round;stroke-linecap:round}
+.cp-days{flex-wrap:nowrap;overflow-x:auto;scrollbar-width:none;margin:0 calc(-1 * var(--gutter));padding:0 var(--gutter) 4px;scroll-padding:0 var(--gutter)}
+.cp-days::-webkit-scrollbar{display:none}
+.cp-day{flex:1 0 62px;max-width:84px}
+.cp-day span{flex-direction:column;align-items:center;justify-content:center;gap:5px;height:92px;border-radius:12px}
+.cp-day small{font:600 11px/1 var(--font-text);letter-spacing:.04em;color:inherit;opacity:.7}
+.cp-day b{font:300 34px/1 var(--font-display);letter-spacing:-.03em;font-variant-numeric:lining-nums}
+.cp-day--any b{font-size:24px;font-style:italic}
+.cp-time span{flex-direction:column;justify-content:center;gap:5px;min-width:132px;min-height:64px;padding:0 18px;border-radius:12px}
+.cp-time b{font:500 14px/1 var(--font-text)}
+.cp-time small{font-size:12px;color:var(--steel-dim);transition:color .45s}
+.cp-via:hover span,.cp-day:hover span,.cp-time:hover span{border-color:rgba(196,136,58,.6)}
+.cp-via input:checked+span,.cp-day input:checked+span,.cp-time input:checked+span{color:#1a1008;background:var(--gold);border-color:var(--gold)}
+.cp-time input:checked+span small{color:rgba(26,16,8,.7)}
+.cp-via input:focus-visible+span,.cp-day input:focus-visible+span,.cp-time input:focus-visible+span{outline:1px solid var(--gold);outline-offset:3px}
+.cp-via input:disabled+span,.cp-day input:disabled+span,.cp-time input:disabled+span{opacity:.32}
+.cp-glide{position:absolute;left:0;top:0;z-index:0;border-radius:12px;background:linear-gradient(100deg,#f6d184,#e2ae5c 34%,#cf9545 70%,#c2873a);box-shadow:inset 0 1px 0 rgba(255,246,220,.55),0 16px 34px -18px rgba(196,136,58,.75);pointer-events:none}
+.cp-vias .cp-glide{border-radius:999px}
+.is-gliding input:checked+span{background:transparent;border-color:transparent}
+.cp-form .form-row{margin-top:6px}
+.cp-form .form-chips{gap:8px}
+.cp-submit{width:100%;justify-content:space-between;margin-top:6px}
+.cp-form .form-result{color:var(--ivory)}
+@media(min-width:1001px){
+  .cp-hero{grid-template-columns:minmax(0,.92fr) minmax(0,1.08fr)}
+  .cp-desk{height:min(66svh,660px)}
+  .cp-book-body{grid-template-columns:minmax(0,1fr) minmax(0,1fr);gap:clamp(48px,6vw,112px);align-items:start}
+  .cp-form{grid-row:1;grid-column:1}
+  .cp-slot--book{grid-row:1;grid-column:2;justify-self:end;position:sticky;top:calc(50svh - min(580px,40vw) / 3.2)}
+  .cp-days{margin:0;padding:0 0 4px}
+  .cp-submit{width:auto;min-width:300px}
+}
+@media(max-width:1000px){
+  .cp-desk{order:-1;height:clamp(250px,64vw,440px);margin:-12px 0 0}
+  .cp-slot--book{justify-self:center}
+}
+@media(max-width:600px){
+  .cp-vias{display:grid;grid-template-columns:1fr}
+  .cp-times{display:grid;grid-template-columns:1fr 1fr}
+  .cp-time span{min-width:0}
+}
+
+/* ---------------------------------------------------------- the questions */
+.cp-talk{position:relative;background:#050506;color:var(--ivory)}
+.cp-talk-frame{position:relative;padding:var(--space) var(--gutter)}
+.cp-talk-title{font-size:clamp(44px,6.4vw,112px);line-height:.98;letter-spacing:-.04em;transform-origin:0 0}
+.cp-questions{display:grid;gap:clamp(64px,9vw,120px);margin:clamp(56px,8vw,104px) 0 0;padding:0;list-style:none}
+.cp-q{max-width:16ch;font:300 clamp(48px,7.6vw,140px)/.98 var(--font-display);letter-spacing:-.045em;color:#f2ede4;text-wrap:balance}
+.cp-q .cp-word{display:inline-block}
+.cp-a{max-width:44ch;margin-top:26px;font-size:17px;line-height:1.7;color:var(--steel)}
+.cp-talk-track{display:none}
+/* Pinned: one screen in two columns, both centred on the space under the
+   header. The title opens alone, then steps back into the left column; the
+   questions take turns in the right one, and a gold rule between them fills
+   as they are read. */
+.cp-talk.is-pinned .cp-talk-frame{--mid:calc(50% + var(--header-height) / 2);--split:41%;height:100svh;min-height:640px;padding:0 var(--gutter);overflow:hidden}
+.cp-talk.is-pinned .cp-talk-title{position:absolute;left:var(--gutter);top:var(--mid);max-width:14ch;translate:0 -50%;transform-origin:0 50%}
+.cp-talk.is-pinned .cp-questions{position:absolute;left:var(--split);right:var(--gutter);top:var(--mid);display:block;margin:0}
+.cp-talk.is-pinned .cp-question{position:absolute;left:0;top:0;width:100%;translate:0 -50%;visibility:hidden}
+.cp-talk.is-pinned .cp-q{font-size:clamp(56px,5.8vw,108px)}
+.cp-talk.is-pinned .cp-talk-track{position:absolute;left:calc(var(--split) - clamp(32px,3.6vw,60px));top:var(--mid);display:block;width:1px;height:min(50svh,420px);translate:0 -50%;background:rgba(239,233,222,.12)}
+.cp-talk-track i{display:block;width:100%;height:100%;background:linear-gradient(180deg,var(--gold-hi),var(--gold));transform:scaleY(0);transform-origin:top}
+
+/* ----------------------------------------------------------------- ways */
+.cp-ways{position:relative;padding:var(--space) var(--gutter);color:var(--ink);background:var(--paper)}
+.cp-ways-head{display:grid;gap:26px;margin-bottom:clamp(48px,6vw,84px)}
+.cp-ways-head h2 em{color:var(--gold-ink)}
+.cp-ways-head p{max-width:36ch;font-size:16.5px;line-height:1.7;color:var(--ink-muted)}
+.cp-ways-list{margin:0;padding:0;list-style:none;border-top:1px solid var(--hair)}
+.cp-way{--draw:1;position:relative}
+.cp-way:after{content:'';position:absolute;left:0;right:0;bottom:0;height:1px;background:var(--ink);opacity:.22;transform:scaleX(var(--draw));transform-origin:left}
+.cp-way a{position:relative;isolation:isolate;display:grid;gap:10px 40px;padding:30px 0;overflow:hidden;color:var(--ink);transition:color .5s var(--ease)}
+/* Under the pointer, the row is inked in from the left. */
+.cp-way a:before{content:'';position:absolute;inset:0;z-index:-1;background:#141210;clip-path:inset(0 100% 0 0);transition:clip-path .75s var(--ease)}
+.cp-way a>*{transition:transform .75s var(--ease),color .5s var(--ease)}
+.cp-way-name{font:300 clamp(34px,4.2vw,68px)/1 var(--font-display);letter-spacing:-.035em}
+.cp-way-text{max-width:38ch;font-size:15px;line-height:1.6;color:var(--ink-muted)}
+.cp-way-go{display:inline-flex;align-items:center;gap:14px;font:600 13.5px/1 var(--font-text);letter-spacing:.03em;white-space:nowrap}
+.cp-way-go i{position:relative;display:grid;place-items:center;width:44px;height:44px;border:1px solid var(--hair);border-radius:50%;transition:border-color .5s,background-color .5s,transform .75s var(--ease)}
+.cp-way-go i:before{content:'';width:9px;height:9px;margin-left:-4px;border-top:1.4px solid currentColor;border-right:1.4px solid currentColor;transform:rotate(45deg)}
+.cp-way a:focus-visible{outline-offset:-1px}
+@media(hover:hover){
+  .cp-way a:hover{color:var(--ivory)}
+  .cp-way a:hover:before{clip-path:inset(0 0 0 0)}
+  .cp-way a:hover>*{transform:translateX(clamp(16px,2vw,32px))}
+  .cp-way a:hover .cp-way-go{transform:translateX(calc(-1 * clamp(16px,2vw,32px)))}
+  .cp-way a:hover .cp-way-text{color:var(--steel)}
+  .cp-way a:hover .cp-way-go i{color:#1a1008;background:var(--gold-hi);border-color:var(--gold-hi);transform:translateX(4px)}
+}
+@media(min-width:1001px){
+  .cp-way a{grid-template-columns:minmax(0,1.1fr) minmax(0,1fr) 220px;align-items:center;padding:38px 0}
+  .cp-way-go{justify-self:end}
+}
+@media(max-width:1000px){.cp-way-go{margin-top:10px}}
+
+@media(prefers-reduced-motion:reduce){.cp-way a:before{display:none}}

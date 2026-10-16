@@ -1,0 +1,198 @@
+/* Sell your car (/sell/, sell-page.js). The object is the car's own number
+   plate: an Indian high-security plate on a lacquer floor, its letters
+   pressed in as the owner types the registration. Then the four steps,
+   counted off on an odometer's last drum; sell or exchange, two doors; the
+   appraisal on paper beside the car's record, a black folio that fills in;
+   and the questions owners ask. */
+.sl-page{--paper:#f4f0e8;--ink:#1d1915;--ink-muted:#6a6259;--hair:rgba(29,25,21,.13);--gold-ink:#93662e;--gold-text:#d9a75a}
+.sl-page .ink-button{min-height:54px}
+
+/* Section heads: the title in two steps, the second in gold italic and set
+   in; one sentence beneath it. */
+.sl-head{display:grid;gap:26px;align-content:start}
+.sl-head h2{font-size:clamp(46px,5.6vw,96px);line-height:.96;letter-spacing:-.04em}
+.sl-head h2 .fl-line:last-child{padding-left:.9em}
+.sl-head h2 em{color:var(--gold-text)}
+.sl-head p{max-width:38ch;font-size:16.5px;line-height:1.7;color:var(--steel)}
+
+/* ------------------------------------------------------------------ hero */
+.sl-hero{position:relative;isolation:isolate;display:grid;align-content:center;gap:clamp(36px,4.4vw,60px);min-height:100svh;padding:calc(var(--header-height) + clamp(36px,5vw,72px)) var(--gutter) clamp(44px,5vw,72px);overflow:hidden;background:#030303}
+/* A softbox above the plate; its pool on the floor. */
+.sl-hero:before{content:'';position:absolute;inset:0;z-index:-1;background:radial-gradient(48% 38% at 66% 68%,rgba(239,233,222,.075),transparent 72%),radial-gradient(30% 24% at 66% 88%,rgba(196,136,58,.07),transparent 75%)}
+.sl-hero-copy{position:relative;z-index:1;max-width:760px}
+.sl-title{font-size:clamp(50px,6.2vw,108px);line-height:.96;letter-spacing:-.045em;color:#f2ede4}
+.sl-title em{color:var(--gold-text);letter-spacing:-.03em}
+.sl-title .fl-line:last-child{padding-left:.9em}
+.sl-lede{max-width:40ch;margin-top:28px;font-size:17px;line-height:1.7;color:var(--steel)}
+.sl-hero-plate{position:relative;z-index:1;width:100%}
+.sl-plate-label{display:block;margin:0 0 14px;font-size:12.5px;font-weight:600;letter-spacing:.05em;color:var(--steel)}
+.sl-plate-stage{position:relative}
+/* The floor: the plate stands on black lacquer. */
+.sl-plate-stage:before{content:'';position:absolute;left:-40%;right:-40%;top:calc(100% - 1px);height:1px;background:linear-gradient(90deg,transparent,rgba(239,233,222,.16) 30%,rgba(239,233,222,.16) 70%,transparent)}
+
+/* The plate: white retro-reflective sheeting, the raised black rim, the
+   chromium hologram and IND in blue at its left edge, two snap locks, the
+   laser-etched number at its foot, and the raised letters. */
+.sl-plate{position:relative;display:flex;aspect-ratio:4.25;container-type:inline-size;border-radius:1.6cqw;color:#121212;background:repeating-linear-gradient(135deg,rgba(40,60,120,.022) 0 .5cqw,transparent .5cqw 1.4cqw),linear-gradient(180deg,#fefefc,#f1f0eb 52%,#e4e2dc);box-shadow:inset 0 .25cqw 0 #fff,inset 0 -.3cqw .5cqw rgba(0,0,0,.08),0 .2cqw 0 #b9b6ae,0 2.4cqw 4cqw -1.6cqw rgba(0,0,0,.85);transition:box-shadow .5s var(--ease)}
+.sl-plate:before{content:'';position:absolute;inset:1.15cqw;z-index:2;border:.5cqw solid #151515;border-radius:1.1cqw;box-shadow:inset 0 .12cqw 0 rgba(0,0,0,.3),0 .12cqw 0 rgba(255,255,255,.95);pointer-events:none}
+.sl-plate:focus-within{box-shadow:inset 0 .25cqw 0 #fff,inset 0 -.3cqw .5cqw rgba(0,0,0,.08),0 .2cqw 0 #b9b6ae,0 2.4cqw 4cqw -1.6cqw rgba(0,0,0,.85),0 0 0 1px rgba(242,191,94,.65),0 0 3.2cqw rgba(242,191,94,.28)}
+.sl-plate-ind{position:relative;z-index:1;flex:none;display:flex;flex-direction:column;align-items:center;justify-content:space-between;width:10cqw;margin:2.6cqw 0 2.6cqw 2.6cqw;padding:.6cqw 0 .2cqw;border-right:.12cqw solid rgba(0,0,0,.08)}
+.sl-holo{display:block;width:4.6cqw;height:4.6cqw;border-radius:50%;background:radial-gradient(circle,transparent 30%,rgba(255,255,255,.6) 31%,transparent 34%),conic-gradient(from 20deg,#9fb4e6,#f4f6ff,#c6b8e8,#eef9ff,#a7c6e6,#fff3df,#9fb4e6);box-shadow:0 0 0 .18cqw rgba(29,79,184,.25),inset 0 0 .6cqw rgba(29,79,184,.25)}
+.sl-plate-ind b{font:800 3.1cqw/1 var(--font-text);letter-spacing:.06em;color:#1d4fb8}
+.sl-plate-field{position:relative;flex:1;min-width:0}
+.sl-plate-input,.sl-plate-chars{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;margin:0;padding:0 2cqw .4cqw 0;font:800 9.8cqw/1 var(--font-text);letter-spacing:.055em;text-align:center;text-transform:uppercase;white-space:pre;font-variant-numeric:tabular-nums}
+.sl-plate-input{z-index:3;width:100%;height:100%;color:transparent;caret-color:#121212;background:transparent;border:0;border-radius:0;outline:none;-webkit-text-fill-color:transparent}
+.sl-plate-input::placeholder{color:transparent;-webkit-text-fill-color:transparent}
+.sl-plate-input::selection{background:rgba(196,136,58,.3)}
+.sl-plate-chars{z-index:1;pointer-events:none}
+.sl-plate-chars i{display:inline-block;font-style:normal;color:#141414;text-shadow:-.06cqw -.06cqw 0 rgba(255,255,255,.75),.08cqw .14cqw .1cqw rgba(0,0,0,.38)}
+.sl-plate-chars.is-placeholder i{color:#d2cfc7;text-shadow:0 .1cqw 0 #fff,0 -.06cqw 0 rgba(0,0,0,.08)}
+.sl-rivet{position:absolute;top:50%;z-index:3;width:1.7cqw;height:1.7cqw;margin-top:-.85cqw;border-radius:50%;background:radial-gradient(circle at 35% 30%,#fff,#c9ccd2 40%,#7d828c 80%);box-shadow:0 .12cqw .2cqw rgba(0,0,0,.4)}
+.sl-rivet--l{left:13.6cqw;top:18%}
+.sl-rivet--r{right:3.6cqw;top:18%}
+.sl-plate-pin{position:absolute;left:14.2cqw;bottom:3.2cqw;z-index:3;font:600 1.15cqw/1 var(--font-text);letter-spacing:.2em;color:rgba(0,0,0,.32)}
+/* The sheeting catches the light: a faint hologram-tinted band. */
+.sl-plate-sheen{--sweep:120%;position:absolute;inset:0;z-index:2;border-radius:inherit;pointer-events:none;background:linear-gradient(105deg,transparent 38%,rgba(150,180,255,.16) 45%,rgba(255,255,255,.55) 50%,rgba(255,220,170,.18) 55%,transparent 62%) var(--sweep) 0/300% 100% no-repeat}
+/* Its reflection in the floor. */
+.sl-plate--mirror{position:absolute;left:0;right:0;top:100%;margin-top:2px;transform:scaleY(-1);opacity:.16;filter:blur(1.5px);pointer-events:none;-webkit-mask-image:linear-gradient(to top,#000,transparent 52%);mask-image:linear-gradient(to top,#000,transparent 52%)}
+.sl-plate--mirror .sl-plate-chars{padding-right:2cqw}
+.sl-hero-actions{position:relative;z-index:2;display:flex;flex-wrap:wrap;align-items:center;gap:16px 30px;margin-top:clamp(40px,5vw,72px)}
+.sl-hero-call{font-size:14px;color:var(--steel)}
+.sl-hero-call a{color:var(--ivory);background:linear-gradient(var(--gold),var(--gold)) 0 100%/100% 1px no-repeat;padding-bottom:3px}
+@media(min-width:1001px){
+  .sl-hero{grid-template-columns:repeat(12,minmax(0,1fr));align-content:center}
+  .sl-hero-copy{grid-column:1 / span 7}
+  .sl-hero-plate{grid-column:5 / -1;width:min(100%,940px);justify-self:end}
+}
+
+/* ----------------------------------------------------------------- steps */
+.sl-steps{position:relative;background:#050506}
+.sl-steps:before{content:'';position:absolute;left:0;right:0;top:0;height:1px;background:var(--coachline);opacity:.7}
+.sl-steps-frame{display:grid;gap:clamp(40px,5vw,64px);padding:var(--space) var(--gutter)}
+/* The odometer: six drums in a dark chrome bezel behind glass; five rest at
+   nought, the last (white, as the tenths drum is) turns. Each drum is a real
+   ten-sided cylinder (sell-page.js builds and turns it). */
+.sl-odo{--d:clamp(52px,7.6vw,128px);justify-self:start;display:inline-flex;gap:calc(var(--d) * .05);padding:calc(var(--d) * .12);font-size:var(--d);border-radius:calc(var(--d) * .14);background:linear-gradient(180deg,#1d1d20,#09090a);box-shadow:inset 0 1px 0 rgba(255,255,255,.07),0 0 0 calc(var(--d) * .04) #0e0e10,0 0 0 calc(var(--d) * .04 + 1px) rgba(196,136,58,.4),0 50px 90px -40px rgba(0,0,0,.95);position:relative}
+.sl-odo:after{content:'';position:absolute;inset:calc(var(--d) * .12);border-radius:calc(var(--d) * .05);pointer-events:none;background:linear-gradient(172deg,rgba(255,255,255,.1),rgba(255,255,255,.02) 38%,transparent 40%)}
+.sl-drum{position:relative;width:.72em;height:1.3em;overflow:hidden;border-radius:calc(var(--d) * .04);background:#050505;perspective:5em}
+.sl-drum-roll{position:absolute;left:0;right:0;top:.15em;height:1em;transform-style:preserve-3d}
+.sl-drum-face{position:absolute;inset:0;display:grid;place-items:center;color:#ece6da;background:#141416;-webkit-backface-visibility:hidden;backface-visibility:hidden}
+.sl-drum-face i{font:600 .78em/1 var(--font-text);font-style:normal;font-variant-numeric:tabular-nums}
+.sl-drum--last .sl-drum-face{color:#121212;background:#ece6da}
+.sl-drum:after{content:'';position:absolute;inset:0;pointer-events:none;background:linear-gradient(180deg,rgba(0,0,0,.92),rgba(0,0,0,.25) 26%,transparent 40%,transparent 60%,rgba(0,0,0,.25) 74%,rgba(0,0,0,.92))}
+.sl-step-list{margin:0;padding:0;list-style:none}
+.sl-step{--lit:1;position:relative;display:grid;grid-template-columns:44px minmax(0,1fr);column-gap:18px;padding:22px 0;border-top:1px solid rgba(239,233,222,.1)}
+.sl-step:last-child{border-bottom:1px solid rgba(239,233,222,.1)}
+.sl-step:before{content:'';position:absolute;left:0;top:-1px;width:100%;height:1px;background:linear-gradient(90deg,var(--gold-hi),rgba(196,136,58,0) 70%);transform:scaleX(var(--lit));transform-origin:left;opacity:var(--lit)}
+.sl-step b{grid-row:span 2;font:italic 400 20px/1.3 var(--font-display);color:color-mix(in srgb,var(--gold-hi) calc(var(--lit) * 100%),#5d5a55)}
+.sl-step h3{font:400 clamp(24px,2.3vw,34px)/1.15 var(--font-display);letter-spacing:-.015em;color:#f2ede4;opacity:calc(.28 + var(--lit) * .72)}
+.sl-step p{max-width:42ch;margin-top:8px;font-size:15px;line-height:1.65;color:var(--steel);opacity:calc(.22 + var(--lit) * .78)}
+/* Pinned: one screen; the title and the list at the left, the odometer at the right. */
+.sl-steps.is-pinned .sl-steps-frame{height:100svh;min-height:640px;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto 1fr;align-items:end;column-gap:clamp(40px,6vw,120px);padding:calc(var(--header-height) + 6svh) var(--gutter) 7svh}
+.sl-steps.is-pinned .sl-steps-head{grid-column:1;grid-row:1;align-self:start}
+.sl-steps.is-pinned .sl-step-list{grid-column:1;grid-row:2}
+.sl-steps.is-pinned .sl-odo{grid-column:2;grid-row:1 / -1;align-self:center;justify-self:center}
+.sl-steps.is-pinned .sl-head h2{font-size:clamp(42px,4.6vw,80px)}
+.sl-steps.is-pinned .sl-step{padding:16px 0}
+.sl-steps.is-pinned .sl-step h3{font-size:clamp(22px,1.9vw,30px)}
+.sl-steps.is-pinned .sl-step p{margin-top:5px;font-size:14.5px}
+
+/* ---------------------------------------------------------- two doors */
+.sl-choice{position:relative;background:#000}
+.sl-panes{display:flex;min-height:min(84svh,820px)}
+.sl-pane{position:relative;flex:1 1 0;min-width:0;display:flex;flex-direction:column;justify-content:flex-end;padding:clamp(40px,6vw,96px) clamp(28px,4vw,72px);overflow:hidden;container-type:inline-size}
+.sl-pane--sell{color:var(--ivory);background:radial-gradient(80% 60% at 20% 0%,rgba(196,136,58,.12),transparent 70%),linear-gradient(180deg,#0e0e10,#050506)}
+.sl-pane--exchange{color:var(--ink);background:radial-gradient(80% 60% at 80% 0%,#fff,transparent 70%),var(--paper)}
+.sl-pane h3{font:300 clamp(54px,14cqw,190px)/.92 var(--font-display);letter-spacing:-.05em;white-space:nowrap}
+.sl-pane h3 em{font-weight:300;color:var(--gold-text)}
+.sl-pane--exchange h3 em{color:var(--gold-ink)}
+.sl-pane-more{max-width:38ch;margin-top:28px}
+.sl-pane-more p{font-size:16.5px;line-height:1.7}
+.sl-pane--sell .sl-pane-more p{color:var(--steel)}
+.sl-pane--exchange .sl-pane-more p{color:var(--ink-muted)}
+.sl-pane .text-link{margin-top:22px;color:var(--ivory)}
+.sl-pane-links{display:flex;flex-wrap:wrap;gap:8px 28px;margin-top:22px}
+.sl-pane .ink-link{color:var(--ink);background-image:linear-gradient(var(--gold-ink),var(--gold-ink))}
+.sl-pane:before{content:'';position:absolute;left:0;right:0;top:0;height:1px;background:var(--coachline);opacity:.7}
+@media(max-width:760px){.sl-panes{flex-direction:column;min-height:0}.sl-pane{padding:88px 22px 64px}.sl-pane h3{font-size:clamp(54px,17cqw,120px)}}
+
+/* ------------------------------------------------------------ appraisal */
+.sl-appraisal{--ivory:#211d18;--steel:#6a6259;--steel-dim:#8a8176;--graphite:rgba(40,32,22,.2);--gold:#986932;
+  position:relative;padding:var(--space) var(--gutter);color:var(--ink);background:var(--paper);scroll-margin-top:var(--header-height)}
+.sl-appraisal .sl-head{margin-bottom:clamp(48px,6vw,88px)}
+.sl-appraisal .sl-head h2 em{color:var(--gold-ink)}
+.sl-appraisal-body{display:grid;gap:44px}
+.sl-form{min-width:0}
+.sl-group{min-width:0;margin:0 0 44px;padding:0;border:0}
+.sl-group>legend{float:left;width:100%;margin:0 0 26px;padding:0 0 14px;font:400 clamp(24px,2.2vw,30px)/1.1 var(--font-display);letter-spacing:-.015em;color:var(--ink);border-bottom:1px solid var(--hair)}
+.sl-group>legend .optional{font:500 13px var(--font-text);letter-spacing:0}
+.sl-group>legend~*{clear:both}
+.sl-form input:focus-visible,.sl-form textarea:focus-visible{outline:none}
+.sl-appraisal .form-chip span{color:var(--ink);border-color:rgba(40,32,22,.22)}
+.sl-appraisal .form-chip:hover span{border-color:var(--ink)}
+.sl-appraisal .form-chip input:checked+span{color:#fff;background:var(--ink);border-color:var(--ink)}
+.sl-form .form-chip input[type=checkbox]{position:absolute;inset:0;width:100%;height:100%;margin:0;padding:0;opacity:0;cursor:pointer}
+.sl-form .form-chip input[type=checkbox]+span:before{content:'';width:0;height:7px;margin-right:0;border-left:1.5px solid currentColor;border-bottom:1.5px solid currentColor;opacity:0;transform:translateY(-2px) rotate(-45deg);transition:width .35s var(--ease),margin .35s var(--ease),opacity .3s}
+.sl-form .form-chip input[type=checkbox]:checked+span:before{width:12px;margin-right:9px;opacity:1}
+.sl-form .form-chip input[type=checkbox]:checked+span{color:#fff;background:var(--ink);border-color:var(--ink)}
+.sl-form .form-chip input:focus-visible+span{outline:1px solid var(--gold-ink);outline-offset:3px}
+.sl-switch{margin-top:2px!important}
+.sl-form .solid-button{color:#fff;background:#1d1915;box-shadow:none}
+.sl-form .solid-button:hover{background:#3a3128}
+.sl-form .form-result{border-top-color:var(--hair);color:var(--ink)}
+.sl-form .form-result pre{color:var(--ink-muted);background:#fff;border-color:var(--hair)}
+.sl-form .text-link{color:var(--ink)}
+/* The record: a black folio, back in the dark palette. */
+.sl-record{--ivory:#efe9de;--steel:#9d9a94;--steel-dim:#85827c;--graphite:#2c2d31;--gold:#c4883a;min-width:0}
+.sl-record-inner{position:relative;padding:clamp(22px,2.4vw,34px);overflow:hidden;color:var(--ivory);background:radial-gradient(90% 60% at 20% 0%,rgba(242,191,94,.1),transparent 60%),linear-gradient(160deg,#1c1d21,#0a0a0c 72%);border-radius:18px;box-shadow:0 60px 90px -50px rgba(40,30,15,.75),inset 0 1px 0 rgba(255,255,255,.06)}
+.sl-record-inner:before{content:'';position:absolute;left:0;right:0;top:0;height:1px;background:var(--coachline)}
+.sl-record-top{display:flex;align-items:center;justify-content:space-between;gap:16px;margin-bottom:24px}
+.sl-record-top img{display:block;width:96px;height:auto}
+.sl-record-top span{padding:7px 12px 8px;font:600 12px/1 var(--font-text);letter-spacing:.05em;color:#1a1008;background:var(--brushed-gold);border-radius:999px}
+.sl-record-plate{height:64px}
+.sl-record-name{min-height:1.15em;margin-top:24px;font:300 clamp(26px,2.3vw,34px)/1.15 var(--font-display);letter-spacing:-.015em;overflow-wrap:anywhere}
+.sl-record-name.is-placeholder{color:#5c5953}
+.sl-record-odo{display:flex;align-items:flex-end;gap:10px;margin-top:22px}
+.sl-record-odo .drum{font-size:28px}
+.sl-record-km{margin-top:10px;font-size:13.5px;color:var(--steel)}
+.sl-record-facts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px;margin:22px 0 0;padding-top:18px;border-top:1px solid rgba(239,233,222,.09)}
+.sl-record-facts dt{margin-bottom:5px;font-size:11.5px;font-weight:600;letter-spacing:.04em;color:var(--steel-dim)}
+.sl-record-facts dd{margin:0;font:400 19px/1.2 var(--font-display);color:var(--ivory);overflow-wrap:anywhere}
+.sl-record-care{display:flex;flex-wrap:wrap;gap:8px;min-height:0;margin:18px 0 0;padding:0;list-style:none}
+.sl-record-care:empty{display:none}
+.sl-record-care li{display:inline-flex;align-items:center;gap:8px;padding:7px 12px 8px;font-size:12.5px;font-weight:500;color:#e8dcc4;border:1px solid rgba(242,191,94,.32);border-radius:999px}
+.sl-record-care li:before{content:'';width:9px;height:5px;border-left:1.4px solid var(--gold-hi);border-bottom:1.4px solid var(--gold-hi);transform:translateY(-2px) rotate(-45deg)}
+.sl-record-status{margin-top:22px;padding-top:16px;font:italic 300 18px/1.4 var(--font-display);color:#cfc8bb;border-top:1px solid rgba(239,233,222,.09)}
+.sl-record.is-received .sl-record-status{color:var(--gold-hi)}
+@media(min-width:1001px){
+  .sl-appraisal-body{grid-template-columns:minmax(0,1.15fr) minmax(360px,.85fr);gap:clamp(48px,6vw,112px);align-items:start}
+  .sl-record{position:sticky;top:calc(var(--header-height) + 32px)}
+  .sl-form .solid-button{width:auto;min-width:300px}
+}
+@media(max-width:1000px){.sl-record{order:-1}}
+
+/* ------------------------------------------------------------------ faq */
+.sl-faq{position:relative;display:grid;gap:clamp(44px,5vw,72px);padding:var(--space) var(--gutter);color:var(--ink);background:var(--paper)}
+/* Straight after the appraisal, on the same paper: one gap between them, not two. */
+.sl-appraisal+.sl-faq{padding-top:0}
+.sl-faq .sl-head h2 em{color:var(--gold-ink)}
+.sl-faq-list{border-top:1px solid var(--hair)}
+.sl-q{border-bottom:1px solid var(--hair)}
+.sl-q summary{display:flex;align-items:center;justify-content:space-between;gap:24px;padding:28px 0;cursor:pointer;list-style:none;font:400 clamp(22px,2.1vw,30px)/1.2 var(--font-display);letter-spacing:-.012em;color:var(--ink);transition:color .3s}
+.sl-q summary::-webkit-details-marker{display:none}
+.sl-q summary:focus-visible{outline-offset:-1px}
+.sl-q summary i{position:relative;flex:none;width:42px;height:42px;border:1px solid var(--hair);border-radius:50%;transition:background-color .5s var(--ease),border-color .4s,transform .6s var(--ease)}
+.sl-q summary i:before,.sl-q summary i:after{content:'';position:absolute;left:50%;top:50%;width:13px;height:1.3px;margin:-.65px 0 0 -6.5px;background:var(--ink);transition:transform .6s var(--ease),background-color .4s}
+.sl-q summary i:after{transform:rotate(90deg)}
+.sl-q[open] summary i{background:var(--ink);border-color:var(--ink);transform:rotate(180deg)}
+.sl-q[open] summary i:before,.sl-q[open] summary i:after{background:#fff}
+.sl-q[open] summary i:after{transform:rotate(0)}
+@media(hover:hover){.sl-q summary:hover i{border-color:var(--ink)}}
+.sl-q-body{overflow:hidden}
+.sl-q-body p{max-width:58ch;padding:0 0 30px;font-size:16px;line-height:1.75;color:var(--ink-muted)}
+.sl-talk{display:flex;flex-wrap:wrap;align-items:center;gap:16px 30px;padding-top:12px}
+.sl-talk p{margin-right:auto;font:300 clamp(28px,2.8vw,40px)/1.15 var(--font-display);letter-spacing:-.02em}
+@media(min-width:1001px){
+  .sl-faq{grid-template-columns:minmax(0,.9fr) minmax(0,1.1fr);gap:clamp(48px,6vw,112px);align-items:start}
+  .sl-talk{grid-column:1 / -1;margin-top:24px}
+}

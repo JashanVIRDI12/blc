@@ -27,6 +27,8 @@ export default defineConfig({
         car: resolve(root, 'car/index.html'),
         concierge: resolve(root, 'concierge/index.html'),
         about: resolve(root, 'about/index.html'),
+        sell: resolve(root, 'sell/index.html'),
+        consultation: resolve(root, 'consultation/index.html'),
         admin: resolve(root, 'admin/index.html'),
       },
     },

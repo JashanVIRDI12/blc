@@ -1,4 +1,5 @@
-import { dealer } from './config.js';
+import { dealer, social } from './config.js';
+import { icons } from './icons.js';
 import { safeURL } from './util.js';
 import { live, supabase } from './data.js';
 
@@ -46,13 +47,17 @@ export function setupForms() {
     if (live) document.querySelector('#privacy-delivery').textContent = 'When you submit an enquiry, the details you enter are sent securely to Baba Luxury Cars, so we can get back to you. They are used only for your request.';
     else if (dealer.enquiryEndpoint) document.querySelector('#privacy-delivery').textContent = 'When you submit an enquiry, the details you enter are sent to the dealership to respond to your request. They are not saved in this browser.';
     else if (hasContact()) document.querySelector('#privacy-delivery').textContent = 'Your enquiry is prepared in this browser. You choose whether to share it using the dealership’s email or WhatsApp contact. It is not sent automatically.';
+    // Each detail with its icon; WhatsApp, Instagram and YouTube beside them,
+    // as icons alone (WhatsApp opens the card of lines, whatsapp.js).
     contactDetails.replaceChildren();
-    const addContact = (text, href) => { const element = document.createElement(href ? 'a' : 'span'); element.textContent = text; if(href) element.href = href; contactDetails.append(element); };
-    if (dealer.phone) addContact(dealer.phone, `tel:${dealer.phone.replace(/[^+\d]/g,'')}`);
-    if (dealer.whatsapp) addContact('WhatsApp', `https://wa.me/${dealer.whatsapp.replace(/\D/g,'')}`);
-    if (dealer.email) addContact(dealer.email, `mailto:${dealer.email}`);
-    if (dealer.address) addContact(dealer.address);
-    if (dealer.hours) addContact(dealer.hours);
+    const addContact = (icon, text, href) => { const element = document.createElement(href ? 'a' : 'span'); element.innerHTML = icons[icon]; element.append(text); if(href) element.href = href; contactDetails.append(element); };
+    if (dealer.phone) addContact('phone', dealer.phone, `tel:${dealer.phone.replace(/[^+\d]/g,'')}`);
+    if (dealer.email) addContact('mail', dealer.email, `mailto:${dealer.email}`);
+    if (dealer.address) addContact('pin', dealer.address);
+    if (dealer.hours) addContact('clock', dealer.hours);
+    const socialLinks = document.querySelector('[data-social]'), chat = dealer.whatsapp.replace(/\D/g, '');
+    if (socialLinks) socialLinks.innerHTML = [chat && { name: 'WhatsApp', icon: 'whatsapp', url: `https://wa.me/${chat}`, open: true }, ...social].filter(Boolean)
+      .map(({ name, icon, url, open }) => `<a href="${url}" target="_blank" rel="noopener" aria-label="${name === 'WhatsApp' ? 'Talk to us on WhatsApp' : `Baba Luxury Car on ${name}`}"${open ? ' data-wa-open' : ''}>${icons[icon]}<span class="footer-social-tip" aria-hidden="true">${name}</span></a>`).join('');
     if (dealer.enquiryEndpoint || live) document.querySelectorAll('[data-lead-form]').forEach(form => { form.querySelector('[data-submit-label]').textContent = { valuation: 'Request a valuation', consultation: 'Book my call' }[form.dataset.leadForm] || 'Send enquiry'; });
     const whatsapp = dealer.whatsapp.replace(/\D/g, '');
     document.querySelectorAll('[data-consult-whatsapp]').forEach(link => { link.hidden = !whatsapp; link.href = `https://wa.me/${whatsapp}?text=${encodeURIComponent('Hello Baba Luxury Cars, I’d like a one-to-one call to find the right car for me.')}`; });
@@ -61,6 +66,10 @@ export function setupForms() {
 
   document.querySelectorAll('[data-lead-form]').forEach(form => {
     const submit = form.querySelector('[type=submit]');
+    // The page can answer a request's outcome (the consultation's card is
+    // sealed, the seller's record marked): 'sent', 'prepared' or 'failed',
+    // told before a sent form is cleared.
+    const announce = (status, data) => form.dispatchEvent(new CustomEvent('lead:result', { detail: { status, data } }));
     // A field people never see: forms that fill it are robots.
     const trap = Object.assign(document.createElement('input'), { type: 'text', name: 'company', tabIndex: -1, autocomplete: 'off' });
     trap.className = 'form-trap'; trap.setAttribute('aria-hidden', 'true');
@@ -78,9 +87,9 @@ export function setupForms() {
           if (!company) await saveEnquiry(type, data);
           heading.textContent = { valuation: 'Thank you. Your car’s details have reached us, and we’ll call you about its valuation shortly.', consultation: 'Thank you. Your request has reached us, and we’ll call you to confirm a time for your consultation.' }[type] || 'Thank you. Your enquiry has reached us, and we’ll get back to you shortly.';
           if (dealer.whatsapp) { const link = document.createElement('a'); link.className = 'text-link'; link.textContent = 'Or message us on WhatsApp now'; link.href = `https://wa.me/${dealer.whatsapp.replace(/\D/g, '')}`; link.target = '_blank'; link.rel = 'noopener'; const actions = document.createElement('div'); actions.className = 'result-actions'; actions.append(link); result.append(actions); }
-          form.reset(); form.dispatchEvent(new Event('input')); result.focus(); return;
+          announce('sent', data); form.reset(); form.dispatchEvent(new Event('input')); result.focus(); return;
         } catch {
-          heading.textContent = 'We couldn’t send this just now. Your details are still here: share them below, or try again.';
+          heading.textContent = 'We couldn’t send this just now. Your details are still here: share them below, or try again.'; announce('failed', data);
         } finally { submit.disabled = false; }
       } else if (dealer.enquiryEndpoint) {
         submit.disabled = true; heading.textContent = 'Sending your enquiry…';
@@ -89,14 +98,14 @@ export function setupForms() {
           if (!endpoint) throw new Error('Invalid endpoint');
           const response = await fetch(endpoint, { method:'POST', headers:{'Content-Type':'application/json'}, body:JSON.stringify({ type, ...data }), signal:AbortSignal.timeout(15000) });
           if (!response.ok) throw new Error('Request failed');
-          heading.textContent = 'Your enquiry has been sent. We’ll use the details provided to get in touch.'; form.reset(); result.focus(); return;
+          heading.textContent = 'Your enquiry has been sent. We’ll use the details provided to get in touch.'; announce('sent', data); form.reset(); result.focus(); return;
         } catch {
-          heading.textContent = 'We couldn’t send this enquiry. Your details are still here. Please try again, or save the enquiry below.';
+          heading.textContent = 'We couldn’t send this enquiry. Your details are still here. Please try again, or save the enquiry below.'; announce('failed', data);
         } finally { submit.disabled = false; }
       } else {
         heading.textContent = hasContact() ? 'Your enquiry is ready. Choose how you would like to share it.' : 'Your enquiry is ready to save. Online delivery is not connected yet, so nothing has been sent.';
       }
-      const labels = {vehicle:'Vehicle',registration:'Registration',kilometres:'Kilometres',name:'Name',phone:'Phone',exchange:'Exchange',interest:'Interested in',message:'Message',callVia:'Call by',when:'Best time',budget:'Budget'};
+      const labels = {vehicle:'Vehicle',year:'Year',city:'City',registration:'Registration',kilometres:'Kilometres',owners:'Owners',care:'Care record',name:'Name',phone:'Phone',exchange:'Exchange',interest:'Interested in',message:'Message',callVia:'Call by',day:'Day',when:'Best time',budget:'Budget'};
       const brand = `${dealer.name === 'BABA' ? 'Baba' : dealer.name} ${dealer.descriptor}`;
       const draft = [`${brand} — ${{ valuation: 'Valuation enquiry', consultation: 'One-to-one consultation request' }[type] || 'Vehicle enquiry'}`, '', ...Object.entries(data).filter(([,v])=>String(v).trim()).map(([key,value])=>`${labels[key] || key}: ${key==='exchange'?'Yes':String(value).trim()}`)].join('\n');
       const pre = document.createElement('pre'); pre.textContent = draft; result.append(pre);
@@ -109,6 +118,7 @@ export function setupForms() {
         catch { const selection=window.getSelection(); const range=document.createRange(); range.selectNodeContents(pre); selection.removeAllRanges();selection.addRange(range);heading.textContent='Enquiry selected. Use your browser’s Copy command.'; }
       });
       action('Download enquiry', null, () => { const url=URL.createObjectURL(new Blob([draft],{type:'text/plain;charset=utf-8'})); const a=document.createElement('a');a.href=url;a.download=`baba-${type}-enquiry.txt`;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000); });
+      announce('prepared', data);
       result.focus();
     });
   });

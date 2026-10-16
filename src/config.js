@@ -19,6 +19,22 @@ export const dealerLines = [
   { label: 'Customer support', phone: '+91 85108 30242' },
 ];
 
+// The WhatsApp lines in the card that opens from the corner button on every
+// page (src/whatsapp.js), in this order: what each is for, its number and
+// the first message the chat opens with. Saved in the admin (Settings,
+// WhatsApp lines), the admin's list replaces this one.
+export const whatsappLines = [
+  { label: 'Buy a car', number: '+91 97737 37310', message: 'Hello Baba Luxury Cars, I’m looking for a car.' },
+  { label: 'Sell your car', number: '+91 85958 44904', message: 'Hello Baba Luxury Cars, I’d like to sell my car.' },
+  { label: 'Customer support', number: '+91 85108 30242', message: 'Hello Baba Luxury Cars, I need some help.' },
+];
+
+// Where the dealership posts, as linked from babaluxurycar.com. In the footer.
+export const social = [
+  { name: 'Instagram', icon: 'instagram', url: 'https://www.instagram.com/babaluxurycar/' },
+  { name: 'YouTube', icon: 'youtube', url: 'https://www.youtube.com/@babaluxurycar' },
+];
+
 // The dealership's own figures, on the home page's "Across India" section
 // (src/across-india.js). `value` rolls up as the section comes into view;
 // `suffix` follows it.

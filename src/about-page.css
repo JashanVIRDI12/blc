@@ -288,10 +288,14 @@
 .ab-lines dd{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;margin:0;font-size:16px}
 .ab-lines a{color:#efe9de;transition:color .3s}
 .ab-lines a:hover{color:var(--gold-hi)}
+.ab-lines dd a{display:inline-flex;align-items:center;gap:8px}
+.ab-lines dd .icon{width:15px;height:15px;color:var(--gold)}
 .ab-lines .ab-wa{font-size:12px;letter-spacing:.06em;color:var(--gold-text)}
+.ab-lines .ab-wa .icon{width:14px;height:14px;color:inherit}
 .ab-social{display:flex;gap:26px;margin-top:30px;font-size:13px}
-.ab-social a{color:rgba(239,233,222,.7);background:linear-gradient(var(--gold),var(--gold)) 0 100%/0 1px no-repeat;padding-bottom:4px;transition:background-size .5s var(--ease),color .3s}
+.ab-social a{display:inline-flex;align-items:center;gap:9px;color:rgba(239,233,222,.7);background:linear-gradient(var(--gold),var(--gold)) 0 100%/0 1px no-repeat;padding-bottom:4px;transition:background-size .5s var(--ease),color .3s}
 .ab-social a:hover{color:var(--ivory);background-size:100% 1px}
+.ab-social .icon{width:16px;height:16px;color:var(--gold)}
 .ab-clock{justify-self:center;width:min(440px,100%);margin:0;filter:drop-shadow(0 40px 60px rgba(0,0,0,.7))}
 .ab-clock svg{display:block;width:100%;height:auto}
 /* A real clock: polished gold case, a sunburst dial under a domed crystal,

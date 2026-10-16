@@ -41,6 +41,9 @@ export const KM_BANDS = [
 
 export const defaultSettings = {
   contact: { phone: '', whatsapp: '', email: '', address: '', hours: '', enquiryEndpoint: '' },
+  // The lines in the corner WhatsApp card ({ label, number, message }); null
+  // until saved in the admin, when config.js's whatsappLines are shown.
+  whatsapp: { lines: null },
   // `choose`: 'priciest', the most expensive cars on sale, kept up to date by
   // themselves; or 'picks', the cars starred in the admin, in their order.
   home: { title: 'Featured collection.', intro: 'Distinctive cars. Carefully considered.\nEnquire for current availability.', limit: 6, choose: 'priciest' },

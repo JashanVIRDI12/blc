@@ -87,7 +87,9 @@ p{text-wrap:pretty}
 .site-header.is-practical .brand-logo,.site-header.is-light .brand-logo{filter:none}
 .menu-toggle{grid-column:1;grid-row:1;justify-self:start;display:flex;flex-direction:column;justify-content:center;gap:7px;width:44px;height:44px}
 .menu-toggle i{display:block;width:26px;height:1px;background:var(--ivory);transition:transform .35s var(--ease)}
-.header-actions{grid-column:3;grid-row:1;justify-self:end}
+.header-actions{grid-column:3;grid-row:1;justify-self:end;display:flex;align-items:center;gap:30px}
+/* The one-to-one, beside Enquire on large screens (the menu has it on phones). */
+.header-link{display:none}
 .desktop-nav{display:none}
 .site-header:before,.site-header:after{content:'';position:absolute;left:0;right:0;bottom:0;height:1px;opacity:0;transition:opacity .45s}
 .site-header:before{background:rgba(196,136,58,.16)}
@@ -97,6 +99,9 @@ p{text-wrap:pretty}
 /* Over the white About studio the header turns pale. No blur there: a blur
    over a moving 3D stage must be recomputed every frame, which phones feel. */
 .site-header.is-light{color:#141413;background:rgba(255,255,255,.9);-webkit-backdrop-filter:none;backdrop-filter:none}
+/* The seller's and the consultation's paper sections: the header in paper. */
+.sl-page .site-header.is-light,.cp-page .site-header.is-light{background:rgba(244,240,232,.9);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2)}
+.sl-page .site-header.is-light:before,.cp-page .site-header.is-light:before{background:rgba(29,25,21,.1)}
 .site-header.is-light .menu-toggle i{background:#141413}
 .site-header.is-light .enquire-link{color:#141413;border-color:rgba(132,80,44,.6)}
 .site-header.is-light .desktop-nav a{color:rgba(20,20,19,.72)}
@@ -113,6 +118,12 @@ p{text-wrap:pretty}
   .desktop-nav a:after{content:'';position:absolute;left:0;right:0;bottom:4px;height:1px;background:var(--gold);transform:scaleX(0);transform-origin:left;transition:transform .45s var(--ease)}
   .desktop-nav a:hover:after,.desktop-nav a[aria-current=page]:after{transform:scaleX(1)}
   .desktop-nav a[aria-current=page]{color:var(--ivory)}
+  .header-link{position:relative;display:block;padding:12px 0;font:500 13px/1 var(--font-text);letter-spacing:.05em;color:rgba(239,233,222,.78);transition:color .3s}
+  .header-link:hover,.header-link[aria-current=page]{color:var(--ivory)}
+  .header-link:after{content:'';position:absolute;left:0;right:0;bottom:4px;height:1px;background:var(--gold);transform:scaleX(0);transform-origin:left;transition:transform .45s var(--ease)}
+  .header-link:hover:after,.header-link[aria-current=page]:after{transform:scaleX(1)}
+  .site-header.is-light .header-link{color:rgba(20,20,19,.72)}
+  .site-header.is-light .header-link:hover{color:#141413}
   .site-header .brand-logo{height:50px}
 }
 
@@ -127,7 +138,7 @@ p{text-wrap:pretty}
 .mm-links a:hover,.mm-links a:focus-visible{color:var(--gold-hi)}
 .mm-links a:hover:after,.mm-links a:focus-visible:after{opacity:1;transform:translateX(5px) rotate(45deg)}
 .mm-links a[aria-current=page]{font-style:italic;color:var(--gold)}
-.mm-links a:nth-child(2){animation-delay:.05s}.mm-links a:nth-child(3){animation-delay:.1s}.mm-links a:nth-child(4){animation-delay:.15s}
+.mm-links a:nth-child(2){animation-delay:.05s}.mm-links a:nth-child(3){animation-delay:.1s}.mm-links a:nth-child(4){animation-delay:.15s}.mm-links a:nth-child(5){animation-delay:.2s}
 .mm-foot{display:grid;gap:14px;margin-top:auto;animation:menu-in .7s var(--ease) .22s both}
 .mm-foot:empty{display:none}
 .mm-label{margin:0;font-size:13px;font-weight:600;letter-spacing:.04em;color:var(--gold)}
@@ -138,6 +149,12 @@ p{text-wrap:pretty}
 .mm-action--gold{color:#1a1008;background:var(--brushed-gold);border-color:transparent}
 .mm-action--gold:hover{border-color:transparent}
 .mm-visit{display:grid;gap:3px;margin:4px 0 0;font-size:13px;line-height:1.5;color:var(--steel)}
+.mm-visit span{display:flex;align-items:flex-start;gap:9px}
+.mm-visit .icon{width:15px;height:15px;margin-top:3px;color:var(--gold)}
+.mm-social{display:flex;gap:10px;margin:6px 0 0}
+.mm-social a{display:grid;place-items:center;width:44px;height:44px;color:var(--ivory);border:1px solid rgba(239,233,222,.2);border-radius:50%;transition:color .3s,border-color .3s}
+.mm-social a:hover{color:var(--gold-hi);border-color:var(--gold)}
+.mm-social .icon{width:19px;height:19px}
 @keyframes menu-in{from{opacity:0;transform:translateY(18px)}}
 @media(prefers-reduced-motion:reduce){.mm-links a,.mm-foot{animation:none}}
 /* The toggle becomes a ring while the menu is open, its focus ring round. */
@@ -452,7 +469,22 @@ p{text-wrap:pretty}
 .footer-base nav{display:flex;flex-wrap:wrap;gap:10px 28px;font-size:14px}
 .footer-base nav a{color:rgba(239,233,222,.78);transition:color .3s}
 .footer-base nav a:hover{color:var(--ivory)}
-.contact-details{display:flex;flex-wrap:wrap;gap:12px 28px;margin-top:28px;font-size:15px}
+.footer-reach{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:24px 40px;margin-top:28px}
+.contact-details{display:flex;flex-wrap:wrap;gap:12px 30px;font-size:15px}
+.contact-details>*{display:inline-flex;align-items:center;gap:10px}
+.contact-details .icon{width:17px;height:17px;color:var(--gold)}
+.contact-details a{transition:color .3s}
+.contact-details a:hover{color:var(--gold-hi)}
+/* WhatsApp, Instagram and YouTube: rings that fill with gold under the
+   pointer, the name rising above. */
+.footer-social{display:flex;gap:12px}
+.footer-social:empty{display:none}
+.footer-social a{position:relative;display:grid;place-items:center;width:48px;height:48px;color:var(--ivory);border:1px solid rgba(239,233,222,.22);border-radius:50%;transition:color .35s,background-color .35s,border-color .35s,transform .5s var(--ease)}
+.footer-social .icon{width:21px;height:21px}
+.footer-social a:hover,.footer-social a:focus-visible{color:#1a1008;background:var(--gold-hi);border-color:var(--gold-hi);transform:translateY(-3px)}
+.footer-social-tip{position:absolute;bottom:calc(100% + 10px);left:50%;padding:6px 10px;font:600 11.5px/1 var(--font-text);letter-spacing:.03em;white-space:nowrap;color:var(--ivory);background:rgba(10,10,11,.94);border:1px solid rgba(214,166,92,.35);border-radius:999px;opacity:0;transform:translate(-50%,6px);pointer-events:none;transition:opacity .3s,transform .45s var(--ease)}
+@media(hover:hover){.footer-social a:hover .footer-social-tip{opacity:1;transform:translate(-50%,0)}}
+.footer-social a:focus-visible .footer-social-tip{opacity:1;transform:translate(-50%,0)}
 .contact-details:empty{display:none}
 .footer-legal{display:flex;flex-wrap:wrap;align-items:center;gap:10px 26px;margin-top:44px;font-size:12px;color:var(--steel-dim)}
 .footer-legal button{font-size:12px;color:inherit}
@@ -542,3 +574,68 @@ canvas.is-turning{cursor:grabbing}
 /* The dealership's photographs are square, the car low in the frame: they
    are shown whole, never cropped to a wider frame. */
 .vehicle-visual[data-photo=full]{aspect-ratio:1/1}
+
+/* ------------------------------------------------------------------ icons */
+/* The line icons (icons.js): the size of the text they sit with, in its
+   colour. */
+.icon{flex:none;width:1em;height:1em;fill:none;stroke:currentColor;stroke-width:1.4;stroke-linecap:round;stroke-linejoin:round;overflow:visible}
+.icon .icon-dot,.icon .icon-fill{fill:currentColor;stroke:none}
+/* In the site's buttons and links, before their words. */
+.solid-button .icon,.ink-button .icon{width:18px;height:18px}
+.solid-button .icon{margin-right:11px}
+.text-link .icon{width:17px;height:17px;margin-right:9px;color:var(--gold)}
+
+/* --------------------------------------------------------------- whatsapp */
+/* The corner button (whatsapp.js): a lacquered disc with a gold rim, above
+   the page and below the header and the menu. The card of WhatsApp lines
+   unfolds from it, black board with a gilt edge, like the calling card. */
+.wa{--wa-edge:clamp(16px,2.2vw,32px);--wa-size:60px;position:fixed;right:var(--wa-edge);bottom:calc(var(--wa-edge) + env(safe-area-inset-bottom));z-index:28;transition:bottom .5s var(--ease)}
+.wa[hidden],.wa [hidden]{display:none!important}
+/* On a car's page on a phone, it stands above the enquiry dock. */
+body:has(.v-dock.is-shown) .wa{bottom:calc(var(--wa-edge) + 70px + env(safe-area-inset-bottom))}
+/* The footer's last line ends clear of it. */
+body:has(.wa:not([hidden])) .site-footer{padding-bottom:calc(var(--wa-room,104px) + env(safe-area-inset-bottom))}
+@media(max-width:600px){body{--wa-room:96px}}
+.wa-button{position:relative;display:grid;place-items:center;width:var(--wa-size);height:var(--wa-size);padding:0;color:var(--gold-hi);border-radius:50%;background:radial-gradient(circle at 32% 24%,#2c2c30,#0e0e10 60%,#050506);box-shadow:inset 0 0 0 1px rgba(214,166,92,.78),inset 0 1px 0 rgba(255,236,200,.2),0 18px 36px -14px rgba(0,0,0,.9),0 0 0 1px rgba(0,0,0,.45);cursor:pointer;transition:box-shadow .45s,transform .6s var(--ease)}
+.wa-button:hover{box-shadow:inset 0 0 0 1px var(--gold-hi),inset 0 1px 0 rgba(255,236,200,.3),0 22px 44px -14px rgba(0,0,0,.95),0 0 0 6px rgba(242,191,94,.08);transform:translateY(-2px)}
+.wa-button:focus-visible{outline:1px solid var(--gold-hi);outline-offset:4px}
+.wa-glyph,.wa-cross{grid-area:1/1;display:grid;place-items:center;transition:opacity .35s,transform .6s var(--ease)}
+.wa-glyph .icon{width:27px;height:27px;stroke-width:1.3}
+.wa-cross{opacity:0;transform:rotate(90deg) scale(.4)}
+.wa-cross:before,.wa-cross:after{content:'';grid-area:1/1;width:20px;height:1.4px;background:currentColor;transform:rotate(45deg)}
+.wa-cross:after{transform:rotate(-45deg)}
+.wa.is-open .wa-glyph{opacity:0;transform:rotate(-90deg) scale(.4)}
+.wa.is-open .wa-cross{opacity:1;transform:none}
+/* Once, as it arrives: two rings of light leave the rim. */
+.wa-button:before,.wa-button:after{content:'';position:absolute;inset:0;border:1px solid var(--gold-hi);border-radius:50%;opacity:0;pointer-events:none}
+.wa.is-calling .wa-button:before{animation:wa-ring 2.4s var(--ease) .1s 2}
+.wa.is-calling .wa-button:after{animation:wa-ring 2.4s var(--ease) .8s 2}
+@keyframes wa-ring{0%{opacity:.75;transform:scale(1)}100%{opacity:0;transform:scale(1.9)}}
+/* Its name, beside it, under a fine pointer or the focus only. */
+.wa-tip{position:absolute;right:calc(100% + 12px);top:50%;padding:10px 15px;font:600 12.5px/1 var(--font-text);letter-spacing:.02em;white-space:nowrap;color:var(--ivory);background:rgba(10,10,11,.94);border:1px solid rgba(214,166,92,.38);border-radius:999px;opacity:0;transform:translate(10px,-50%);pointer-events:none;transition:opacity .3s,transform .5s var(--ease)}
+.wa:not(.is-open) .wa-button:focus-visible .wa-tip{opacity:1;transform:translate(0,-50%)}
+@media(hover:hover){.wa:not(.is-open) .wa-button:hover .wa-tip{opacity:1;transform:translate(0,-50%)}}
+.wa-card{position:absolute;right:0;bottom:calc(100% + 14px);width:min(364px,calc(100vw - 2 * var(--wa-edge)))}
+.wa-card:before{content:'';position:absolute;inset:0;border-radius:18px;box-shadow:0 46px 90px -30px rgba(0,0,0,.95),0 0 0 1px rgba(0,0,0,.5);opacity:var(--lift,1);pointer-events:none}
+.wa-sheet{position:relative;overflow:hidden;padding:28px 26px 12px;border:1px solid rgba(214,166,92,.55);border-radius:18px;background:repeating-linear-gradient(118deg,rgba(255,255,255,.014) 0 1px,transparent 1px 3px),radial-gradient(120% 90% at 18% 0%,#232326,#0d0d0e 58%,#070708);box-shadow:inset 0 1px 0 rgba(255,236,200,.08)}
+.wa-sheet:before{content:'';position:absolute;inset:6px;border:1px solid rgba(214,166,92,.15);border-radius:13px;pointer-events:none}
+.wa-title{margin:0;font:300 31px/1.02 var(--font-display);letter-spacing:-.03em;color:#f2ede4}
+.wa-title em{color:#d9a75a}
+.wa-status{display:flex;align-items:center;gap:9px;margin:13px 0 20px;font-size:12.5px;line-height:1.3;color:var(--steel)}
+.wa-status i{flex:none;width:7px;height:7px;border-radius:50%;background:#5d5d63}
+.wa-status.is-open i{background:#40d07c;box-shadow:0 0 0 3px rgba(64,208,124,.16)}
+.wa-lines{margin:0 -12px;padding:0;list-style:none;border-top:1px solid rgba(239,233,222,.1)}
+.wa-lines li+li{border-top:1px solid rgba(239,233,222,.07)}
+.wa-line{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;margin:4px 0;padding:13px 12px;color:var(--ivory);border-radius:12px}
+/* Under the pointer, a wash of gold is drawn in from the left. */
+.wa-line:before{content:'';position:absolute;inset:0;z-index:-1;border-radius:inherit;background:linear-gradient(100deg,rgba(214,166,92,.16),rgba(214,166,92,.03) 80%);clip-path:inset(0 100% 0 0);transition:clip-path .65s var(--ease)}
+.wa-line-text{display:grid;gap:6px;min-width:0;transition:transform .65s var(--ease)}
+.wa-line b{font:400 21px/1.1 var(--font-display);letter-spacing:-.012em;color:#f2ede4}
+.wa-line small{font:500 12.5px/1 var(--font-text);letter-spacing:.05em;color:var(--steel);font-variant-numeric:tabular-nums}
+.wa-line>i{display:grid;place-items:center;width:38px;height:38px;color:var(--gold-hi);border:1px solid rgba(214,166,92,.42);border-radius:50%;transition:color .4s,background-color .4s,border-color .4s,transform .65s var(--ease)}
+.wa-line>i:before{content:'';width:8px;height:8px;margin-left:-3px;border-top:1.4px solid currentColor;border-right:1.4px solid currentColor;transform:rotate(45deg)}
+.wa-line:hover:before,.wa-line:focus-visible:before{clip-path:inset(0 0 0 0)}
+.wa-line:hover .wa-line-text,.wa-line:focus-visible .wa-line-text{transform:translateX(6px)}
+.wa-line:hover>i,.wa-line:focus-visible>i{color:#1a1008;background:var(--gold-hi);border-color:var(--gold-hi);transform:translateX(2px)}
+.wa-line:focus-visible{outline:1px solid var(--gold);outline-offset:-1px}
+@media(max-width:600px){.wa{--wa-size:56px}.wa-title{font-size:28px}}

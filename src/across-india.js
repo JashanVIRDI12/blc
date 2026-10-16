@@ -229,7 +229,6 @@ export function createAcrossIndia(section, { deliveries = [], settings = {}, red
         night = createNightDrive(road, { input: stage });
         if (!night) return;
         section.classList.add('has-drive');
-        stage.dataset.cursor = 'Hold';
         cleanups.push(() => night.dispose());
       }).catch(error => console.error('The night drive is unavailable.', error));
     }, { rootMargin: '250% 0px' });
