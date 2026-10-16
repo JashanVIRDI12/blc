@@ -6,7 +6,9 @@ import { loadSite } from './data.js';
 import { dealer, social } from './config.js';
 import { setupFx } from './fx/index.js';
 import { setupWhatsApp } from './whatsapp.js';
-import { icons } from './icons.js';
+import { setupConsent } from './consent.js';
+import { setupTracking } from './track.js';
+import { icons, directionLinks } from './icons.js';
 
 export function setupMenu(wrapper) {
   const menu = document.querySelector('#mobile-menu');
@@ -21,6 +23,7 @@ export function setupMenu(wrapper) {
     foot.innerHTML = `<p class="mm-label">Talk to us</p>
       <div class="mm-actions">${digits ? `<a class="mm-action mm-action--gold" href="https://wa.me/${digits}" target="_blank" rel="noopener" data-wa-open>${icons.whatsapp}WhatsApp</a>` : ''}${tel ? `<a class="mm-action" href="tel:${tel}">${icons.phone}Call ${esc(dealer.phone)}</a>` : ''}</div>
       ${dealer.address || dealer.hours ? `<p class="mm-visit">${dealer.address ? `<span>${icons.pin}${esc(dealer.address)}</span>` : ''}${dealer.hours ? `<span>${icons.clock}${esc(dealer.hours)}</span>` : ''}</p>` : ''}
+      ${dealer.address ? `<p class="mm-route">${directionLinks('mm-route-link')}</p>` : ''}
       <p class="mm-social">${social.map(({ name, icon, url }) => `<a href="${url}" target="_blank" rel="noopener" aria-label="Baba Luxury Car on ${name}">${icons[icon]}</a>`).join('')}</p>`;
   };
   const set = open => {
@@ -73,6 +76,8 @@ export function setupPage(page) {
   loadSite().then(previewBanner);
   setupFx();
   setupWhatsApp();
+  setupConsent();
+  setupTracking();
   return setupForms();
 }
 

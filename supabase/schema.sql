@@ -223,6 +223,81 @@ drop policy if exists "deliveries: admins write" on public.deliveries;
 create policy "deliveries: admins write" on public.deliveries
   for all using (public.is_admin()) with check (public.is_admin());
 
+-- ------------------------------------------------------------- insights
+-- Anonymous counts for the admin's Insights (api/track.js writes them): a
+-- page seen, a car looked at (once per visit), a tap to call, WhatsApp, get
+-- directions or shortlist. Nothing that identifies a visitor is kept: no
+-- cookie, no IP address; the site the visit came from (its name only, on
+-- the visit's first page), the kind of device, and the city the host reports.
+-- Visitors can only add a row; only the dealership can read them.
+create table if not exists public.events (
+  id uuid primary key default gen_random_uuid(),
+  kind text not null check (kind in ('view', 'car_view', 'whatsapp', 'call', 'directions', 'shortlist')),
+  car_id uuid references public.cars(id) on delete set null,
+  path text check (char_length(path) <= 200),
+  source text check (char_length(source) <= 80),
+  device text check (device in ('mobile', 'tablet', 'desktop')),
+  city text check (char_length(city) <= 80),
+  region text check (char_length(region) <= 80),
+  country text check (char_length(country) <= 2),
+  created_at timestamptz not null default now()
+);
+create index if not exists events_created_idx on public.events (created_at desc);
+create index if not exists events_car_idx on public.events (car_id, created_at desc) where car_id is not null;
+alter table public.events enable row level security;
+drop policy if exists "events: visitors count" on public.events;
+create policy "events: visitors count" on public.events
+  for insert to anon, authenticated with check (created_at > now() - interval '5 minutes' and created_at <= now() + interval '1 minute');
+drop policy if exists "events: admins read" on public.events;
+create policy "events: admins read" on public.events
+  for select using (public.is_admin());
+drop policy if exists "events: admins clear" on public.events;
+create policy "events: admins clear" on public.events
+  for delete using (public.is_admin());
+
+-- The Insights page's figures for the last `days` days (and the days
+-- before, to compare), totalled here so the admin never downloads the rows.
+-- A visit is the first page of a visit (the row that carries its source).
+create or replace function public.insights(days integer default 30)
+returns jsonb
+language plpgsql stable security definer set search_path = public as $$
+declare
+  span interval := make_interval(days => greatest(1, least(coalesce(days, 30), 365)));
+  since timestamptz := now() - span;
+begin
+  if not public.is_admin() then
+    raise exception 'Only the dealership can read insights.' using errcode = '42501';
+  end if;
+  return jsonb_build_object(
+    'since', since,
+    'totals', coalesce((select jsonb_object_agg(kind, n) from (select kind, count(*) as n from events where created_at >= since group by kind) t), '{}'::jsonb),
+    'previous', coalesce((select jsonb_object_agg(kind, n) from (select kind, count(*) as n from events where created_at >= since - span and created_at < since group by kind) t), '{}'::jsonb),
+    'visits', (select count(*) from events where kind = 'view' and source is not null and created_at >= since),
+    'visits_before', (select count(*) from events where kind = 'view' and source is not null and created_at >= since - span and created_at < since),
+    'daily', coalesce((select jsonb_agg(t order by t.day) from (
+      select (created_at at time zone 'Asia/Kolkata')::date as day,
+        count(*) filter (where kind = 'view' and source is not null) as visits,
+        count(*) filter (where kind = 'car_view') as car_views,
+        count(*) filter (where kind in ('whatsapp', 'call')) as contacts
+      from events where created_at >= since group by 1) t), '[]'::jsonb),
+    'cars', coalesce((select jsonb_agg(t) from (
+      select car_id,
+        count(*) filter (where kind = 'car_view' and created_at >= since) as views,
+        count(*) filter (where kind = 'car_view') as views_all,
+        count(*) filter (where kind = 'whatsapp' and created_at >= since) as whatsapp,
+        count(*) filter (where kind = 'call' and created_at >= since) as calls,
+        count(*) filter (where kind = 'shortlist' and created_at >= since) as shortlists,
+        max(created_at) filter (where kind = 'car_view') as last_view
+      from events where car_id is not null group by car_id) t), '[]'::jsonb),
+    'sources', coalesce((select jsonb_agg(t) from (select source as name, count(*) as n from events where kind = 'view' and source is not null and created_at >= since group by 1 order by 2 desc limit 12) t), '[]'::jsonb),
+    'cities', coalesce((select jsonb_agg(t) from (select city as name, region, count(*) as n from events where kind = 'view' and source is not null and city is not null and created_at >= since group by 1, 2 order by 3 desc limit 12) t), '[]'::jsonb),
+    'devices', coalesce((select jsonb_agg(t) from (select device as name, count(*) as n from events where kind = 'view' and source is not null and device is not null and created_at >= since group by 1 order by 2 desc) t), '[]'::jsonb),
+    'pages', coalesce((select jsonb_agg(t) from (select path as name, count(*) as n from events where kind = 'view' and created_at >= since group by 1 order by 2 desc limit 12) t), '[]'::jsonb)
+  );
+end $$;
+revoke all on function public.insights(integer) from public, anon;
+grant execute on function public.insights(integer) to authenticated;
+
 -- ------------------------------------------------------ starting data
 insert into public.collections (slug, title, subtitle, sort_order) values
   ('signature', 'Signature', 'Flagships, chosen for their presence.', 1),
@@ -237,7 +312,8 @@ insert into public.settings (key, value) values
   ('collection', '{}'),
   ('listing', '{}'),
   ('concierge', '{}'),
-  ('india', '{}')
+  ('india', '{}'),
+  ('whatsapp', '{}')
 on conflict (key) do nothing;
 
 -- ------------------------------------------------- make yourself admin

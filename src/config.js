@@ -29,10 +29,24 @@ export const whatsappLines = [
   { label: 'Customer support', number: '+91 85108 30242', message: 'Hello Baba Luxury Cars, I need some help.' },
 ];
 
+// Directions to the showroom, opened straight into route planning from
+// where the visitor is: Google Maps anywhere, Apple Maps on Apple devices.
+// Apple Maps finds the showroom by the address as Apple lists it.
+const showroom = encodeURIComponent('Baba Luxury Car, B-2, Emaya Mall, Paschim Vihar, New Delhi 110063');
+const showroomApple = encodeURIComponent('Baba Luxury Car, Emaya Mall, Block BG 2, Paschim Vihar, New Delhi, Delhi, 110063');
+export const directions = {
+  google: `https://www.google.com/maps/dir/?api=1&destination=${showroom}&travelmode=driving`,
+  apple: `https://maps.apple.com/?daddr=${showroomApple}&dirflg=d`,
+};
+
+// Google Analytics 4: its measurement ID (G-…) turns analytics on, for
+// visitors who allow it in the cookie choice (consent.js). Empty: none.
+export const analytics = { ga4: '' };
+
 // Where the dealership posts, as linked from babaluxurycar.com. In the footer.
 export const social = [
-  { name: 'Instagram', icon: 'instagram', url: 'https://www.instagram.com/babaluxurycar/' },
-  { name: 'YouTube', icon: 'youtube', url: 'https://www.youtube.com/@babaluxurycar' },
+  { name: 'Instagram', icon: 'instagram', handle: '@babaluxurycar', url: 'https://www.instagram.com/babaluxurycar/' },
+  { name: 'YouTube', icon: 'youtube', handle: '@babaluxurycar', url: 'https://www.youtube.com/@babaluxurycar' },
 ];
 
 // The dealership's own figures, on the home page's "Across India" section

@@ -1,0 +1,61 @@
+/* The privacy policy and the terms (/privacy/, /terms/, legal-page.js), set
+   for reading on ivory paper: the title as on the other pages, then the
+   contents in the margin (held in view on wide screens, the section being
+   read marked in gold) beside the text at a reading measure. */
+.lg-page{--ivory-paper:#f6f4ef}
+.lg-page main{background:var(--ivory-paper)}
+.lg-head{padding:calc(var(--header-height) + clamp(64px,9vw,136px)) var(--gutter) clamp(44px,5vw,72px);border-bottom:1px solid var(--hair)}
+.lg-head h1{font-size:clamp(54px,7.2vw,124px);line-height:.96;letter-spacing:-.045em;color:var(--ink)}
+.lg-head h1 em{color:var(--gold-ink)}
+.lg-head h1 .fl-line:last-child{padding-left:.9em}
+.lg-lede{max-width:54ch;margin-top:30px;font-size:17px;line-height:1.7;color:var(--muted)}
+.lg-meta{display:flex;flex-wrap:wrap;gap:8px 28px;margin-top:22px;font-size:13px;color:var(--muted-2)}
+.lg-head--lost{min-height:78svh;border-bottom:0}
+.lg-head--lost .lg-actions{align-items:center;gap:28px;margin-top:40px}
+.lg-body{display:grid;gap:44px;padding:clamp(48px,6vw,96px) var(--gutter) var(--space)}
+
+/* The contents. */
+.lg-toc p{margin:0 0 14px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-ink)}
+.lg-toc ol{margin:0;padding:0;list-style:none;border-left:1px solid var(--hair)}
+.lg-toc a{display:block;margin-left:-1px;padding:7px 0 7px 18px;font-size:13.5px;line-height:1.4;color:var(--muted);border-left:1px solid transparent;transition:color .3s,border-color .3s}
+.lg-toc a:hover{color:var(--ink)}
+.lg-toc a[aria-current=true]{color:var(--ink);border-left-color:var(--gold-ink)}
+
+/* The text. */
+.lg-text{max-width:72ch;min-width:0}
+.lg-text section{padding-bottom:clamp(36px,4vw,52px);scroll-margin-top:calc(var(--header-height) + 28px)}
+.lg-text section+section{padding-top:clamp(36px,4vw,52px);border-top:1px solid var(--hair)}
+.lg-text h2{display:flex;align-items:baseline;gap:14px;margin-bottom:18px;font-size:clamp(28px,2.6vw,38px);line-height:1.1;letter-spacing:-.025em;color:var(--ink)}
+.lg-text h2 small{flex:none;font:italic 400 .56em/1 var(--font-display);letter-spacing:0;color:var(--gold-ink)}
+.lg-text h3{margin:26px 0 8px;font:600 15px/1.45 var(--font-text);color:var(--ink)}
+.lg-text p,.lg-text li,.lg-text td{font-size:16px;line-height:1.78;color:var(--ink-2)}
+.lg-text p+p,.lg-text p+ul,.lg-text ul+p{margin-top:14px}
+.lg-text ul{display:grid;gap:8px;margin:14px 0 0;padding:0;list-style:none}
+.lg-text li{position:relative;padding-left:24px}
+.lg-text li:before{content:'';position:absolute;left:2px;top:.86em;width:9px;height:1px;background:var(--gold-ink)}
+.lg-text b{font-weight:600;color:var(--ink)}
+.lg-text a{color:var(--ink);text-decoration:underline;text-decoration-color:rgba(147,102,46,.6);text-decoration-thickness:1px;text-underline-offset:3px;transition:text-decoration-color .3s}
+.lg-text a:hover{text-decoration-color:var(--ink)}
+/* The cookies, in a table that scrolls sideways on a phone rather than
+   squeezing its columns. */
+.lg-table{margin-top:20px;overflow-x:auto;border:1px solid var(--hair);border-radius:12px;background:#fff}
+.lg-table table{width:100%;min-width:560px;border-collapse:collapse}
+.lg-table th{padding:12px 16px;font:600 12px/1.3 var(--font-text);letter-spacing:.06em;text-transform:uppercase;text-align:left;color:var(--muted);border-bottom:1px solid var(--hair)}
+.lg-table td{padding:14px 16px;font-size:14.5px;line-height:1.6;vertical-align:top;border-bottom:1px solid var(--hair)}
+.lg-table tr:last-child td{border-bottom:0}
+.lg-table code{font:500 13px/1 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink)}
+.lg-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
+/* How to reach us, each line with its icon. */
+.lg-reach{display:grid;gap:12px;margin-top:20px;padding:22px 24px;background:#fff;border:1px solid var(--hair);border-radius:14px}
+.lg-reach p{display:flex;align-items:flex-start;gap:12px;margin:0!important}
+.lg-reach .icon{width:18px;height:18px;margin-top:4px;color:var(--gold-ink)}
+.lg-reach a{text-decoration:none}
+
+@media(min-width:1001px){
+  .lg-body{grid-template-columns:230px minmax(0,1fr);gap:clamp(56px,7vw,128px)}
+  .lg-toc{position:sticky;top:calc(var(--header-height) + 44px);align-self:start}
+}
+@media(max-width:1000px){
+  .lg-toc ol{display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));border-left:0}
+  .lg-toc a{margin:0;padding:6px 0;border:0}
+}

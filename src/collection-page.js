@@ -1,19 +1,20 @@
 // The collection page (/collection/): the collection drive as it opens (five
 // cars arrive out of the white and park before the title), every car for
-// sale, the curated collections, filters that answer at once, and the cars
-// recently delivered. The filters live in the address, so a filtered view
+// sale, the curated collections (a row of cards above the cars, and in the
+// filters), filters that answer at once, and the cars recently delivered. The filters live in the address, so a filtered view
 // can be shared.
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { setupPage } from './chrome.js';
 import { loadSite, FOR_SALE, BODIES, FUELS, PRICE_BANDS, KM_BANDS, STATUS, priceBand, isNew, recommended, plateLabel } from './data.js';
 import { carCard, shortlist } from './cards.js';
-import { escapeHTML, numeric } from './util.js';
+import { escapeHTML, numeric, safeImage, thumbImage } from './util.js';
 import { createHallmarks } from './hallmarks.js';
 import { marqueArt, sizeMarques } from './marque-art.js';
 import { fleetVehicles } from './config.js';
 import { models } from './models.js';
 import { prefetchModels } from './model-cache.js';
+import { collectionCover, coverImage, bindCoverFallbacks } from './collection-covers.js';
 
 gsap.registerPlugin(ScrollTrigger);
 // "Recently delivered" (delivered.js), the ring of cars handed over: set to
@@ -240,6 +241,37 @@ async function init() {
   const clearAll = () => { Object.assign(state, { q: '', body: '', price: '', km: '', plate: '', year: 0, collection: '', saved: false }); SETS.forEach(key => state[key].clear()); search.value = ''; apply(); };
   $$('[data-clear-filters]').forEach(button => button.addEventListener('click', clearAll));
 
+  // ---------------------------------------------------- the collections
+  // The curated collections (made in the admin), with Just arrived and
+  // Arriving soon. Saved covers take priority over generated editorial
+  // covers; automatic mode follows the real stock. Every car uses a mosaic.
+  const shelf = $('[data-shelf]');
+  const photographed = list => list.filter(car => car.photos.length).sort((a, b) => (a.status === 'sold') - (b.status === 'sold') || recommended(a, b));
+  const picture = car => coverImage(car.photos[0]);
+  if (groups.length) {
+    const card = (slug, title, note, list, photo, mosaic = false) => `<button type="button" class="c-shelf-card" data-collection="${escapeHTML(slug)}" aria-pressed="false"><span class="c-shelf-photo${mosaic ? ' c-shelf-photo--all' : ''}">${photo || coverImage('/vehicle-placeholder.svg')}</span><span class="c-shelf-text"><b>${escapeHTML(title)}</b>${note ? `<small>${escapeHTML(note)}</small>` : ''}<span class="c-shelf-count">${plural(list.length, previews ? 'model' : 'car')}</span></span></button>`;
+    // Each card leads with a car no card before it shows, where it can.
+    const shown = new Set();
+    const pick = (list, n) => { const cars = photographed(list), fresh = cars.filter(car => !shown.has(car.id)); const chosen = [...fresh, ...cars.filter(car => shown.has(car.id))].slice(0, n); chosen.forEach(car => shown.add(car.id)); return chosen.map(picture).join(''); };
+    const leads = groups.map(group => {
+      const value = ['just-arrived', 'coming-soon'].includes(group.slug) ? settings.collection.covers?.[group.slug] : group.cover;
+      const url = collectionCover(group.slug, value);
+      return url ? coverImage(url, photographed(group.cars)[0]?.photos[0]) : pick(group.cars, 1);
+    });
+    const allCover = collectionCover('all', settings.collection.covers?.all);
+    shelf.innerHTML = card('', 'Every car', 'The whole collection', pool, allCover ? coverImage(allCover, photographed(pool)[0]?.photos[0]) : pick(pool, 4), !allCover)
+      + groups.map((group, i) => card(group.slug, group.title, group.subtitle, group.cars, leads[i])).join('');
+    bindCoverFallbacks(shelf);
+    shelf.hidden = false;
+    shelf.addEventListener('click', event => {
+      const choice = event.target.closest('[data-collection]');
+      if (!choice) return;
+      state.collection = choice.dataset.collection;
+      state.saved = false;
+      apply();
+    });
+  }
+
   // ------------------------------------------------ search, sort, view
   const search = $('[data-search]');
   search.value = state.q;
@@ -291,6 +323,9 @@ async function init() {
       button.disabled = n === 0 && button.dataset.body !== state.body;
     });
     placeIndicator();
+
+    // The collection in view, marked in the row of cards.
+    shelf.querySelectorAll('[data-collection]').forEach(card => card.setAttribute('aria-pressed', String(card.dataset.collection === state.collection && !state.saved)));
 
     // Filter chips, with how many cars each would add.
     panel.querySelectorAll('.chip').forEach(chip => {

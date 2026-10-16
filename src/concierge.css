@@ -162,3 +162,5 @@
   .k-mods-car{padding-top:76px}
   .k-tag:nth-child(2){--len:74 !important}
 }
+
+.k-card-small a{color:inherit;text-decoration:underline;text-decoration-color:var(--gold-ink);text-underline-offset:3px}

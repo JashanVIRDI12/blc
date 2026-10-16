@@ -18,6 +18,14 @@ test('existing VIP and Fancy patterns keep their categories', () => {
   for (const number of ['1357', '4836', '9908']) assert.equal(suggestPlate(number), null);
 });
 
+test('runs of consecutive digits, up or down, are Fancy, in four digits or three', () => {
+  for (const number of ['1234', '2345', '5678', '6789', '7890', '9876', '8765', '6543', '3210', '0123', '0567', '0765', '0987', '0345', '0432']) assert.deepEqual(suggestPlate(number), { tag: 'fancy', number }, number);
+  for (const plate of ['HR51CM5678', 'DL3CAB9876', 'DL8CAF567', 'MH01AB987']) assert.equal(suggestPlate(plate)?.tag, 'fancy', plate);
+  // Not runs: a skip, a turn, a wrap past 9 other than 7890, and two-digit values (VIP).
+  for (const number of ['1245', '1243', '8901', '9012', '0579']) assert.equal(suggestPlate(number), null, number);
+  assert.equal(suggestPlate('0012')?.tag, 'vip');
+});
+
 test('blank, zero, malformed and unfinished registrations do not create tags', () => {
   for (const input of ['', null, undefined, '0', '0000', 'HR', 'HR51', 'HR51CM', 'DL3', 'CH01', '12345', 'HR51CM12345']) assert.equal(suggestPlate(input), null, String(input));
   assert.equal(plateDigits(''), '');

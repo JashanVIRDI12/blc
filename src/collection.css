@@ -247,3 +247,26 @@ html{scroll-behavior:smooth}
   .filters-actions{margin:20px -22px 0;padding:16px 22px calc(16px + env(safe-area-inset-bottom))}
 }
 
+
+/* The collections (made in the admin), as a row of cards above the cars:
+   the lead car's photograph whole, the name, the line under it and how many
+   cars it holds. The one in view is framed in ink. A rail that scrolls
+   sideways when there are more than fit. */
+.c-shelf{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(200px,1fr);gap:clamp(12px,1.3vw,18px);margin:0 calc(-1 * var(--gutter)) clamp(28px,3.4vw,44px);padding:6px var(--gutter) 10px;overflow-x:auto;scroll-snap-type:x mandatory;scroll-padding:0 var(--gutter);scrollbar-width:none}
+.c-shelf[hidden]{display:none}
+.c-shelf::-webkit-scrollbar{display:none}
+.c-shelf-card{display:grid;grid-template-rows:auto 1fr;min-width:0;padding:0;text-align:left;color:var(--ink);background:#fff;border:1px solid var(--hair);border-radius:14px;overflow:hidden;scroll-snap-align:start;cursor:pointer;transition:border-color .35s,box-shadow .45s var(--ease),transform .55s var(--ease)}
+.c-shelf-photo{display:block;aspect-ratio:1;background:var(--tile)}
+.c-shelf-photo img{display:block;width:100%;height:100%;object-fit:cover}
+.c-shelf-photo--all{display:grid;grid-template-columns:1fr 1fr;gap:2px;background:var(--hair)}
+.c-shelf-photo--all img{aspect-ratio:1;background:var(--tile)}
+.c-shelf-text{display:grid;align-content:start;gap:5px;padding:16px 18px 18px}
+.c-shelf-text b{font:400 24px/1.1 var(--font-display);letter-spacing:-.015em}
+.c-shelf-text small{font-size:13px;line-height:1.45;color:var(--muted)}
+.c-shelf-count{margin-top:6px;font-size:12.5px;font-weight:600;letter-spacing:.02em;color:var(--gold-ink)}
+.c-shelf-card:hover{border-color:var(--hair-2);box-shadow:0 22px 40px -26px rgba(17,17,17,.45);transform:translateY(-3px)}
+.c-shelf-card[aria-pressed=true]{border-color:var(--ink);box-shadow:inset 0 0 0 1px var(--ink)}
+.c-shelf-card[aria-pressed=true] .c-shelf-text b{color:var(--ink)}
+.c-shelf-card:focus-visible{outline:1px solid var(--gold-ink);outline-offset:3px}
+@media(max-width:760px){.c-shelf{grid-auto-columns:58vw}}
+@media(prefers-reduced-motion:reduce){.c-shelf-card{transition:none}}

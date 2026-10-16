@@ -1,5 +1,5 @@
-import { dealer, social } from './config.js';
-import { icons } from './icons.js';
+import { dealer, dealerLines, social } from './config.js';
+import { icons, directionLinks } from './icons.js';
 import { safeURL } from './util.js';
 import { live, supabase } from './data.js';
 
@@ -41,23 +41,26 @@ export function setupForms() {
     dialog.querySelector('[data-close]').addEventListener('click', () => dialog.close());
     dialog.addEventListener('click', event => { if (event.target !== dialog) return; const r = dialog.getBoundingClientRect(); if (event.clientX<r.left || event.clientX>r.right || event.clientY<r.top || event.clientY>r.bottom) dialog.close(); });
   });
-  document.querySelector('#privacy-button').addEventListener('click', () => document.querySelector('#privacy-dialog').showModal());
-  const contactDetails = document.querySelector('#contact-details');
+  const esc = text => String(text ?? '').replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+  const tel = number => `tel:${String(number).replace(/[^+\d]/g, '')}`;
   function renderContact() {
-    if (live) document.querySelector('#privacy-delivery').textContent = 'When you submit an enquiry, the details you enter are sent securely to Baba Luxury Cars, so we can get back to you. They are used only for your request.';
-    else if (dealer.enquiryEndpoint) document.querySelector('#privacy-delivery').textContent = 'When you submit an enquiry, the details you enter are sent to the dealership to respond to your request. They are not saved in this browser.';
-    else if (hasContact()) document.querySelector('#privacy-delivery').textContent = 'Your enquiry is prepared in this browser. You choose whether to share it using the dealership’s email or WhatsApp contact. It is not sent automatically.';
-    // Each detail with its icon; WhatsApp, Instagram and YouTube beside them,
-    // as icons alone (WhatsApp opens the card of lines, whatsapp.js).
-    contactDetails.replaceChildren();
-    const addContact = (icon, text, href) => { const element = document.createElement(href ? 'a' : 'span'); element.innerHTML = icons[icon]; element.append(text); if(href) element.href = href; contactDetails.append(element); };
-    if (dealer.phone) addContact('phone', dealer.phone, `tel:${dealer.phone.replace(/[^+\d]/g,'')}`);
-    if (dealer.email) addContact('mail', dealer.email, `mailto:${dealer.email}`);
-    if (dealer.address) addContact('pin', dealer.address);
-    if (dealer.hours) addContact('clock', dealer.hours);
-    const socialLinks = document.querySelector('[data-social]'), chat = dealer.whatsapp.replace(/\D/g, '');
-    if (socialLinks) socialLinks.innerHTML = [chat && { name: 'WhatsApp', icon: 'whatsapp', url: `https://wa.me/${chat}`, open: true }, ...social].filter(Boolean)
-      .map(({ name, icon, url, open }) => `<a href="${url}" target="_blank" rel="noopener" aria-label="${name === 'WhatsApp' ? 'Talk to us on WhatsApp' : `Baba Luxury Car on ${name}`}"${open ? ' data-wa-open' : ''}>${icons[icon]}<span class="footer-social-tip" aria-hidden="true">${name}</span></a>`).join('');
+    // The footer's columns, from the details the admin may have changed:
+    // the showroom, its hours and the way there; each line, with WhatsApp
+    // (which opens the card of lines, whatsapp.js); where we post.
+    const visit = document.querySelector('[data-footer-visit]');
+    if (visit && dealer.address) {
+      const parts = dealer.address.split(/,\s*/), lines = [parts.slice(0, 2).join(', '), ...parts.slice(2)];
+      visit.innerHTML = `<address class="footer-address">${lines.map(esc).join(',<br>')}</address>${dealer.hours ? `<p class="footer-hours">${esc(dealer.hours)}</p>` : ''}<p class="footer-directions">${directionLinks('footer-route')}</p>`;
+    }
+    const talk = document.querySelector('[data-footer-lines]'), chat = dealer.whatsapp.replace(/\D/g, '');
+    if (talk) talk.innerHTML = [
+      dealer.phone && [chat ? 'Sales and WhatsApp' : 'Sales', dealer.phone],
+      ...dealerLines.map(line => [line.label, line.phone]),
+    ].filter(Boolean).map(([label, number]) => `<p class="footer-line"><small>${esc(label)}</small><a href="${tel(number)}">${esc(number)}</a></p>`).join('')
+      + (dealer.email ? `<p class="footer-line"><small>Email</small><a class="footer-email" href="mailto:${esc(dealer.email)}">${esc(dealer.email)}</a></p>` : '')
+      + (chat ? `<a class="footer-chat" href="https://wa.me/${chat}" target="_blank" rel="noopener" data-wa-open>${icons.whatsapp}Message us on WhatsApp</a>` : '');
+    const follow = document.querySelector('[data-social]');
+    if (follow) follow.innerHTML = social.map(({ name, icon, url, handle }) => `<a class="footer-follow" href="${url}" target="_blank" rel="noopener"><i>${icons[icon]}</i><span><b>${name}</b><small>${esc(handle || '')}</small></span></a>`).join('');
     if (dealer.enquiryEndpoint || live) document.querySelectorAll('[data-lead-form]').forEach(form => { form.querySelector('[data-submit-label]').textContent = { valuation: 'Request a valuation', consultation: 'Book my call' }[form.dataset.leadForm] || 'Send enquiry'; });
     const whatsapp = dealer.whatsapp.replace(/\D/g, '');
     document.querySelectorAll('[data-consult-whatsapp]').forEach(link => { link.hidden = !whatsapp; link.href = `https://wa.me/${whatsapp}?text=${encodeURIComponent('Hello Baba Luxury Cars, I’d like a one-to-one call to find the right car for me.')}`; });

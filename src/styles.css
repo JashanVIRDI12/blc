@@ -437,6 +437,9 @@ p{text-wrap:pretty}
 .choice-label input{width:18px;height:18px;margin:0;accent-color:var(--gold)}
 .optional{font-weight:400;color:var(--steel-dim)}
 .form-policy{margin:0 0 20px;font-size:12px;color:var(--steel-dim)}
+.form-policy a{color:inherit;text-decoration:underline;text-decoration-color:rgba(196,136,58,.7);text-underline-offset:3px}
+.form-policy a:hover{color:var(--ivory)}
+.theme-light .form-policy a:hover{color:var(--ink)}
 /* Choices set out as pills (the consultation's call and time): each a real
    radio button, drawn as its label. */
 .form-choices{min-width:0;margin:0 0 24px;padding:0;border:0}
@@ -458,42 +461,71 @@ p{text-wrap:pretty}
 .result-actions{display:flex;flex-wrap:wrap;gap:4px 24px}
 @media(min-width:761px){.form-row{grid-template-columns:1fr 1fr}}
 
-/* Footer: the one headline set in gold. */
+/* Footer. The invitation, the one headline set in gold, with the keys
+   hanging beside it (key-lanyard.js) and whether the showroom is open now
+   beside its button (fx/footer.js). Then four columns: where we are and
+   the way there, each line to call, the pages, where we post; and the
+   small print. */
 .site-footer{position:relative;padding:clamp(80px,11vw,168px) var(--gutter) calc(28px + env(safe-area-inset-bottom));background:radial-gradient(90% 55% at 50% 0%,rgba(196,136,58,.09),transparent 62%),var(--obsidian)}
 .footer-invitation h2{font-size:clamp(52px,10.5vw,156px);line-height:1;margin-left:-.08em;padding:0 0 .1em .08em;background:var(--brushed-gold);-webkit-background-clip:text;background-clip:text;color:transparent}
-.footer-invitation .eyebrow{color:var(--steel);margin-bottom:26px}
-.footer-enquire{margin-top:40px}
-.footer-base{display:grid;gap:24px;margin-top:88px;padding-top:34px;border-top:1px solid var(--graphite)}
-.footer-base .brand-logo{justify-self:start;height:58px}
-.footer-base>p{color:var(--steel)}
-.footer-base nav{display:flex;flex-wrap:wrap;gap:10px 28px;font-size:14px}
-.footer-base nav a{color:rgba(239,233,222,.78);transition:color .3s}
-.footer-base nav a:hover{color:var(--ivory)}
-.footer-reach{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:24px 40px;margin-top:28px}
-.contact-details{display:flex;flex-wrap:wrap;gap:12px 30px;font-size:15px}
-.contact-details>*{display:inline-flex;align-items:center;gap:10px}
-.contact-details .icon{width:17px;height:17px;color:var(--gold)}
-.contact-details a{transition:color .3s}
-.contact-details a:hover{color:var(--gold-hi)}
-/* WhatsApp, Instagram and YouTube: rings that fill with gold under the
-   pointer, the name rising above. */
-.footer-social{display:flex;gap:12px}
-.footer-social:empty{display:none}
-.footer-social a{position:relative;display:grid;place-items:center;width:48px;height:48px;color:var(--ivory);border:1px solid rgba(239,233,222,.22);border-radius:50%;transition:color .35s,background-color .35s,border-color .35s,transform .5s var(--ease)}
-.footer-social .icon{width:21px;height:21px}
-.footer-social a:hover,.footer-social a:focus-visible{color:#1a1008;background:var(--gold-hi);border-color:var(--gold-hi);transform:translateY(-3px)}
-.footer-social-tip{position:absolute;bottom:calc(100% + 10px);left:50%;padding:6px 10px;font:600 11.5px/1 var(--font-text);letter-spacing:.03em;white-space:nowrap;color:var(--ivory);background:rgba(10,10,11,.94);border:1px solid rgba(214,166,92,.35);border-radius:999px;opacity:0;transform:translate(-50%,6px);pointer-events:none;transition:opacity .3s,transform .45s var(--ease)}
-@media(hover:hover){.footer-social a:hover .footer-social-tip{opacity:1;transform:translate(-50%,0)}}
-.footer-social a:focus-visible .footer-social-tip{opacity:1;transform:translate(-50%,0)}
-.contact-details:empty{display:none}
-.footer-legal{display:flex;flex-wrap:wrap;align-items:center;gap:10px 26px;margin-top:44px;font-size:12px;color:var(--steel-dim)}
+.footer-invite-actions{display:grid;justify-items:start;gap:18px;margin-top:36px}
+.footer-open{display:flex;align-items:center;gap:10px;margin:0;font-size:13px;color:var(--steel)}
+.footer-open i{flex:none;width:7px;height:7px;border-radius:50%;background:#5d5d63}
+.footer-open.is-open i{background:#40d07c;box-shadow:0 0 0 3px rgba(64,208,124,.16)}
+
+.footer-columns{position:relative;z-index:2;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:52px 32px;margin-top:clamp(72px,9vw,136px);padding-top:clamp(44px,4.4vw,64px);border-top:1px solid rgba(239,233,222,.1)}
+.footer-col{min-width:0}
+.footer-col h3{margin:0 0 22px;font:italic 400 21px/1.1 var(--font-display);letter-spacing:-.005em;color:#d9a75a}
+.footer-address{font:300 23px/1.38 var(--font-display);font-style:normal;letter-spacing:-.01em;color:var(--ivory)}
+.footer-hours{margin:14px 0 0;font-size:14px;line-height:1.5;color:var(--steel)}
+.footer-directions{display:flex;flex-wrap:wrap;gap:8px;margin:22px 0 0}
+.footer-route,.mm-route-link{display:inline-flex;align-items:center;gap:9px;min-height:42px;padding:0 18px 0 14px;font:600 13px/1 var(--font-text);letter-spacing:.02em;color:var(--ivory);border:1px solid rgba(239,233,222,.22);border-radius:999px;transition:color .35s,background-color .35s,border-color .35s}
+.footer-route .icon,.mm-route-link .icon{width:17px;height:17px;color:var(--gold);transition:color .35s}
+.footer-route:hover,.footer-route:focus-visible,.mm-route-link:hover{color:#1a1008;background:var(--gold-hi);border-color:var(--gold-hi)}
+.footer-route:hover .icon,.footer-route:focus-visible .icon,.mm-route-link:hover .icon{color:inherit}
+.mm-route{display:flex;flex-wrap:wrap;gap:10px;margin:2px 0 0}
+/* Each line: what it is for, then the number, set like the price of a car. */
+.footer-line{display:grid;gap:5px;margin:0 0 18px}
+.footer-line small{font-size:12.5px;color:var(--steel)}
+.footer-line a{justify-self:start;font:300 25px/1.1 var(--font-display);letter-spacing:-.01em;font-variant-numeric:lining-nums;color:var(--ivory);background:linear-gradient(var(--gold),var(--gold)) 0 100%/0 1px no-repeat;padding-bottom:3px;transition:color .3s,background-size .5s var(--ease)}
+.footer-line a:hover,.footer-line a:focus-visible{color:var(--gold-hi);background-size:100% 1px}
+.footer-line .footer-email{font-size:19px}
+.footer-chat{display:inline-flex;align-items:center;gap:10px;min-height:46px;margin-top:6px;padding:0 20px 0 15px;font:600 13px/1 var(--font-text);letter-spacing:.02em;color:#1a1008;background:var(--brushed-gold) 100% 0/220% 100%;border-radius:999px;box-shadow:inset 0 1px 0 rgba(255,248,230,.45);transition:background-position .9s var(--ease)}
+.footer-chat:hover{background-position:0 0}
+.footer-chat .icon{width:18px;height:18px;stroke-width:1.6}
+.footer-pages{display:grid;gap:13px;margin:0;padding:0;list-style:none}
+.footer-pages a{display:inline-block;font:300 23px/1.15 var(--font-display);letter-spacing:-.01em;color:rgba(239,233,222,.86);background:linear-gradient(var(--gold),var(--gold)) 0 100%/0 1px no-repeat;padding-bottom:3px;transition:color .3s,background-size .5s var(--ease),transform .5s var(--ease)}
+.footer-pages a:hover,.footer-pages a:focus-visible{color:var(--ivory);background-size:100% 1px;transform:translateX(4px)}
+.footer-pages a[aria-current=page]{color:#d9a75a}
+.footer-follows{display:grid;gap:14px}
+.footer-follow{display:flex;align-items:center;gap:14px;color:var(--ivory)}
+.footer-follow>i{display:grid;place-items:center;flex:none;width:48px;height:48px;border:1px solid rgba(239,233,222,.22);border-radius:50%;transition:color .35s,background-color .35s,border-color .35s,transform .5s var(--ease)}
+.footer-follow .icon{width:21px;height:21px}
+.footer-follow b{display:block;font:400 19px/1.15 var(--font-display)}
+.footer-follow small{display:block;margin-top:3px;font-size:12.5px;color:var(--steel)}
+.footer-follow:hover>i,.footer-follow:focus-visible>i{color:#1a1008;background:var(--gold-hi);border-color:var(--gold-hi);transform:rotate(-8deg)}
+
+.footer-legal{position:relative;z-index:2;display:flex;flex-wrap:wrap;align-items:center;gap:10px 26px;margin-top:clamp(56px,6vw,88px);padding-top:24px;border-top:1px solid rgba(239,233,222,.08);font-size:12px;color:var(--steel-dim)}
 .footer-legal button{font-size:12px;color:inherit}
 .footer-legal button:hover,.footer-legal a:hover{color:var(--ivory)}
+.footer-admin{display:inline-flex;align-items:center;gap:6px}
+.footer-admin svg{width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:1.6;stroke-linejoin:round}
 @media(min-width:761px){
   .footer-invitation{display:flex;justify-content:space-between;align-items:flex-end;gap:40px}
-  .footer-enquire{flex:none;margin:0 0 18px}
-  .footer-base{grid-template-columns:auto 1fr auto;align-items:center;gap:40px}
-  .footer-legal>a{margin-left:auto}
+  .footer-invite-actions{flex:none;justify-items:end;margin:0 0 18px}
+  .footer-legal>[data-top]{margin-left:auto}
+}
+@media(min-width:1101px){.footer-columns{grid-template-columns:1.1fr 1.1fr .9fr .9fr;gap:40px}}
+@media(max-width:560px){
+  /* Where we are and how to call, across; the pages and where we post, side by side. */
+  .footer-columns{gap:44px 20px}
+  .footer-columns>:nth-child(-n+2){grid-column:1/-1}
+  .footer-pages{gap:11px}
+  .footer-pages a{font-size:20px}
+  .footer-follow{gap:10px}
+  .footer-follow>i{width:42px;height:42px}
+  .footer-follow b{font-size:17px}
+  .footer-follow small{font-size:11.5px}
 }
 
 /* Dialogs: black lacquer panels; on phones they rise as sheets. */
@@ -586,56 +618,97 @@ canvas.is-turning{cursor:grabbing}
 .text-link .icon{width:17px;height:17px;margin-right:9px;color:var(--gold)}
 
 /* --------------------------------------------------------------- whatsapp */
-/* The corner button (whatsapp.js): a lacquered disc with a gold rim, above
-   the page and below the header and the menu. The card of WhatsApp lines
-   unfolds from it, black board with a gilt edge, like the calling card. */
-.wa{--wa-edge:clamp(16px,2.2vw,32px);--wa-size:60px;position:fixed;right:var(--wa-edge);bottom:calc(var(--wa-edge) + env(safe-area-inset-bottom));z-index:28;transition:bottom .5s var(--ease)}
+/* The corner button (whatsapp.js): a disc of brushed gold, like the site's
+   own gold buttons, above the page and below the header and the menu. The
+   card of WhatsApp lines unfolds from it on ivory board, like the back of the
+   consultation's calling card, so it reads on the black pages and the light
+   ones alike. */
+.wa{--wa-edge:clamp(16px,2.2vw,32px);--wa-size:60px;--wa-ink:#1d1915;position:fixed;right:var(--wa-edge);bottom:calc(var(--wa-edge) + env(safe-area-inset-bottom));z-index:28;transition:bottom .5s var(--ease)}
 .wa[hidden],.wa [hidden]{display:none!important}
 /* On a car's page on a phone, it stands above the enquiry dock. */
 body:has(.v-dock.is-shown) .wa{bottom:calc(var(--wa-edge) + 70px + env(safe-area-inset-bottom))}
 /* The footer's last line ends clear of it. */
 body:has(.wa:not([hidden])) .site-footer{padding-bottom:calc(var(--wa-room,104px) + env(safe-area-inset-bottom))}
 @media(max-width:600px){body{--wa-room:96px}}
-.wa-button{position:relative;display:grid;place-items:center;width:var(--wa-size);height:var(--wa-size);padding:0;color:var(--gold-hi);border-radius:50%;background:radial-gradient(circle at 32% 24%,#2c2c30,#0e0e10 60%,#050506);box-shadow:inset 0 0 0 1px rgba(214,166,92,.78),inset 0 1px 0 rgba(255,236,200,.2),0 18px 36px -14px rgba(0,0,0,.9),0 0 0 1px rgba(0,0,0,.45);cursor:pointer;transition:box-shadow .45s,transform .6s var(--ease)}
-.wa-button:hover{box-shadow:inset 0 0 0 1px var(--gold-hi),inset 0 1px 0 rgba(255,236,200,.3),0 22px 44px -14px rgba(0,0,0,.95),0 0 0 6px rgba(242,191,94,.08);transform:translateY(-2px)}
+.wa-button{position:relative;display:grid;place-items:center;width:var(--wa-size);height:var(--wa-size);padding:0;color:#1a1008;border-radius:50%;background:radial-gradient(circle at 30% 22%,rgba(255,246,220,.55),transparent 46%),var(--brushed-gold) 30% 0/220% 100%;box-shadow:inset 0 1px 0 rgba(255,248,230,.6),inset 0 -2px 6px rgba(92,56,20,.35),0 16px 34px -12px rgba(150,96,36,.65),0 3px 10px rgba(0,0,0,.28);cursor:pointer;transition:background-position .9s var(--ease),box-shadow .45s,transform .6s var(--ease)}
+.wa-button:hover{background-position:0 0,0 0;box-shadow:inset 0 1px 0 rgba(255,248,230,.7),inset 0 -2px 6px rgba(92,56,20,.35),0 22px 44px -12px rgba(150,96,36,.75),0 3px 10px rgba(0,0,0,.28);transform:translateY(-2px)}
 .wa-button:focus-visible{outline:1px solid var(--gold-hi);outline-offset:4px}
 .wa-glyph,.wa-cross{grid-area:1/1;display:grid;place-items:center;transition:opacity .35s,transform .6s var(--ease)}
-.wa-glyph .icon{width:27px;height:27px;stroke-width:1.3}
+.wa-glyph .icon{width:28px;height:28px;stroke-width:1.5}
 .wa-cross{opacity:0;transform:rotate(90deg) scale(.4)}
-.wa-cross:before,.wa-cross:after{content:'';grid-area:1/1;width:20px;height:1.4px;background:currentColor;transform:rotate(45deg)}
+.wa-cross:before,.wa-cross:after{content:'';grid-area:1/1;width:20px;height:1.6px;background:currentColor;transform:rotate(45deg)}
 .wa-cross:after{transform:rotate(-45deg)}
 .wa.is-open .wa-glyph{opacity:0;transform:rotate(-90deg) scale(.4)}
 .wa.is-open .wa-cross{opacity:1;transform:none}
-/* Once, as it arrives: two rings of light leave the rim. */
-.wa-button:before,.wa-button:after{content:'';position:absolute;inset:0;border:1px solid var(--gold-hi);border-radius:50%;opacity:0;pointer-events:none}
+/* Once, as it arrives: two rings of gold leave the rim. */
+.wa-button:before,.wa-button:after{content:'';position:absolute;inset:0;border:1px solid var(--gold);border-radius:50%;opacity:0;pointer-events:none}
 .wa.is-calling .wa-button:before{animation:wa-ring 2.4s var(--ease) .1s 2}
 .wa.is-calling .wa-button:after{animation:wa-ring 2.4s var(--ease) .8s 2}
-@keyframes wa-ring{0%{opacity:.75;transform:scale(1)}100%{opacity:0;transform:scale(1.9)}}
+@keyframes wa-ring{0%{opacity:.8;transform:scale(1)}100%{opacity:0;transform:scale(1.9)}}
 /* Its name, beside it, under a fine pointer or the focus only. */
-.wa-tip{position:absolute;right:calc(100% + 12px);top:50%;padding:10px 15px;font:600 12.5px/1 var(--font-text);letter-spacing:.02em;white-space:nowrap;color:var(--ivory);background:rgba(10,10,11,.94);border:1px solid rgba(214,166,92,.38);border-radius:999px;opacity:0;transform:translate(10px,-50%);pointer-events:none;transition:opacity .3s,transform .5s var(--ease)}
+.wa-tip{position:absolute;right:calc(100% + 12px);top:50%;padding:10px 15px;font:600 12.5px/1 var(--font-text);letter-spacing:.02em;white-space:nowrap;color:var(--wa-ink);background:#f6f2ea;border:1px solid rgba(147,102,46,.35);border-radius:999px;box-shadow:0 10px 24px -12px rgba(0,0,0,.5);opacity:0;transform:translate(10px,-50%);pointer-events:none;transition:opacity .3s,transform .5s var(--ease)}
 .wa:not(.is-open) .wa-button:focus-visible .wa-tip{opacity:1;transform:translate(0,-50%)}
 @media(hover:hover){.wa:not(.is-open) .wa-button:hover .wa-tip{opacity:1;transform:translate(0,-50%)}}
 .wa-card{position:absolute;right:0;bottom:calc(100% + 14px);width:min(364px,calc(100vw - 2 * var(--wa-edge)))}
-.wa-card:before{content:'';position:absolute;inset:0;border-radius:18px;box-shadow:0 46px 90px -30px rgba(0,0,0,.95),0 0 0 1px rgba(0,0,0,.5);opacity:var(--lift,1);pointer-events:none}
-.wa-sheet{position:relative;overflow:hidden;padding:28px 26px 12px;border:1px solid rgba(214,166,92,.55);border-radius:18px;background:repeating-linear-gradient(118deg,rgba(255,255,255,.014) 0 1px,transparent 1px 3px),radial-gradient(120% 90% at 18% 0%,#232326,#0d0d0e 58%,#070708);box-shadow:inset 0 1px 0 rgba(255,236,200,.08)}
-.wa-sheet:before{content:'';position:absolute;inset:6px;border:1px solid rgba(214,166,92,.15);border-radius:13px;pointer-events:none}
-.wa-title{margin:0;font:300 31px/1.02 var(--font-display);letter-spacing:-.03em;color:#f2ede4}
-.wa-title em{color:#d9a75a}
-.wa-status{display:flex;align-items:center;gap:9px;margin:13px 0 20px;font-size:12.5px;line-height:1.3;color:var(--steel)}
-.wa-status i{flex:none;width:7px;height:7px;border-radius:50%;background:#5d5d63}
-.wa-status.is-open i{background:#40d07c;box-shadow:0 0 0 3px rgba(64,208,124,.16)}
-.wa-lines{margin:0 -12px;padding:0;list-style:none;border-top:1px solid rgba(239,233,222,.1)}
-.wa-lines li+li{border-top:1px solid rgba(239,233,222,.07)}
-.wa-line{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;margin:4px 0;padding:13px 12px;color:var(--ivory);border-radius:12px}
-/* Under the pointer, a wash of gold is drawn in from the left. */
-.wa-line:before{content:'';position:absolute;inset:0;z-index:-1;border-radius:inherit;background:linear-gradient(100deg,rgba(214,166,92,.16),rgba(214,166,92,.03) 80%);clip-path:inset(0 100% 0 0);transition:clip-path .65s var(--ease)}
+.wa-card:before{content:'';position:absolute;inset:0;border-radius:18px;box-shadow:0 40px 80px -28px rgba(0,0,0,.75),0 2px 8px rgba(0,0,0,.12);opacity:var(--lift,1);pointer-events:none}
+.wa-sheet{position:relative;overflow:hidden;padding:28px 26px 12px;color:var(--wa-ink);border:1px solid rgba(147,102,46,.45);border-radius:18px;background:repeating-linear-gradient(90deg,rgba(80,60,30,.018) 0 1px,transparent 1px 4px),radial-gradient(130% 100% at 20% 0%,#fbf8f2,#f1ebdf 70%,#e9e1d1);box-shadow:inset 0 1px 0 #fff}
+.wa-sheet:before{content:'';position:absolute;inset:6px;border:1px solid rgba(147,102,46,.18);border-radius:13px;pointer-events:none}
+.wa-title{margin:0;font:300 31px/1.02 var(--font-display);letter-spacing:-.03em;color:var(--wa-ink)}
+.wa-title em{color:#93662e}
+.wa-status{display:flex;align-items:center;gap:9px;margin:13px 0 20px;font-size:12.5px;line-height:1.3;color:#6a6259}
+.wa-status i{flex:none;width:7px;height:7px;border-radius:50%;background:#b3aa9c}
+.wa-status.is-open i{background:#25a35a;box-shadow:0 0 0 3px rgba(37,163,90,.15)}
+.wa-lines{margin:0 -12px;padding:0;list-style:none;border-top:1px solid rgba(29,25,21,.12)}
+.wa-lines li+li{border-top:1px solid rgba(29,25,21,.08)}
+.wa-line{position:relative;isolation:isolate;display:grid;grid-template-columns:minmax(0,1fr) auto;align-items:center;gap:16px;margin:4px 0;padding:13px 12px;color:var(--wa-ink);border-radius:12px}
+/* Under the pointer, the row is inked in from the left. */
+.wa-line:before{content:'';position:absolute;inset:0;z-index:-1;border-radius:inherit;background:#171411;clip-path:inset(0 100% 0 0);transition:clip-path .65s var(--ease)}
 .wa-line-text{display:grid;gap:6px;min-width:0;transition:transform .65s var(--ease)}
-.wa-line b{font:400 21px/1.1 var(--font-display);letter-spacing:-.012em;color:#f2ede4}
-.wa-line small{font:500 12.5px/1 var(--font-text);letter-spacing:.05em;color:var(--steel);font-variant-numeric:tabular-nums}
-.wa-line>i{display:grid;place-items:center;width:38px;height:38px;color:var(--gold-hi);border:1px solid rgba(214,166,92,.42);border-radius:50%;transition:color .4s,background-color .4s,border-color .4s,transform .65s var(--ease)}
+.wa-line b{font:400 21px/1.1 var(--font-display);letter-spacing:-.012em;color:inherit;transition:color .5s var(--ease)}
+.wa-line small{font:500 12.5px/1 var(--font-text);letter-spacing:.05em;color:#6a6259;font-variant-numeric:tabular-nums;transition:color .5s var(--ease)}
+.wa-line>i{display:grid;place-items:center;width:38px;height:38px;color:var(--wa-ink);border:1px solid rgba(29,25,21,.22);border-radius:50%;transition:color .4s,background-color .4s,border-color .4s,transform .65s var(--ease)}
 .wa-line>i:before{content:'';width:8px;height:8px;margin-left:-3px;border-top:1.4px solid currentColor;border-right:1.4px solid currentColor;transform:rotate(45deg)}
+.wa-line:hover,.wa-line:focus-visible{color:#f6f2ea}
+.wa-line:hover small,.wa-line:focus-visible small{color:rgba(246,242,234,.6)}
 .wa-line:hover:before,.wa-line:focus-visible:before{clip-path:inset(0 0 0 0)}
 .wa-line:hover .wa-line-text,.wa-line:focus-visible .wa-line-text{transform:translateX(6px)}
-.wa-line:hover>i,.wa-line:focus-visible>i{color:#1a1008;background:var(--gold-hi);border-color:var(--gold-hi);transform:translateX(2px)}
-.wa-line:focus-visible{outline:1px solid var(--gold);outline-offset:-1px}
+.wa-line:hover>i,.wa-line:focus-visible>i{color:#1a1008;background:var(--gold-hi);border-color:var(--gold-hi);transform:translateX(-4px)}
+.wa-line:focus-visible{outline:1px solid var(--gold);outline-offset:2px}
 @media(max-width:600px){.wa{--wa-size:56px}.wa-title{font-size:28px}}
+
+/* ----------------------------------------------------------------- consent */
+/* The cookie choice (consent.js): an ivory card, like the WhatsApp card, in
+   the bottom-left corner; on a phone, across the foot of the screen, the
+   WhatsApp button stepping aside while it asks. */
+.consent{position:fixed;left:clamp(16px,2.2vw,32px);bottom:calc(clamp(16px,2.2vw,32px) + env(safe-area-inset-bottom));z-index:27;width:min(400px,calc(100vw - 32px));padding:24px 24px 20px;color:#1d1915;border:1px solid rgba(147,102,46,.45);border-radius:18px;background:repeating-linear-gradient(90deg,rgba(80,60,30,.018) 0 1px,transparent 1px 4px),radial-gradient(130% 100% at 20% 0%,#fbf8f2,#f1ebdf 70%,#e9e1d1);box-shadow:inset 0 1px 0 #fff,0 40px 80px -28px rgba(0,0,0,.7),0 2px 8px rgba(0,0,0,.12)}
+.consent[hidden]{display:none}
+.consent:before{content:'';position:absolute;inset:6px;border:1px solid rgba(147,102,46,.16);border-radius:13px;pointer-events:none}
+.consent-title{position:relative;margin:0;font:300 25px/1.08 var(--font-display);letter-spacing:-.02em}
+.consent-title em{color:#93662e}
+.consent-text{position:relative;margin:10px 0 0;font-size:13.5px;line-height:1.6;color:#4a443d}
+.consent a,.consent-link{color:#1d1915;text-decoration:underline;text-decoration-color:rgba(147,102,46,.6);text-decoration-thickness:1px;text-underline-offset:3px}
+.consent-choices{position:relative;margin-top:16px;border-top:1px solid rgba(29,25,21,.1)}
+.consent-choices[hidden]{display:none}
+.consent-option{position:relative;display:flex;align-items:center;justify-content:space-between;gap:16px;padding:12px 0;border-bottom:1px solid rgba(29,25,21,.08)}
+label.consent-option{cursor:pointer}
+.consent-option b{display:block;font:600 13.5px/1.3 var(--font-text)}
+.consent-option small{display:block;margin-top:3px;font-size:12px;line-height:1.45;color:#6a6259}
+.consent-always{flex:none;font-size:12px;font-weight:600;color:#93662e}
+.consent-option input{position:absolute;width:1px;height:1px;opacity:0}
+.consent-switch{position:relative;flex:none;width:40px;height:23px;border-radius:999px;background:rgba(29,25,21,.2);transition:background-color .3s}
+.consent-switch:after{content:'';position:absolute;left:3px;top:3px;width:17px;height:17px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.3);transition:transform .4s var(--ease)}
+.consent-option input:checked+.consent-switch{background:#1d1915}
+.consent-option input:checked+.consent-switch:after{background:var(--gold-hi);transform:translateX(17px)}
+.consent-option input:focus-visible+.consent-switch{outline:1px solid #93662e;outline-offset:3px}
+.consent-actions{position:relative;display:flex;flex-wrap:wrap;align-items:center;gap:10px;margin-top:18px}
+.consent-button{min-height:42px;padding:0 18px;font:600 13px/1 var(--font-text);color:#1d1915;border:1px solid rgba(29,25,21,.25);border-radius:999px;transition:border-color .3s,background-position .9s var(--ease)}
+.consent-button:hover{border-color:#1d1915}
+.consent-button--gold{color:#1a1008;background:var(--brushed-gold) 100% 0/220% 100%;border-color:transparent;box-shadow:inset 0 1px 0 rgba(255,248,230,.5)}
+.consent-button--gold:hover{background-position:0 0;border-color:transparent}
+.consent-link{margin-left:auto;font:600 13px/1 var(--font-text)}
+.consent :focus-visible{outline:1px solid #93662e;outline-offset:3px}
+.wa{translate:0 0;transition:bottom .5s var(--ease),translate .6s var(--ease)}
+@media(max-width:600px){
+  .consent{left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));width:auto}
+  body.is-asking-consent .wa{translate:0 calc(100% + 140px)}
+}

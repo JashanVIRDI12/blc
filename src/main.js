@@ -6,11 +6,13 @@ import { createConsultation } from './consultation.js';
 import { setupForms } from './forms.js';
 import { setupMenu, previewBanner } from './chrome.js';
 import { loadSite } from './data.js';
-import { dealer, lightsVehicles } from './config.js';
+import { lightsVehicles } from './config.js';
 import { models } from './models.js';
 import { prefetchModels } from './model-cache.js';
 import { setupFx } from './fx/index.js';
 import { setupWhatsApp } from './whatsapp.js';
+import { setupConsent } from './consent.js';
+import { setupTracking } from './track.js';
 import { lull } from './idle.js';
 gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
 
@@ -18,6 +20,7 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const loader = document.querySelector('#loader');
 let cinema, smoother, aboutDrive, fleetDrive, consult, cancelled = false;
 const { renderContact } = setupForms();
+setupTracking();
 setupFeatured();
 setupFx();
 loadSite().then(site=>{renderContact();previewBanner(site);});
@@ -25,7 +28,6 @@ document.querySelector('#year').textContent = new Date().getFullYear();
 document.body.classList.add('is-loading');
 
 // Keep configured business identity available to dialogs and enquiry drafts.
-document.title=`${dealer.name} ${dealer.descriptor} — The art of choosing well.`;
 const closeMenu = setupMenu(document.querySelector('#smooth-wrapper'));
 function goTo(target, instant = false) {
   closeMenu();
@@ -60,7 +62,7 @@ function finishLoading() {
   // page for a moment, and the opening title should start on a clear frame.
   document.body.classList.remove('is-loading');
   ScrollTrigger.refresh();
-  const reveal=()=>{loader.classList.add('is-complete');loader.inert=true;cinema?.playIntro();setupWhatsApp();};
+  const reveal=()=>{loader.classList.add('is-complete');loader.inert=true;cinema?.playIntro();setupWhatsApp();setupConsent();};
   if(cinema&&!document.hidden)requestAnimationFrame(reveal);else reveal();
   if(location.hash && document.getElementById(location.hash.slice(1))) setTimeout(()=>goTo(location.hash,true),100);
 }

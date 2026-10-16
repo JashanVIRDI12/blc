@@ -5,6 +5,8 @@ import { $, $$, esc, toast, fail, busy, confirmDialog, icon } from './ui.js';
 import { siteURL } from './cars.js';
 import { STATUS, carTitle } from '../data.js';
 import { safeImage, slugify } from '../util.js';
+import { coverPicker } from './cover-picker.js';
+import { collectionCover, coverImage, stockPhotos, bindCoverFallbacks } from '../collection-covers.js';
 
 const thumb = car => car.photos[0] ? `<img src="${esc(safeImage(car.photos[0]))}" alt="" loading="lazy" />` : icon.car;
 
@@ -12,13 +14,15 @@ export function renderCollections(view, app) {
   const listing = app.settings.listing;
   view.innerHTML = `<header class="a-head"><div><h1>Collections</h1><p class="a-sub">Curated groups on the collection page. A collection with no cars isn’t shown.</p></div><div class="a-head-actions"><a class="a-button" href="${esc(siteURL(app, '/collection/'))}" target="_blank" rel="noopener">View the page ${icon.out}</a><button type="button" class="a-button a-button--primary" data-new>${icon.plus}New collection</button></div></header>
     <section class="a-card"><ol class="a-ranked" data-groups></ol></section>
+    <section class="a-card"><h2>Automatic collection covers</h2><p class="a-hint">Choose cover photos for the cards that are made from your stock.</p><div class="a-auto-covers">${[['all', 'Every car'], ['just-arrived', 'Just arrived'], ['coming-soon', 'Arriving soon']].map(([slug, title]) => `<button type="button" class="a-button" data-auto-cover="${slug}">${icon.photo}${title}</button>`).join('')}</div></section>
     <section class="a-card"><h2>Made automatically</h2><div class="a-auto"><div><b>Just arrived</b><p class="a-hint">Available cars added in the last few days.</p><form class="a-inline-form" data-days><label class="a-field">Days a car counts as new<input name="days" type="number" min="1" max="120" value="${Number(listing.newDays) || 21}" /></label><button class="a-button a-button--small" type="submit">Save</button></form></div><div><b>Arriving soon</b><p class="a-hint">Every car whose status is Coming soon.</p></div></div></section>`;
 
   const holder = $('[data-groups]', view);
   const count = slug => app.cars.filter(car => car.collections.includes(slug) && car.status !== 'hidden').length;
   const draw = () => {
     const groups = [...app.collections].sort((a, b) => a.sort_order - b.sort_order);
-    holder.innerHTML = groups.length ? groups.map((group, i) => `<li class="a-rank${group.visible ? '' : ' is-muted'}" data-slug="${esc(group.slug)}"><span class="a-rank-n">${i + 1}</span><span class="a-row-text"><b>${esc(group.title)}</b><small>${esc(group.subtitle || '')}${group.subtitle ? ' · ' : ''}${count(group.slug)} ${count(group.slug) === 1 ? 'car' : 'cars'}${group.visible ? '' : ' · hidden'}</small></span><span class="a-rank-tools"><label class="a-switch a-switch--small" title="Show on the site"><input type="checkbox" data-visible${group.visible ? ' checked' : ''} /><span class="sr-only">Show ${esc(group.title)} on the site</span></label><button type="button" class="a-icon-button" data-move="-1" aria-label="Move ${esc(group.title)} up" ${i === 0 ? 'disabled' : ''}>${icon.up}</button><button type="button" class="a-icon-button" data-move="1" aria-label="Move ${esc(group.title)} down" ${i === groups.length - 1 ? 'disabled' : ''}>${icon.down}</button><button type="button" class="a-button a-button--small" data-edit>Edit</button></span></li>`).join('') : '<li class="a-empty a-empty--small"><p>No collections yet.</p></li>';
+    holder.innerHTML = groups.length ? groups.map((group, i) => `<li class="a-rank${group.visible ? '' : ' is-muted'}" data-slug="${esc(group.slug)}"><span class="a-rank-n">${i + 1}</span><span class="a-thumb">${coverImage(collectionCover(group.slug, group.cover) || stockPhotos(app.cars.filter(car => car.collections.includes(group.slug)))[0]?.url) || icon.photo}</span><span class="a-row-text"><b>${esc(group.title)}</b><small>${esc(group.subtitle || '')}${group.subtitle ? ' · ' : ''}${count(group.slug)} ${count(group.slug) === 1 ? 'car' : 'cars'}${group.visible ? '' : ' · hidden'}</small></span><span class="a-rank-tools"><label class="a-switch a-switch--small" title="Show on the site"><input type="checkbox" data-visible${group.visible ? ' checked' : ''} /><span class="sr-only">Show ${esc(group.title)} on the site</span></label><button type="button" class="a-icon-button" data-move="-1" aria-label="Move ${esc(group.title)} up" ${i === 0 ? 'disabled' : ''}>${icon.up}</button><button type="button" class="a-icon-button" data-move="1" aria-label="Move ${esc(group.title)} down" ${i === groups.length - 1 ? 'disabled' : ''}>${icon.down}</button><button type="button" class="a-button a-button--small" data-edit>Edit</button></span></li>`).join('') : '<li class="a-empty a-empty--small"><p>No collections yet.</p></li>';
+    bindCoverFallbacks(holder);
   };
   draw();
 
@@ -50,6 +54,7 @@ export function renderCollections(view, app) {
     catch (error) { fail(error); draw(); }
   });
   $('[data-new]', view).addEventListener('click', () => edit(null));
+  $$('[data-auto-cover]', view).forEach(button => button.addEventListener('click', () => editAutomaticCover(button.dataset.autoCover, button.textContent.trim())));
   $('[data-days]', view).addEventListener('submit', async event => {
     event.preventDefault();
     const days = Math.min(120, Math.max(1, Number(event.currentTarget.elements.days.value) || 21));
@@ -68,18 +73,21 @@ export function renderCollections(view, app) {
       <label class="a-field">One line about it<input name="subtitle" maxlength="90" placeholder="For the drive itself." value="${esc(group?.subtitle || '')}" /></label>
       <p class="a-hint" data-address>${creating ? 'Its web address is made from the name.' : `Web address: <code>/collection/?collection=${esc(group.slug)}</code>`}</p>
       <label class="a-switch"><input type="checkbox" name="visible"${group?.visible === false ? '' : ' checked'} /><span>Show on the site</span></label>
+      <div data-cover-picker></div>
       <fieldset class="a-fieldset"><legend>Cars in this collection</legend><ul class="a-pick-list a-pick-list--checks">${app.cars.map(car => `<li><label><input type="checkbox" value="${esc(car.id)}"${members.has(car.id) ? ' checked' : ''} /><span class="a-thumb">${thumb(car)}</span><span class="a-row-text"><b>${esc(carTitle(car))}</b><small>${STATUS[car.status]}</small></span></label></li>`).join('') || '<li class="a-hint">Add cars first.</li>'}</ul></fieldset>
       <div class="a-dialog-actions">${creating ? '' : '<button type="button" class="a-button a-button--danger" data-delete>Delete</button>'}<button type="button" class="a-button a-button--ghost" data-close>Cancel</button><button type="submit" class="a-button a-button--primary">${creating ? 'Create' : 'Save'}</button></div></form>`;
     const form = $('[data-form]', dialog);
+    const covers = coverPicker($('[data-cover-picker]', dialog), { value: group?.cover, slug: group?.slug, cars: [...app.cars].sort((a, b) => Number(members.has(b.id)) - Number(members.has(a.id))), store: app.store, onChange: () => { form.querySelector('[type=submit]').disabled = covers.busy(); } });
     if (creating) form.elements.title.addEventListener('input', () => { const slug = slugify(form.elements.title.value); $('[data-address]', dialog).innerHTML = slug ? `Web address: <code>/collection/?collection=${esc(slug)}</code>` : 'Its web address is made from the name.'; });
     $$('[data-close]', dialog).forEach(button => button.addEventListener('click', () => dialog.close()));
     form.addEventListener('submit', async event => {
       event.preventDefault();
+      if (covers.busy()) return;
       const title = form.elements.title.value.trim();
       if (!title) { form.elements.title.focus(); return; }
       let slug = group?.slug || slugify(title);
       if (creating) { let n = 2; const base = slug || 'collection'; slug = base; while (app.collections.some(other => other.slug === slug) || ['just-arrived', 'coming-soon'].includes(slug)) slug = `${base}-${n++}`; }
-      const row = { slug, title, subtitle: form.elements.subtitle.value.trim() || null, cover: group?.cover || null, visible: form.elements.visible.checked, sort_order: group?.sort_order ?? Math.max(0, ...app.collections.map(other => other.sort_order)) + 1 };
+      const row = { slug, title, subtitle: form.elements.subtitle.value.trim() || null, cover: covers.value(), visible: form.elements.visible.checked, sort_order: group?.sort_order ?? Math.max(0, ...app.collections.map(other => other.sort_order)) + 1 };
       const chosen = new Set($$('.a-pick-list input:checked', form).map(input => input.value));
       await busy(form.querySelector('[type=submit]'), async () => {
         try {
@@ -107,8 +115,31 @@ export function renderCollections(view, app) {
         toast(`${group.title} deleted`);
       } catch (error) { fail(error); }
     });
-    dialog.addEventListener('close', () => dialog.remove());
+    dialog.addEventListener('close', () => { covers.destroy(); dialog.remove(); });
     document.body.append(dialog);
     dialog.showModal();
+  }
+
+  function editAutomaticCover(slug, title) {
+    const dialog = document.createElement('dialog');
+    dialog.className = 'a-dialog a-collection-dialog';
+    dialog.innerHTML = `<button type="button" class="a-dialog-close" data-close aria-label="Close">${icon.x}</button><h2>${esc(title)} cover</h2><form><div data-cover-picker></div><div class="a-dialog-actions"><button type="button" class="a-button a-button--ghost" data-close>Cancel</button><button type="submit" class="a-button a-button--primary">Save cover</button></div></form>`;
+    const form = $('form', dialog);
+    const picker = coverPicker($('[data-cover-picker]', dialog), { slug, value: app.settings.collection.covers?.[slug], cars: app.cars, store: app.store, onChange: () => { form.querySelector('[type=submit]').disabled = picker.busy(); } });
+    $$('[data-close]', dialog).forEach(button => button.addEventListener('click', () => dialog.close()));
+    form.addEventListener('submit', async event => {
+      event.preventDefault(); if (picker.busy()) return;
+      await busy(form.querySelector('[type=submit]'), async () => {
+        try {
+          const next = { ...app.settings.collection };
+          next.covers = { ...next.covers, [slug]: picker.value() };
+          await app.store.saveSettings('collection', next);
+          app.settings.collection = next;
+          dialog.close(); toast(`${title} cover saved`);
+        } catch (error) { fail(error); }
+      });
+    });
+    dialog.addEventListener('close', () => { picker.destroy(); dialog.remove(); });
+    document.body.append(dialog); dialog.showModal();
   }
 }

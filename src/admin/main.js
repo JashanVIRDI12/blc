@@ -1,5 +1,5 @@
 // The admin portal (/admin/): sign in, then Overview, Cars, Enquiries,
-// Deliveries, Home page, Collections and Settings. Every change saves to
+// Insights, Deliveries, Home page, Collections and Settings. Every change saves to
 // Supabase (or, before it is connected, to a preview in this browser).
 import { createStore } from './store.js';
 import { $, $$, esc, toast, busy, icon, confirmDialog } from './ui.js';
@@ -7,6 +7,7 @@ import { installPickers } from './pickers.js';
 import { renderCars, renderEditor, siteURL } from './cars.js';
 import { renderOverview } from './overview.js';
 import { renderEnquiries } from './enquiries.js';
+import { renderInsights } from './insights.js';
 import { renderDeliveries } from './deliveries.js';
 import { renderHome } from './home.js';
 import { renderCollections } from './collections.js';
@@ -118,7 +119,7 @@ function shell() {
     ${preview ? `<div class="a-preview-bar" role="note"><span><b>Preview mode.</b> Supabase isn’t connected, so changes stay in this browser. <a href="${siteURL(app, '/')}" target="_blank" rel="noopener">See them on the site ${icon.out}</a></span><a href="#settings/connect">How to publish</a></div>` : ''}
     <aside class="a-nav">
       <a class="a-brand" href="#cars">${logo}<span>Admin</span></a>
-      <nav aria-label="Admin"><a href="#overview" data-route="overview" data-short="Today">${icon.gauge}<span>Overview</span></a><a href="#cars" data-route="cars" data-short="Cars">${icon.car}<span>Cars</span><b data-count></b></a><a href="#enquiries" data-route="enquiries" data-short="Inbox">${icon.inbox}<span>Enquiries</span><b class="is-hot" data-new></b></a><a href="#deliveries" data-route="deliveries" data-short="Deliveries">${icon.gallery}<span>Deliveries</span></a><a href="#home" data-route="home" data-short="Home">${icon.home}<span>Home page</span></a><a href="#collections" data-route="collections" data-short="Groups">${icon.stack}<span>Collections</span></a><a href="#settings" data-route="settings" data-short="Settings">${icon.cog}<span>Settings</span></a></nav>
+      <nav aria-label="Admin"><a href="#overview" data-route="overview" data-short="Today">${icon.gauge}<span>Overview</span></a><a href="#cars" data-route="cars" data-short="Cars">${icon.car}<span>Cars</span><b data-count></b></a><a href="#enquiries" data-route="enquiries" data-short="Inbox">${icon.inbox}<span>Enquiries</span><b class="is-hot" data-new></b></a><a href="#insights" data-route="insights" data-short="Insights">${icon.chart}<span>Insights</span></a><a href="#deliveries" data-route="deliveries" data-short="Deliveries">${icon.gallery}<span>Deliveries</span></a><a href="#home" data-route="home" data-short="Home">${icon.home}<span>Home page</span></a><a href="#collections" data-route="collections" data-short="Groups">${icon.stack}<span>Collections</span></a><a href="#settings" data-route="settings" data-short="Settings">${icon.cog}<span>Settings</span></a></nav>
       <div class="a-nav-foot"><a href="${siteURL(app, '/')}" target="_blank" rel="noopener">View the site ${icon.out}</a>${preview ? '' : `<span class="a-user">${esc(app.user?.email || '')}</span><button type="button" data-sign-out>Sign out</button>`}</div>
     </aside>
     <main class="a-main" id="view" tabindex="-1"></main>
@@ -134,7 +135,7 @@ function shell() {
 }
 
 // Hash routes: #overview, #cars, #car/new, #car/new/paste, #car/<id>,
-// #enquiries, #deliveries, #home, #collections, #settings.
+// #enquiries, #insights, #deliveries, #home, #collections, #settings.
 let current = '';
 function route() {
   const hash = location.hash.slice(1) || 'overview';
@@ -150,6 +151,7 @@ function route() {
   if (name === 'car') renderEditor(view, app, id, { paste: extra === 'paste' });
   else if (name === 'overview') renderOverview(view, app);
   else if (name === 'enquiries') renderEnquiries(view, app);
+  else if (name === 'insights') renderInsights(view, app);
   else if (name === 'deliveries') renderDeliveries(view, app);
   else if (name === 'home') renderHome(view, app);
   else if (name === 'collections') renderCollections(view, app);

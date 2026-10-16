@@ -38,8 +38,7 @@ async function supabaseStore() {
       check(await client.from('cars').delete().eq('id', car.id));
       // Photos no other car uses go with it.
       const shared = new Set(others.flatMap(other => other.photos));
-      const paths = car.photos.filter(url => !shared.has(url)).map(pathOf).filter(Boolean);
-      if (paths.length) await client.storage.from(BUCKET).remove(paths);
+      await this.removePhotos(car.photos.filter(url => !shared.has(url))).catch(() => {});
     },
     async listCollections() { return check(await client.from('collections').select('*').order('sort_order')); },
     async saveCollection(row) { return check(await client.from('collections').upsert(row).select().single()); },
@@ -52,7 +51,15 @@ async function supabaseStore() {
       if (thumb && blob.type === 'image/webp') await client.storage.from(BUCKET).upload(thumbPath(path), thumb, { contentType: thumb.type, cacheControl: '31536000', upsert: false }).catch(() => {});
       return client.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
     },
-    async removePhotos(urls) { const paths = urls.map(pathOf).filter(Boolean).flatMap(path => /\.webp$/.test(path) ? [path, thumbPath(path)] : [path]); if (paths.length) await client.storage.from(BUCKET).remove(paths); },
+    async removePhotos(urls) {
+      if (!urls.length) return;
+      // A stock photo can also be a collection card cover. Keep it when
+      // its original car is edited or deleted.
+      const [collections, settings] = await Promise.all([this.listCollections(), this.getSettings()]);
+      const shared = new Set([...collections.map(group => group.cover), ...Object.values(settings.collection.covers || {})]);
+      const paths = urls.filter(url => !shared.has(url)).map(pathOf).filter(Boolean).flatMap(path => /\.webp$/.test(path) ? [path, thumbPath(path)] : [path]);
+      if (paths.length) check(await client.storage.from(BUCKET).remove(paths));
+    },
     // What only the dealership sees: the full registration, the stock it
     // belongs to, notes.
     async listPrivate() { return Object.fromEntries(check(await client.from('car_private').select('*')).map(row => [row.car_id, row])); },
@@ -62,10 +69,49 @@ async function supabaseStore() {
     async countNewEnquiries() { const { count, error } = await client.from('enquiries').select('id', { count: 'exact', head: true }).eq('status', 'new'); if (error) throw new Error(error.message); return count || 0; },
     async patchEnquiry(id, patch) { return check(await client.from('enquiries').update(patch).eq('id', id).select().single()); },
     async deleteEnquiry(id) { check(await client.from('enquiries').delete().eq('id', id)); },
+    // Insights: the site's anonymous counts, totalled in the database.
+    async insights(days) { return check(await client.rpc('insights', { days })); },
     // The deliveries gallery.
     async listDeliveries() { return check(await client.from('deliveries').select('*').order('sort_order').order('created_at', { ascending: false })); },
     async saveDelivery(row) { return check(await client.from('deliveries').upsert(row).select().single()); },
     async deleteDelivery(row) { check(await client.from('deliveries').delete().eq('id', row.id)); await this.removePhotos([row.photo]).catch(() => {}); },
+  };
+}
+
+// Insights in the preview: the same figures public.insights() returns,
+// from the preview's own events (it has none until some are added in this
+// browser's storage, so the page shows how it reads when empty).
+export function summarize(events, days = 30) {
+  const now = Date.now(), span = days * 864e5, since = now - span;
+  const at = row => Date.parse(row.created_at);
+  const within = (row, from, to = now) => at(row) >= from && at(row) < to;
+  const tally = rows => rows.reduce((map, row) => ({ ...map, [row.kind]: (map[row.kind] || 0) + 1 }), {});
+  const top = (rows, key, limit = 12) => Object.entries(rows.reduce((map, row) => (row[key] ? { ...map, [row[key]]: (map[row[key]] || 0) + 1 } : map), {})).sort((a, b) => b[1] - a[1]).slice(0, limit).map(([name, n]) => ({ name, n }));
+  const recent = events.filter(row => within(row, since)), before = events.filter(row => within(row, since - span, since));
+  const visits = rows => rows.filter(row => row.kind === 'view' && row.source);
+  const ist = row => new Date(at(row) + 330 * 6e4).toISOString().slice(0, 10);
+  const daily = Object.values(recent.reduce((map, row) => {
+    const day = ist(row), entry = map[day] ||= { day, visits: 0, car_views: 0, contacts: 0 };
+    if (row.kind === 'view' && row.source) entry.visits++;
+    if (row.kind === 'car_view') entry.car_views++;
+    if (row.kind === 'whatsapp' || row.kind === 'call') entry.contacts++;
+    return map;
+  }, {})).sort((a, b) => a.day.localeCompare(b.day));
+  const cars = Object.values(events.filter(row => row.car_id).reduce((map, row) => {
+    const entry = map[row.car_id] ||= { car_id: row.car_id, views: 0, views_all: 0, whatsapp: 0, calls: 0, shortlists: 0, last_view: null };
+    const fresh = at(row) >= since;
+    if (row.kind === 'car_view') { entry.views_all++; if (fresh) entry.views++; if (!entry.last_view || at(row) > Date.parse(entry.last_view)) entry.last_view = row.created_at; }
+    if (fresh && row.kind === 'whatsapp') entry.whatsapp++;
+    if (fresh && row.kind === 'call') entry.calls++;
+    if (fresh && row.kind === 'shortlist') entry.shortlists++;
+    return map;
+  }, {}));
+  const landed = visits(recent);
+  return {
+    since: new Date(since).toISOString(), totals: tally(recent), previous: tally(before),
+    visits: landed.length, visits_before: visits(before).length, daily, cars,
+    sources: top(landed, 'source'), cities: top(landed, 'city').map(entry => ({ ...entry, region: landed.find(row => row.city === entry.name)?.region || null })),
+    devices: top(landed, 'device'), pages: top(recent.filter(row => row.kind === 'view'), 'path'),
   };
 }
 
@@ -126,6 +172,7 @@ function previewStore() {
     async countNewEnquiries() { return db.enquiries.filter(row => row.status === 'new').length; },
     async patchEnquiry(id, patch) { db.enquiries = db.enquiries.map(row => row.id === id ? { ...row, ...patch } : row); save(); return db.enquiries.find(row => row.id === id); },
     async deleteEnquiry(id) { db.enquiries = db.enquiries.filter(row => row.id !== id); save(); },
+    async insights(days) { return summarize(db.events || [], days); },
     async listDeliveries() { return [...db.deliveries].sort((a, b) => a.sort_order - b.sort_order); },
     async saveDelivery(row) { const next = { created_at: now(), ...row }; db.deliveries = [...db.deliveries.filter(other => other.id !== row.id), next]; save(); return next; },
     async deleteDelivery(row) { db.deliveries = db.deliveries.filter(other => other.id !== row.id); save(); },

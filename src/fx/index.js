@@ -1,10 +1,11 @@
 // The motion every public page shares: magnetic actions, the lacquer panel
-// between pages, the headline reveals, and the keys hanging in the footer
-// (loaded only as the footer nears). Its stylesheet (fx.css) is linked from
+// between pages, the headline reveals, the keys hanging in the footer
+// (loaded only as the footer nears) and whether the showroom is open now. Its stylesheet (fx.css) is linked from
 // each page's head.
 import { setupMagnetic } from './cursor.js';
 import { setupTransitions } from './transition.js';
 import { setupReveals } from './reveal.js';
+import { setupFooter } from './footer.js';
 
 export function setupFx() {
   setupTransitions();
@@ -13,6 +14,7 @@ export function setupFx() {
   setupMagnetic();
   setupReveals();
   setupKeys();
+  setupFooter();
 }
 
 function setupKeys() {

@@ -4,6 +4,7 @@
 import { escapeHTML, safeImage, thumbImage, stored } from './util.js';
 import { badge, carTitle, carURL, cover, formatPrice, formatDriven, formatOwners, plateLabel } from './data.js';
 import { LISTING_DEFAULTS } from './listing-rules.js';
+import { track } from './track.js';
 
 // The two manufacturer figures that best say what kind of car a preview is.
 const KEY_SPECS = ['Power', '0–100 km/h', 'Wading depth', 'Approach angle', 'Seats'];
@@ -41,7 +42,7 @@ export function shortlistButton(car, className = 'shortlist-button') {
   button.dataset.shortlist = car.slug;
   button.dataset.title = carTitle(car);
   button.innerHTML = heart;
-  button.addEventListener('click', () => { shortlist.toggle(car.slug); button.classList.remove('is-popped'); void button.offsetWidth; button.classList.add('is-popped'); });
+  button.addEventListener('click', () => { if (shortlist.toggle(car.slug)) track('shortlist', { car: car.id }); button.classList.remove('is-popped'); void button.offsetWidth; button.classList.add('is-popped'); });
   syncButton(button, shortlist.all());
   return button;
 }

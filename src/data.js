@@ -47,7 +47,7 @@ export const defaultSettings = {
   // `choose`: 'priciest', the most expensive cars on sale, kept up to date by
   // themselves; or 'picks', the cars starred in the admin, in their order.
   home: { title: 'Featured collection.', intro: 'Distinctive cars. Carefully considered.\nEnquire for current availability.', limit: 6, choose: 'priciest' },
-  collection: { intro: 'Every car here has been chosen, inspected and photographed by us. Filter by body, budget or make, or let us find the one you have in mind.' },
+  collection: { intro: 'Every car here has been chosen, inspected and photographed by us. Filter by body, budget or make, or let us find the one you have in mind.', covers: {} },
   listing: { showSold: true, newDays: 21, ...LISTING_DEFAULTS },
   // The handover photos built into the site (deliveryPhotos in config.js)
   // show in the Across India gallery until the admin moves them into its

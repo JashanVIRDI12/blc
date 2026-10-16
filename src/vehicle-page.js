@@ -7,6 +7,8 @@ import { dealer } from './config.js';
 import { loadSite, live, FOR_SALE, badge, carName, carTitle, carURL, formatDriven, drivenText, formatOwners, formatPriceFull, priceBand, plateLabel, insuranceState, insuranceText, conciergeGroups, cover } from './data.js';
 import { carCard, shortlistButton, priceLabel, framePhoto, attachImageFallback } from './cards.js';
 import { escapeHTML, safeImage, thumbImage, safeURL, numeric, present } from './util.js';
+import { SITE, NAME, OG_IMAGE, setMeta, jsonLd, breadcrumbSchema } from './seo.js';
+import { trackCar } from './track.js';
 
 const { renderContact, openEnquiry } = setupPage('collection');
 const $ = selector => document.querySelector(selector);
@@ -14,10 +16,44 @@ const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 init().catch(error => { console.error(error); missing(); });
 
+// For search engines and link previews: the car's own title, description,
+// address and photograph, and the car itself as structured data (the
+// vehicle, its price while it is for sale, and the trail to it). Showcase
+// models stand in for stock, so they are kept out of search results.
+function describe(car, title, description, sold) {
+  const url = `${SITE}/car/?id=${encodeURIComponent(car.slug)}`;
+  const images = car.photos.map(src => safeImage(src)).filter(Boolean).slice(0, 10).map(src => new URL(src, SITE).href);
+  const heading = car.preview ? `${[car.year, title].filter(present).join(' ')} | ${NAME}` : sold ? `${title} (Sold) | ${NAME}` : `Used ${[car.year, title].filter(present).join(' ')} for Sale in Delhi | ${NAME}`;
+  setMeta({ title: heading, description, url, image: images[0] || OG_IMAGE, type: 'product', robots: car.preview ? 'noindex, follow' : 'index, follow, max-image-preview:large, max-snippet:-1' });
+  if (car.preview) return;
+  const priced = !sold && numeric(car.price);
+  jsonLd('car-schema', {
+    '@context': 'https://schema.org',
+    '@type': 'Car',
+    name: [car.year, title].filter(present).join(' '),
+    url,
+    description: car.description || description,
+    image: images,
+    brand: car.make ? { '@type': 'Brand', name: car.make } : undefined,
+    model: car.model || undefined,
+    vehicleConfiguration: car.variant || undefined,
+    vehicleModelDate: car.year ? String(car.year) : undefined,
+    bodyType: car.body || undefined,
+    fuelType: car.fuel || undefined,
+    vehicleTransmission: car.transmission || undefined,
+    color: car.colour || undefined,
+    numberOfPreviousOwners: numeric(car.owners) ? car.owners : undefined,
+    mileageFromOdometer: numeric(car.kilometres) ? { '@type': 'QuantitativeValue', value: car.kilometres, unitCode: 'KMT' } : undefined,
+    itemCondition: 'https://schema.org/UsedCondition',
+    offers: priced ? { '@type': 'Offer', url, price: car.price, priceCurrency: 'INR', availability: 'https://schema.org/InStock', itemCondition: 'https://schema.org/UsedCondition', seller: { '@id': `${SITE}/#dealer` } } : undefined,
+  });
+  jsonLd('car-trail', breadcrumbSchema([['Home', `${SITE}/`], ['Collection', `${SITE}/collection/`], [[car.year, title].filter(present).join(' '), url]]));
+}
+
 function missing() {
   $('#car').hidden = true;
   $('[data-missing]').hidden = false;
-  document.title = 'Car not found — Baba Luxury Cars';
+  setMeta({ title: `Car not found | ${NAME}`, robots: 'noindex, follow' });
 }
 
 async function init() {
@@ -28,11 +64,11 @@ async function init() {
   if (!car) { missing(); return; }
   const title = carTitle(car);
   const page = $('#car');
-  document.title = `${title} — ${dealer.name === 'BABA' ? 'Baba' : dealer.name} ${dealer.descriptor}`;
   const listing = settings.listing;
   const sold = car.status === 'sold';
   const description = car.preview ? `The ${title}, a showcase model at Baba Luxury Cars. Enquire about current availability.` : sold ? `The ${title}, now with its new owner. Baba Luxury Cars can find you one like it.` : [title, car.year, drivenText(car.kilometres, listing), car.fuel, priceLabel(car)].filter(present).join(' · ');
-  document.querySelector('meta[name=description]').content = description;
+  describe(car, title, description, sold);
+  if (!car.preview) trackCar(car.id);
 
   // Breadcrumb: the collection, then the car's body or first collection.
   const group = collections.find(entry => car.collections.includes(entry.slug));

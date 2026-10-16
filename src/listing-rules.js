@@ -55,6 +55,15 @@ export function plateDigits(full) {
 
 const lowNumber = digits => /^00\d{2}$/.test(digits) && Number(digits) > 0;
 
+// A run of consecutive digits, up or down: four (1234, 5678, 9876, 6543,
+// and 7890, as on a phone's keypad), or a three-digit number (123, 567,
+// 765, 987, kept as 0123, 0567, 0765, 0987).
+const UP = '01234567890', DOWN = '9876543210';
+const sequence = digits => {
+  const number = /^0[1-9]\d\d$/.test(digits) ? digits.slice(1) : digits;
+  return UP.includes(number) || DOWN.includes(number);
+};
+
 // The dealership's automatic tags: one- and two-digit values (0001–0099)
 // are VIP, as are four of a kind (7777) and a digit with three zeros (5000).
 // Fancy includes repeating pairs, palindromes, triples, runs and 786.
@@ -63,9 +72,8 @@ export function suggestPlate(full) {
   if (!digits || Number(digits) === 0) return null;
   const [a, b, c, d] = digits;
   const counts = Object.values([...digits].reduce((map, x) => ({ ...map, [x]: (map[x] || 0) + 1 }), {}));
-  const run = '0123456789', reversed = '9876543210';
   if (lowNumber(digits) || (a === b && b === c && c === d) || /^[1-9]000$/.test(digits)) return { tag: 'vip', number: digits };
-  if ((a === c && b === d && a !== b) || (a === b && c === d) || (a === d && b === c) || counts.includes(3) || run.includes(digits) || reversed.includes(digits) || digits.endsWith('786')) return { tag: 'fancy', number: digits };
+  if ((a === c && b === d && a !== b) || (a === b && c === d) || (a === d && b === c) || counts.includes(3) || sequence(digits) || digits.endsWith('786')) return { tag: 'fancy', number: digits };
   return null;
 }
 

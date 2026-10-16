@@ -26,7 +26,7 @@ import { setupPage } from './chrome.js';
 import { loadSite } from './data.js';
 import { ABOUT_DELIVERIES, dealer, dealerLines, deliveryPhotos, figures } from './config.js';
 import { escapeHTML, safeImage, thumbImage } from './util.js';
-import { icons } from './icons.js';
+import { icons, directionLinks } from './icons.js';
 gsap.registerPlugin(ScrollTrigger, ScrollSmoother, SplitText);
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
@@ -250,6 +250,9 @@ function lines() {
   ].filter(Boolean);
   $('[data-visit-lines]', visit).innerHTML = rows.join('');
   if (dealer.address) $('[data-visit-address]', visit).textContent = dealer.address;
+  // Directions straight from where the visitor is, in either maps app.
+  const actions = $('[data-visit-actions]', visit);
+  if (actions && !actions.querySelector('.ab-route')) actions.insertAdjacentHTML('afterbegin', directionLinks('ab-route'));
 }
 // The showroom clock: New Delhi time, the seconds hand sweeping.
 function clock() {

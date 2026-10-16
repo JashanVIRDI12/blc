@@ -13,7 +13,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
 import { setupPage, paperHeader } from './chrome.js';
 import { loadSite } from './data.js';
-import { dealer } from './config.js';
+import { directions, dealer } from './config.js';
 import { setupSmooth, scrollToTarget } from './smooth.js';
 
 gsap.registerPlugin(ScrollTrigger, SplitText);
@@ -259,6 +259,8 @@ function links() {
     way.hidden = !digits;
     $('a', way).href = href;
     $('[data-visit-text]').textContent = [dealer.address, dealer.hours].filter(Boolean).join('. ') + '.';
+    // Directions from where the visitor is: Apple Maps on an iPhone or iPad.
+    $('[data-way-visit] a').href = /iPhone|iPad|iPod/.test(navigator.userAgent) ? directions.apple : directions.google;
   };
   contact();
   loadSite().then(contact);

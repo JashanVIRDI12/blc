@@ -1,3 +1,5 @@
+import { directions } from './config.js';
+
 // The site's own line icons, drawn on one 24-unit grid with a 1.4 stroke so
 // they sit together: how to reach the dealership (WhatsApp, a call, email,
 // the showroom and its hours) and where it posts (Instagram, YouTube). Each
@@ -13,4 +15,11 @@ export const icons = {
   clock: svg('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 1.8"/>'),
   instagram: svg('<rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle class="icon-dot" cx="17.1" cy="6.9" r=".9"/>'),
   youtube: svg('<rect x="2.5" y="5.5" width="19" height="13" rx="4"/><path class="icon-fill" d="M10.2 9.3v5.4l4.6-2.7z"/>'),
+  // A road sign: a turn, on a diamond.
+  directions: svg('<path d="M12 2.8 21.2 12 12 21.2 2.8 12z"/><path d="M9.3 14.6v-2.4a1.2 1.2 0 0 1 1.2-1.2h4.3"/><path d="m12.9 9 2 2-2 2"/>'),
 };
+
+// Directions to the showroom in Google Maps and in Apple Maps, as a pair of
+// links; `kind` names the class each takes (with --google / --apple).
+export const directionLinks = kind => [['google', 'Google Maps'], ['apple', 'Apple Maps']]
+  .map(([key, name]) => `<a class="${kind} ${kind}--${key}" href="${directions[key]}" target="_blank" rel="noopener" aria-label="Directions to the showroom in ${name}">${icons.directions}<span>${name}</span></a>`).join('');

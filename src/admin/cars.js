@@ -5,6 +5,7 @@
 // will see it).
 import { $, $$, esc, toast, fail, confirmDialog, busy, parsePrice, icon, copyText, downloadCSV, rupees, timeAgo } from './ui.js';
 import { photoManager } from './photos.js';
+import { carViews } from './insights.js';
 import { adText } from './ad-text.js';
 import { STATUS, BODIES, FUELS, TRANSMISSIONS, FOR_SALE, formatPrice, formatOwners, carTitle } from '../data.js';
 import { drivenText, formatDriven, shownRegistration, normalizeRegistration, suggestPlate, plateDigits, plateLabel, normalizePlate, insuranceState, insuranceDays, LISTING_DEFAULTS } from '../listing-rules.js';
@@ -116,6 +117,9 @@ export function renderCars(view, app) {
       <span class="a-bulk-group">${app.collections.length ? `<label class="a-select-field a-select-field--small"><span class="sr-only">Add to a collection</span><select data-bulk-collection><option value="">Add to a collection…</option>${app.collections.map(group => `<option value="${esc(group.slug)}">${esc(group.title)}</option>`).join('')}</select></label>` : ''}<button type="button" class="a-button a-button--small" data-bulk-feature>${icon.star}Home page</button><button type="button" class="a-button a-button--small" data-bulk-copy>${icon.copy}Copy ads</button><button type="button" class="a-button a-button--small a-button--danger" data-bulk-delete>${icon.trash}Delete</button></span><button type="button" class="a-link" data-bulk-clear>Clear</button>`;
   };
   draw();
+  // Each car's views arrive after the list, and it is drawn again with them.
+  const known = app.insights;
+  carViews(app).then(() => { if (view.isConnected && app.insights !== known && app.insights?.data) draw(); });
 
   const savePrefs = () => stored.set('baba:admin-cars', { sort, layout });
   $$('[data-filter]', view).forEach(button => button.addEventListener('click', () => { filter = button.dataset.filter; $$('[data-filter]', view).forEach(other => other.setAttribute('aria-pressed', String(other === button))); draw(); }));
@@ -190,11 +194,17 @@ export function renderCars(view, app) {
   });
 }
 
+// How many looked at the car in the last 30 days (Insights), once known.
+const views = (app, car) => {
+  const entry = app.insights?.data?.cars?.find(other => other.car_id === car.id);
+  if (!app.insights?.data) return '';
+  return `<small class="a-row-views">${icon.eye}${entry?.views ? `${entry.views.toLocaleString('en-IN')} ${entry.views === 1 ? 'view' : 'views'}` : 'No views'} in 30 days</small>`;
+};
 function row(app, car) {
   const meta = [car.year, drivenText(car.kilometres, rules(app)), car.fuel, formatOwners(car.owners)].filter(Boolean).join(' · ');
   return `<article class="a-row${selected.has(car.id) ? ' is-selected' : ''}" data-id="${esc(car.id)}">
     <label class="a-pick"><input type="checkbox" data-select${selected.has(car.id) ? ' checked' : ''} /><span class="sr-only">Select ${esc(carTitle(car))}</span></label>
-    <a class="a-row-main" href="#car/${esc(car.id)}"><span class="a-thumb">${cover(car)}${car.photos.length ? `<i class="a-thumb-n">${car.photos.length}</i>` : ''}</span><span class="a-row-text"><b>${esc(`${car.make} ${car.model}`)}${car.variant ? ` <span>${esc(car.variant)}</span>` : ''}</b><small>${esc(meta || 'Details to add')}</small><span class="a-chips">${chips(app, car)}</span></span></a>
+    <a class="a-row-main" href="#car/${esc(car.id)}"><span class="a-thumb">${cover(car)}${car.photos.length ? `<i class="a-thumb-n">${car.photos.length}</i>` : ''}</span><span class="a-row-text"><b>${esc(`${car.make} ${car.model}`)}${car.variant ? ` <span>${esc(car.variant)}</span>` : ''}</b><small>${esc(meta || 'Details to add')}</small><span class="a-chips">${chips(app, car)}</span>${views(app, car)}</span></a>
     <span class="a-row-price">${esc(car.status === 'sold' ? 'Sold' : formatPrice(car.price) || 'On request')}</span>
     ${controls(app, car)}
   </article>`;
@@ -203,7 +213,7 @@ function tile(app, car) {
   return `<article class="a-tile${selected.has(car.id) ? ' is-selected' : ''}" data-id="${esc(car.id)}">
     <label class="a-pick"><input type="checkbox" data-select${selected.has(car.id) ? ' checked' : ''} /><span class="sr-only">Select ${esc(carTitle(car))}</span></label>
     <a class="a-tile-photo" href="#car/${esc(car.id)}">${cover(car)}${car.photos.length ? `<i class="a-thumb-n">${car.photos.length}</i>` : ''}</a>
-    <a class="a-tile-text" href="#car/${esc(car.id)}"><small>${esc(car.make)}</small><b>${esc(car.model)}${car.variant ? ` <span>${esc(car.variant)}</span>` : ''}</b><span>${esc([car.year, car.status === 'sold' ? 'Sold' : formatPrice(car.price) || 'On request'].filter(Boolean).join(' · '))}</span></a>
+    <a class="a-tile-text" href="#car/${esc(car.id)}"><small>${esc(car.make)}</small><b>${esc(car.model)}${car.variant ? ` <span>${esc(car.variant)}</span>` : ''}</b><span>${esc([car.year, car.status === 'sold' ? 'Sold' : formatPrice(car.price) || 'On request'].filter(Boolean).join(' · '))}</span>${views(app, car)}</a>
     <span class="a-chips">${chips(app, car)}</span>
     <div class="a-tile-controls">${controls(app, car)}</div>
   </article>`;
@@ -290,7 +300,7 @@ export function renderEditor(view, app, id, { paste = false } = {}) {
   const owners = `<option value="">Not stated</option>${[1, 2, 3, 4, 5].map(n => `<option value="${n}"${car.owners === n ? ' selected' : ''}>${formatOwners(n)}</option>`).join('')}<option value="0"${car.owners === 0 ? ' selected' : ''}>Unregistered</option>`;
   const priceText = numeric(car.price) ? String(car.price) : '';
 
-  view.innerHTML = `<header class="a-head a-head--editor"><div><a class="a-back" href="#cars">← All cars</a><h1 data-title>${creating ? 'Add a car' : esc(`${car.make} ${car.model}`)}</h1><p class="a-sub" data-state>${creating ? 'Paste its WhatsApp ad to fill the form, or type what you know; only the make and model are required.' : `Last saved ${esc(timeAgo(car.updatedAt))}. Changes are saved when you press Save (⌘S).`}</p></div><div class="a-head-actions">${creating ? '' : `<a class="a-button" href="${esc(siteURL(app, `/car/?id=${encodeURIComponent(car.slug)}`))}" target="_blank" rel="noopener">View on site ${icon.out}</a>`}<button type="button" class="a-button a-button--primary" data-save>Save</button></div></header>
+  view.innerHTML = `<header class="a-head a-head--editor"><div><a class="a-back" href="#cars">← All cars</a><h1 data-title>${creating ? 'Add a car' : esc(`${car.make} ${car.model}`)}</h1><p class="a-sub" data-state>${creating ? 'Paste its WhatsApp ad to fill the form, or type what you know; only the make and model are required.' : `Last saved ${esc(timeAgo(car.updatedAt))}. Changes are saved when you press Save (⌘S).`}</p><p class="a-car-views" data-car-views hidden></p></div><div class="a-head-actions">${creating ? '' : `<a class="a-button" href="${esc(siteURL(app, `/car/?id=${encodeURIComponent(car.slug)}`))}" target="_blank" rel="noopener">View on site ${icon.out}</a>`}<button type="button" class="a-button a-button--primary" data-save>Save</button></div></header>
   <nav class="a-jump" aria-label="Sections of this car">${JUMPS.map(([key, label]) => `<a href="#" data-jump="${key}"><i aria-hidden="true">${icon.check}</i>${label}</a>`).join('')}</nav>
   <form class="a-editor" novalidate autocomplete="off">
     <div class="a-editor-main">
@@ -351,6 +361,13 @@ export function renderEditor(view, app, id, { paste = false } = {}) {
     <div class="a-savebar"><span class="a-savebar-state"><i aria-hidden="true"></i><span data-dirty>No changes</span></span><button type="button" class="a-button a-button--primary" data-save>Save</button></div>
   </form>
   <datalist id="a-makes">${MAKES.map(name => `<option value="${name}">`).join('')}</datalist><datalist id="a-stocks">${STOCKS.map(name => `<option value="${name}">`).join('')}</datalist>`;
+  // What the site has seen of this car (Insights), under its title.
+  if (!creating) carViews(app).then(map => {
+    const entry = map.get(car.id), line = $('[data-car-views]', view);
+    if (!line || !app.insights?.data) return;
+    line.innerHTML = `${icon.eye}${entry?.views ? `Viewed ${entry.views.toLocaleString('en-IN')} ${entry.views === 1 ? 'time' : 'times'} in the last 30 days` : 'Not viewed in the last 30 days'}${entry?.views_all ? ` (${entry.views_all.toLocaleString('en-IN')} in all)` : ''}${entry?.whatsapp ? ` · ${entry.whatsapp} WhatsApp ${entry.whatsapp === 1 ? 'tap' : 'taps'}` : ''}${entry?.calls ? ` · ${entry.calls} ${entry.calls === 1 ? 'call' : 'calls'}` : ''}${entry?.shortlists ? ` · shortlisted ${entry.shortlists} ${entry.shortlists === 1 ? 'time' : 'times'}` : ''}. <a href="#insights">Insights →</a>`;
+    line.hidden = false;
+  });
 
   const form = $('form', view);
   const field = name => form.elements[name];
