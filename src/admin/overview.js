@@ -8,6 +8,9 @@ import { insuranceDays, insuranceState } from '../listing-rules.js';
 import { thumbImage } from '../util.js';
 
 const thumb = car => car.photos[0] ? `<img src="${esc(thumbImage(car.photos[0]))}" alt="" loading="lazy" />` : icon.car;
+// A sum in rupees for a figure: the number large, "crore" or "lakh" smaller
+// beside it, free to drop beneath it where the card is narrow.
+const amount = value => rupees(value).replace(/^(\S+)(?: (crore|lakh))?$/, (_, figure, unit) => `<span>${figure}</span>${unit ? `<i>${unit}</i>` : ''}`);
 const bars = (pairs, total) => pairs.map(([label, n]) => `<li><span>${esc(label)}</span><i style="--w:${Math.max(4, Math.round(n / total * 100))}%"></i><b>${n}</b></li>`).join('');
 
 export function renderOverview(view, app) {
@@ -29,7 +32,7 @@ export function renderOverview(view, app) {
   view.innerHTML = `<header class="a-head"><div><p class="a-eyebrow">${new Date().toLocaleDateString('en-IN', { weekday: 'long', day: 'numeric', month: 'long' })}</p><h1>${greeting}.</h1><p class="a-sub">Here is the collection today.</p></div><div class="a-head-actions"><a class="a-button" href="${esc(siteURL(app, '/collection/'))}" target="_blank" rel="noopener">View the site ${icon.out}</a><a class="a-button" href="#car/new/paste">${icon.wand}Paste a WhatsApp ad</a><a class="a-button a-button--primary" href="#car/new">${icon.plus}Add a car</a></div></header>
     <section class="a-kpis">
       <a class="a-kpi" href="#cars"><small>On sale</small><b>${onSale.length}</b><span>${app.cars.filter(car => car.status === 'reserved').length} reserved · ${app.cars.filter(car => car.status === 'hidden').length} drafts</span></a>
-      <a class="a-kpi" href="#cars"><small>Stock value</small><b>${rupees(value)}</b><span>${prices.length ? `${rupees(Math.round(prices.reduce((a, b) => a + b, 0) / prices.length))} average` : 'Add prices to see this'}</span></a>
+      <a class="a-kpi" href="#cars"><small>Stock value</small><b class="a-kpi-amount">${amount(value)}</b><span>${prices.length ? `${rupees(Math.round(prices.reduce((a, b) => a + b, 0) / prices.length))} average` : 'Add prices to see this'}</span></a>
       <a class="a-kpi${fresh.length ? ' is-hot' : ''}" href="#enquiries"><small>New enquiries</small><b>${fresh.length}</b><span>${(app.enquiries || []).length} in all</span></a>
       <a class="a-kpi" href="#cars"><small>Sold</small><b>${sold.length}</b><span>${soldThisMonth} this month</span></a>
     </section>

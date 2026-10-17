@@ -7,7 +7,7 @@
 .ab-head h2 em,.ab-handovers h2 em,.ab-visit h2 em,.ab-title em{color:var(--gold-text)}
 .about-page .eyebrow{color:var(--gold-text)}
 .ab-intro{max-width:52ch;margin-top:24px;font-size:16px;line-height:1.7;color:rgba(239,233,222,.66)}
-.ab-figures:before,.ab-dossier:before,.ab-handovers:before,.ab-visit:before{content:'';position:absolute;left:0;right:0;top:0;z-index:3;height:1px;background:var(--coachline);opacity:.55}
+.ab-founder:before,.ab-figures:before,.ab-dossier:before,.ab-handovers:before,.ab-visit:before{content:'';position:absolute;left:0;right:0;top:0;z-index:3;height:1px;background:var(--coachline);opacity:.55}
 
 /* ------------------------------------------------------------ the unveiling */
 .ab-unveil{height:100vh;height:100svh;min-height:620px;overflow:hidden;background:#040405;color:var(--ivory);isolation:isolate}
@@ -53,12 +53,13 @@
 }
 
 /* --------------------------------------------------------------- our story */
-.ab-manifesto{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2.7fr);column-gap:clamp(18px,2.4vw,40px);padding:clamp(120px,13vw,210px) var(--gutter) clamp(110px,12vw,190px);background:#000}
-/* Set to be read, at a reading size and measure: the luxury is the space. */
-.ab-statement{grid-column:2;max-width:33em;margin:0;font:300 clamp(21px,1.85vw,30px)/1.52 var(--font-display);letter-spacing:-.006em;color:#efe9de;text-wrap:pretty}
+.ab-manifesto{display:grid;grid-template-columns:minmax(0,auto);justify-content:center;padding:clamp(120px,13vw,210px) var(--gutter) clamp(110px,12vw,190px);background:#000}
+/* Set to be read, at a reading size and measure, in the middle of the page:
+   the luxury is the space. */
+.ab-statement{max-width:33em;margin:0;font:300 clamp(21px,1.85vw,30px)/1.52 var(--font-display);letter-spacing:-.006em;color:#efe9de;text-wrap:pretty}
 .ab-statement em{font-style:italic;color:var(--gold-text)}
 .sr-word{display:inline-block;will-change:opacity,filter,transform}
-.ab-sign{grid-column:2;display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:clamp(40px,5vw,64px);font:600 11px/1.4 var(--font-text);letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.ab-sign{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:clamp(40px,5vw,64px);font:600 11px/1.4 var(--font-text);letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
 .ab-sign span+span:before{content:'';display:inline-block;width:28px;height:1px;margin:0 22px 3px 0;vertical-align:middle;background:var(--gold-lo)}
 
 /* ------------------------------------------------------------ the mastheads */
@@ -76,7 +77,47 @@
   .ab-mast h2{font-size:clamp(34px,10vw,58px);text-wrap:balance}
   .ab-mast-b{margin-left:.7em}
   .ab-mast-intro{margin:0;font-size:14px}
-  .ab-statement,.ab-sign{grid-column:1}
+}
+
+/* ------------------------------------------------------------- the founders */
+/* The two founders, each in their own photograph, whole and at its own
+   shape, side by side and stepped, Vinod Ahuja first; beside them the story
+   at a reading size. A gold rule runs down beside the story and is drawn as
+   it is read (about-page.js). */
+.ab-founder{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);column-gap:clamp(48px,6.5vw,128px);align-items:start;padding:clamp(110px,12vw,190px) var(--gutter) clamp(120px,13vw,200px);background:#000}
+.fo-portraits{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));column-gap:clamp(14px,1.6vw,26px);align-items:start}
+.fo-portrait{margin:0}
+.fo-portrait+.fo-portrait{margin-top:clamp(56px,8vw,140px)}
+.fo-portrait img{display:block;width:100%;height:auto;border-radius:2px;background:#0e0e10}
+.fo-portrait figcaption{display:grid;gap:7px;margin-top:16px}
+.fo-portrait b{font:italic 300 clamp(22px,1.9vw,30px)/1.1 var(--font-display);letter-spacing:-.015em;color:#f4efe6}
+.fo-portrait span{font:600 10.5px/1.4 var(--font-text);letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.fo-story{padding-top:clamp(0px,2vw,30px)}
+.ab-founder .ab-mast{grid-template-columns:minmax(0,1fr)}
+.ab-founder .ab-mast h2{font-size:clamp(40px,4.4vw,80px)}
+.ab-founder .ab-mast-intro{max-width:40ch;margin:clamp(14px,2vh,22px) 0 0}
+.fo-text{position:relative;margin-top:clamp(40px,5vw,76px);padding-left:clamp(24px,2.6vw,44px)}
+.fo-text p{max-width:30em;margin:0;font:300 clamp(19px,1.45vw,24px)/1.6 var(--font-display);letter-spacing:-.004em;color:#efe9de;text-wrap:pretty}
+.fo-text p+p{margin-top:1.1em}
+.fo-text em{font-style:italic;color:var(--gold-text)}
+.fo-rule{position:absolute;left:0;top:.5em;bottom:.5em;width:1px;background:rgba(213,178,123,.16)}
+.fo-rule b{position:absolute;inset:0;background:linear-gradient(180deg,var(--gold-hi),var(--gold-lo));transform-origin:50% 0}
+/* One column: the title, the two photographs, then the story. */
+@media(max-width:1000px){
+  .ab-founder{grid-template-columns:minmax(0,1fr);row-gap:clamp(44px,8vw,72px)}
+  .fo-story{display:contents}
+  .ab-founder .ab-mast{order:-1}
+  .fo-text{order:1;margin-top:0}
+  .fo-portraits{max-width:640px}
+}
+@media(max-width:760px){
+  .fo-portraits{column-gap:12px}
+  .fo-portrait+.fo-portrait{margin-top:48px}
+  .fo-portrait figcaption{margin-top:12px}
+  .fo-portrait b{font-size:19px}
+  .fo-portrait span{font-size:9.5px;letter-spacing:.18em}
+  .fo-text{padding-left:22px}
+  .fo-text p{font-size:18.5px}
 }
 
 /* -------------------------------------------------------------- the figures */

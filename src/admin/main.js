@@ -113,18 +113,50 @@ async function enter(session) {
   }, 60000);
 }
 
+// The sections, in the menu's order: route, name, the tab bar's short name,
+// its icon, whether phones keep it under "More", and its count.
+const sections = [
+  ['overview', 'Overview', 'Today', icon.gauge],
+  ['cars', 'Cars', 'Cars', icon.car, false, '<b data-count></b>'],
+  ['enquiries', 'Enquiries', 'Inbox', icon.inbox, false, '<b class="is-hot" data-new></b>'],
+  ['insights', 'Insights', 'Insights', icon.chart, true],
+  ['deliveries', 'Deliveries', 'Deliveries', icon.gallery],
+  ['home', 'Home page', 'Home', icon.home, true],
+  ['collections', 'Collections', 'Groups', icon.stack, true],
+  ['settings', 'Settings', 'Settings', icon.cog, true],
+];
+const inMore = new Set(sections.filter(section => section[4]).map(([route]) => route));
+
 function shell() {
   const preview = app.store.mode === 'preview';
+  const account = preview ? '' : `<span class="a-user">${esc(app.user?.email || '')}</span><button type="button" data-sign-out>Sign out</button>`;
   root.innerHTML = `<div class="a-shell${preview ? ' is-preview' : ''}">
     ${preview ? `<div class="a-preview-bar" role="note"><span><b>Preview mode.</b> Supabase isn’t connected, so changes stay in this browser. <a href="${siteURL(app, '/')}" target="_blank" rel="noopener">See them on the site ${icon.out}</a></span><a href="#settings/connect">How to publish</a></div>` : ''}
     <aside class="a-nav">
       <a class="a-brand" href="#cars">${logo}<span>Admin</span></a>
-      <nav aria-label="Admin"><a href="#overview" data-route="overview" data-short="Today">${icon.gauge}<span>Overview</span></a><a href="#cars" data-route="cars" data-short="Cars">${icon.car}<span>Cars</span><b data-count></b></a><a href="#enquiries" data-route="enquiries" data-short="Inbox">${icon.inbox}<span>Enquiries</span><b class="is-hot" data-new></b></a><a href="#insights" data-route="insights" data-short="Insights">${icon.chart}<span>Insights</span></a><a href="#deliveries" data-route="deliveries" data-short="Deliveries">${icon.gallery}<span>Deliveries</span></a><a href="#home" data-route="home" data-short="Home">${icon.home}<span>Home page</span></a><a href="#collections" data-route="collections" data-short="Groups">${icon.stack}<span>Collections</span></a><a href="#settings" data-route="settings" data-short="Settings">${icon.cog}<span>Settings</span></a></nav>
-      <div class="a-nav-foot"><a href="${siteURL(app, '/')}" target="_blank" rel="noopener">View the site ${icon.out}</a>${preview ? '' : `<span class="a-user">${esc(app.user?.email || '')}</span><button type="button" data-sign-out>Sign out</button>`}</div>
+      <nav aria-label="Admin">${sections.map(([route, name, short, glyph, more, count = '']) => `<a href="#${route}" data-route="${route}" data-short="${short}"${more ? ' data-more' : ''}>${glyph}<span>${name}</span>${count}</a>`).join('')}<button type="button" class="a-more-tab" data-more-open data-short="More" aria-haspopup="dialog" aria-expanded="false">${icon.more}<span>More</span></button></nav>
+      <div class="a-nav-foot"><a href="${siteURL(app, '/')}" target="_blank" rel="noopener">View the site ${icon.out}</a>${account}</div>
     </aside>
     <main class="a-main" id="view" tabindex="-1"></main>
+    <dialog class="a-sheet" data-more-sheet aria-label="More"><div class="a-sheet-body"><i class="a-sheet-grip" aria-hidden="true"></i>
+      <nav aria-label="More sections">${sections.filter(section => section[4]).map(([route, name, , glyph]) => `<a href="#${route}" data-route="${route}">${glyph}<span>${name}</span></a>`).join('')}</nav>
+      <div class="a-sheet-foot"><a href="${siteURL(app, '/')}" target="_blank" rel="noopener">${icon.out}<span>View the site</span></a>${account}</div>
+    </div></dialog>
   </div>`;
-  $('[data-sign-out]')?.addEventListener('click', async () => { if (!(await leave())) return; app.guard = null; await app.store.signOut(); });
+  $$('[data-sign-out]').forEach(button => button.addEventListener('click', async () => { if (!(await leave())) return; app.guard = null; await app.store.signOut(); }));
+  // Phones: "More" opens the other sections in a sheet that rises from the
+  // foot of the screen. It slides away when one is chosen, when the dim
+  // backdrop is tapped, or on Escape.
+  const sheet = $('[data-more-sheet]'), more = $('[data-more-open]');
+  app.closeSheet = () => {
+    if (!sheet.open || sheet.classList.contains('is-leaving')) return;
+    sheet.classList.add('is-leaving');
+    setTimeout(() => { sheet.close(); sheet.classList.remove('is-leaving'); }, 200);
+  };
+  more.addEventListener('click', () => { sheet.showModal(); more.setAttribute('aria-expanded', 'true'); });
+  sheet.addEventListener('close', () => more.setAttribute('aria-expanded', 'false'));
+  sheet.addEventListener('cancel', event => { event.preventDefault(); app.closeSheet(); });
+  sheet.addEventListener('click', event => { if (event.target === sheet || event.target.closest('a')) app.closeSheet(); });
   app.refresh = () => {
     $('[data-count]').textContent = app.cars.filter(car => FOR_SALE.includes(car.status)).length || '';
     const fresh = app.enquiries.filter(row => row.status === 'new').length;
@@ -148,6 +180,8 @@ function route() {
   app.discard = null;
   const section = name === 'car' ? 'cars' : name;
   $$('[data-route]').forEach(link => link.toggleAttribute('aria-current', link.dataset.route === section));
+  $('[data-more-open]')?.toggleAttribute('aria-current', inMore.has(section));
+  app.closeSheet?.();
   if (name === 'car') renderEditor(view, app, id, { paste: extra === 'paste' });
   else if (name === 'overview') renderOverview(view, app);
   else if (name === 'enquiries') renderEnquiries(view, app);

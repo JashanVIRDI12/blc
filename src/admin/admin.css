@@ -71,6 +71,7 @@ code{padding:2px 6px;border-radius:6px;font:12.5px/1.5 ui-monospace,SFMono-Regul
 .a-nav nav a[aria-current] svg{color:var(--a-gold)}
 .a-nav nav b{margin-left:auto;min-width:24px;padding:2px 7px;font-size:12px;text-align:center;color:var(--a-muted);background:var(--a-line);border-radius:999px}
 .a-nav nav b:empty{display:none}
+.a-more-tab{display:none}
 .a-nav-foot{display:grid;gap:10px;margin-top:auto;padding:16px 10px 0;font-size:13.5px;border-top:1px solid var(--a-line)}
 .a-nav-foot a{display:inline-flex;align-items:center;gap:6px;font-weight:600;text-decoration:none}
 .a-nav-foot svg{width:15px;height:15px}
@@ -297,6 +298,26 @@ code{padding:2px 6px;border-radius:6px;font:12.5px/1.5 ui-monospace,SFMono-Regul
 .a-dialog-actions [data-delete],.a-dialog-actions [data-extra]{margin-right:auto}
 .a-dialog-close{position:absolute;top:14px;right:14px;display:grid;place-items:center;width:38px;height:38px;color:var(--a-muted);border-radius:9px}
 .a-dialog-close:hover{color:var(--a-text);background:var(--a-line)}
+/* Phones' More sheet: rises from the foot of the screen over a dim backdrop. */
+.a-sheet{position:fixed;inset:auto 0 0;width:100%;max-width:none;max-height:86vh;margin:0;padding:0;overflow:auto;overscroll-behavior:contain;color:var(--a-text);background:var(--a-panel);border:1px solid var(--a-line-hi);border-bottom:0;border-radius:22px 22px 0 0;box-shadow:0 -30px 60px -20px rgba(0,0,0,.9)}
+.a-sheet::backdrop{background:rgba(0,0,0,.62);-webkit-backdrop-filter:blur(6px);backdrop-filter:blur(6px)}
+.a-sheet[open]{animation:sheet-in .34s cubic-bezier(.2,.9,.3,1)}
+.a-sheet[open]::backdrop{animation:fade-in .3s}
+.a-sheet.is-leaving{transform:translateY(100%);transition:transform .2s cubic-bezier(.4,0,1,1)}
+.a-sheet.is-leaving::backdrop{opacity:0;transition:opacity .2s}
+@keyframes sheet-in{from{transform:translateY(100%)}}
+@keyframes fade-in{from{opacity:0}}
+.a-sheet-body{padding:8px 12px calc(14px + env(safe-area-inset-bottom))}
+.a-sheet-grip{display:block;width:40px;height:4px;margin:2px auto 12px;border-radius:2px;background:var(--a-line-hi)}
+.a-sheet nav{display:grid;gap:2px}
+.a-sheet nav a,.a-sheet-foot a,.a-sheet-foot button{display:flex;align-items:center;gap:14px;width:100%;min-height:54px;padding:0 14px;font-size:16px;font-weight:600;text-decoration:none;color:var(--a-text);border-radius:12px}
+.a-sheet nav a svg,.a-sheet-foot svg{width:22px;height:22px;color:var(--a-muted)}
+.a-sheet nav a:after{content:'';width:7px;height:7px;margin:0 4px 0 auto;border:solid var(--a-muted);border-width:1.6px 1.6px 0 0;transform:rotate(45deg)}
+.a-sheet nav a[aria-current]{background:var(--a-panel-2)}
+.a-sheet nav a[aria-current] svg{color:var(--a-gold)}
+.a-sheet-foot{display:grid;gap:2px;margin-top:8px;padding-top:8px;border-top:1px solid var(--a-line)}
+.a-sheet-foot .a-user{padding:10px 14px 0;font-size:13px}
+.a-sheet-foot button{min-height:48px;font-size:15px;color:var(--a-muted)}
 .a-picker .a-search{width:100%;margin-top:6px}
 .a-pick-list{display:grid;gap:6px;max-height:min(46vh,420px);margin:14px 0 0;padding:0;overflow:auto;list-style:none}
 .a-pick-list button,.a-pick-list label{display:flex;align-items:center;gap:12px;width:100%;padding:8px;text-align:left;border:1px solid var(--a-line);border-radius:10px;cursor:pointer;transition:border-color .2s}
@@ -408,19 +429,24 @@ select[aria-expanded]{border-color:var(--a-gold)!important;box-shadow:0 0 0 3px 
 }
 @media(max-width:860px){
   .a-shell{grid-template-columns:minmax(0,1fr)}
-  .a-nav{position:fixed;top:auto;bottom:0;left:0;right:0;z-index:40;height:auto!important;padding:6px 6px calc(6px + env(safe-area-inset-bottom));border-right:0;border-top:1px solid var(--a-line);background:rgba(8,8,10,.96)}
+  /* The tab bar: one row of five, the sections used most and More for the
+     rest (a sheet, main.js). Solid, so nothing scrolls through it. Its
+     height (--a-tabbar) keeps the save bar, the bulk bar and notices above it. */
+  :root{--a-tabbar:calc(66px + env(safe-area-inset-bottom))}
+  .a-nav{position:fixed;top:auto;bottom:0;left:0;right:0;z-index:40;height:auto!important;padding:6px 8px calc(6px + env(safe-area-inset-bottom));border-right:0;border-top:1px solid var(--a-line);background:#08080a;box-shadow:0 -14px 30px -16px rgba(0,0,0,.9)}
   .a-brand,.a-nav-foot{display:none}
-  .a-nav nav{grid-template-columns:repeat(7,minmax(0,1fr));gap:0}
-  .a-nav nav a span{display:none}
-  .a-nav nav a:after{content:attr(data-short);font-size:10.5px;white-space:nowrap}
-  .a-nav nav a{padding:8px 0}
-  .a-nav nav a{flex-direction:column;gap:4px;padding:8px 4px;font-size:11.5px;text-align:center}
-  .a-nav nav b{position:absolute;margin:0 0 0 30px;padding:1px 6px;font-size:10.5px}
-  .a-nav nav a{position:relative}
-  .a-main{padding:22px 16px 150px}
-  .a-savebar{bottom:calc(76px + env(safe-area-inset-bottom));justify-self:stretch;justify-content:space-between}
+  .a-nav nav{grid-template-columns:repeat(5,minmax(0,1fr));gap:4px}
+  .a-nav nav [data-more]{display:none}
+  .a-nav nav a,.a-more-tab{position:relative;display:flex;flex-direction:column;align-items:center;gap:4px;min-height:52px;padding:7px 2px 6px;font-size:11.5px;font-weight:600;text-align:center;color:var(--a-muted);border-radius:12px}
+  .a-nav nav a span,.a-more-tab span{display:none}
+  .a-nav nav a:after,.a-more-tab:after{content:attr(data-short);font-size:11px;line-height:1.2;white-space:nowrap}
+  .a-more-tab[aria-current],.a-more-tab[aria-expanded=true]{color:var(--a-text);background:var(--a-panel-2)}
+  .a-more-tab[aria-current] svg{color:var(--a-gold)}
+  .a-nav nav b{position:absolute;top:3px;left:calc(50% + 6px);min-width:20px;margin:0;padding:1px 6px;font-size:10.5px;line-height:1.5}
+  .a-main{padding:22px 16px calc(var(--a-tabbar) + 90px)}
+  .a-savebar{bottom:calc(var(--a-tabbar) + 10px);justify-self:stretch;justify-content:space-between}
   .a-jump{margin:-6px -16px 16px;padding:10px 16px}
-  #toasts{bottom:calc(84px + env(safe-area-inset-bottom))}
+  #toasts{bottom:calc(var(--a-tabbar) + 12px)}
   .a-head-actions{width:100%}
   .a-head-actions .a-button{flex:1}
   .a-search{width:100%}
@@ -440,6 +466,7 @@ select[aria-expanded]{border-color:var(--a-gold)!important;box-shadow:0 0 0 3px 
 }
 
 /* ---------------------------------------------------- shared additions */
+@media(hover:none) and (pointer:coarse){.a-keys{display:none}}
 kbd{display:inline-block;min-width:20px;padding:1px 6px;font:600 12px/1.5 var(--font-text);text-align:center;color:var(--a-text);background:var(--a-panel-2);border:1px solid var(--a-line-hi);border-bottom-width:2px;border-radius:6px}
 .a-eyebrow{margin-bottom:10px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--a-gold)}
 .a-nav nav b.is-hot{color:#1a1008;background:var(--a-gold-hi)}
@@ -561,10 +588,13 @@ kbd{display:inline-block;min-width:20px;padding:1px 6px;font:600 12px/1.5 var(--
 /* Overview. */
 .a-kpis{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:20px}
 .a-kpi{display:grid;gap:6px;padding:20px;text-decoration:none;background:linear-gradient(160deg,var(--a-panel-2),var(--a-panel));border:1px solid var(--a-line);border-radius:16px;transition:border-color .2s,transform .3s}
-.a-kpi:hover{border-color:var(--a-line-hi);transform:translateY(-2px)}
+@media(hover:hover){.a-kpi:hover{border-color:var(--a-line-hi);transform:translateY(-2px)}}
 .a-kpi small{font-size:12px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;color:var(--a-muted)}
 .a-kpi b{font:400 clamp(28px,2.6vw,42px)/1 var(--font-display);letter-spacing:-.01em;white-space:nowrap}
 .a-kpi span{font-size:13px;color:var(--a-muted)}
+.a-kpi-amount{display:flex;flex-wrap:wrap;align-items:baseline;column-gap:.22em}
+.a-kpi b.a-kpi-amount span{font-size:inherit;color:inherit}
+.a-kpi-amount i{font-size:.56em;font-style:normal;letter-spacing:0}
 .a-kpi.is-hot{border-color:rgba(227,169,76,.6);background:linear-gradient(160deg,rgba(227,169,76,.16),var(--a-panel))}
 .a-kpi.is-hot b{color:var(--a-gold-hi)}
 .a-overview{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:20px}
@@ -687,7 +717,7 @@ kbd{display:inline-block;min-width:20px;padding:1px 6px;font:600 12px/1.5 var(--
 }
 @media(max-width:860px){
   .a-toolbar--tools .a-search{min-width:100%}
-  .a-bulk{bottom:calc(76px + env(safe-area-inset-bottom))}
+  .a-bulk{bottom:calc(var(--a-tabbar) + 10px)}
   .a-bulk .a-link{margin-left:0}
   .a-kpi{padding:16px}
   .a-bars li{grid-template-columns:90px minmax(0,1fr) 28px}

@@ -1,9 +1,11 @@
-// About Baba Luxury Cars (/about/). Seven movements, each with one idea:
+// About Baba Luxury Cars (/about/). Eight movements, each with one idea:
 //
 //   The unveiling   a Maybach under an ivory silk cover, drawn away by the
 //                   scroll (unveil.js, cloth.js)
 //   Our story       the manifesto comes into focus as it is read (after React
 //                   Bits' Scroll Reveal)
+//   The founders    Vinod Ahuja and Pawan Ahuja in their photographs, beside
+//                   how it began, a gold rule drawn down the story as it is read
 //   The figures     a dashboard's rotating display turns from walnut to
 //                   three dials to a navigation screen (fascia.js)
 //   The inspection  a black Defender on a studio turntable, turned by the
@@ -96,6 +98,29 @@ if (!reduced) $$('[data-mast]').forEach(mast => {
 // Where a section is pinned and scrolled through: a screen large enough to
 // hold it whole.
 const large = matchMedia('(min-width: 1001px) and (min-height: 560px)').matches;
+const siteHeader = $('.site-header');
+
+// ------------------------------------------------------------- the founders
+// Vinod Ahuja and Pawan Ahuja, each in their own photograph, beside how it
+// began. The photographs are lifted into the light as they arrive, one after
+// the other, and on a large screen drift a little apart as the section is
+// scrolled through, the second a beat behind the first; at rest each is whole
+// and untouched. Each paragraph's lines rise out of their own as it is
+// reached, and a gold rule is drawn down beside the story as it is read.
+if (!reduced) {
+  const section = $('#founder'), text = $('[data-founder-text]', section), portraits = $$('.fo-portrait', section);
+  const arrive = { trigger: $('[data-founder-portraits]', section), start: 'top 82%', once: true, refreshPriority: -1 };
+  gsap.fromTo(portraits.map(portrait => $('img', portrait)), { clipPath: 'inset(100% 0% 0% 0%)', filter: 'brightness(.35)' }, { clipPath: 'inset(0% 0% 0% 0%)', filter: 'brightness(1)', duration: 2, ease: 'expo.out', stagger: .22, clearProps: 'clipPath,filter', scrollTrigger: arrive });
+  gsap.from(portraits.map(portrait => $('figcaption', portrait)), { autoAlpha: 0, y: 14, duration: 1.2, ease: 'expo.out', stagger: .22, delay: .5, scrollTrigger: { ...arrive } });
+  if (large) portraits.forEach((portrait, i) => gsap.fromTo(portrait, { y: i ? 70 : 30 }, { y: i ? -70 : -30, ease: 'none', scrollTrigger: { trigger: section, start: 'top bottom', end: 'bottom top', scrub: true, refreshPriority: -1 } }));
+  gsap.fromTo($('[data-founder-rule]', section), { scaleY: 0 }, { scaleY: 1, ease: 'none', scrollTrigger: { trigger: text, start: 'top 74%', end: 'bottom 62%', scrub: .6, refreshPriority: -1 } });
+  // The lines are split once the type has loaded, and joined again once
+  // they have risen, so the story reflows as text if the window changes.
+  document.fonts.ready.then(() => $$('p', text).forEach(paragraph => {
+    const split = SplitText.create(paragraph, { type: 'lines', mask: 'lines' });
+    gsap.from(split.lines, { yPercent: 108, duration: 1.4, ease: 'expo.out', stagger: .09, onComplete: () => split.revert(), scrollTrigger: { trigger: paragraph, start: 'top 86%', once: true, refreshPriority: -1 } });
+  }));
+}
 
 // -------------------------------------------------------------- the figures
 // The figures in story order (the years, the people, how they felt), from
@@ -124,7 +149,7 @@ else heroSettled.then(() => import('./fascia.js')).then(({ createFascia }) => {
 // come to is read out, and ticked once the car has stopped there. Scrolling
 // back turns it back. Reduced motion shows the sheet filled in beside a
 // photograph. The header is set in ink while the paper is under it.
-const inspection = $('#inspection'), siteHeader = $('.site-header');
+const inspection = $('#inspection');
 {
   const half = () => siteHeader.offsetHeight / 2;
   const ink = (start, end, trigger) => ScrollTrigger.create({ trigger, start, end, refreshPriority: 1, onToggle: self => siteHeader.classList.toggle('is-light', self.isActive) });
