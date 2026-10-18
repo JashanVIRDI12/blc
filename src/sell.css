@@ -59,10 +59,19 @@
 .sl-hero-actions{position:relative;z-index:2;display:flex;flex-wrap:wrap;align-items:center;gap:16px 30px;margin-top:clamp(40px,5vw,72px)}
 .sl-hero-call{font-size:14px;color:var(--steel)}
 .sl-hero-call a{color:var(--ivory);background:linear-gradient(var(--gold),var(--gold)) 0 100%/100% 1px no-repeat;padding-bottom:3px}
+/* Large screens: the plate is the subject, on its own stage, with the words
+   above it and the action beneath, all on the centre line, so the black
+   either side is even. The title and the plate are sized by the screen's
+   height too, so the whole hero, its button included, fits in one screen. */
 @media(min-width:1001px){
-  .sl-hero{grid-template-columns:repeat(12,minmax(0,1fr));align-content:center}
-  .sl-hero-copy{grid-column:1 / span 7}
-  .sl-hero-plate{grid-column:5 / -1;width:min(100%,940px);justify-self:end}
+  .sl-hero{justify-items:center;align-content:center;gap:clamp(28px,4.5vh,52px);padding-top:calc(var(--header-height) + clamp(24px,4vh,56px));padding-bottom:clamp(32px,5vh,64px);text-align:center}
+  .sl-hero:before{background:radial-gradient(46% 40% at 50% 74%,rgba(239,233,222,.075),transparent 72%),radial-gradient(32% 22% at 50% 94%,rgba(196,136,58,.07),transparent 75%)}
+  .sl-hero-copy{max-width:none}
+  .sl-title{font-size:min(5.6vw,10.5svh,108px)}
+  .sl-title .fl-line:last-child{padding-left:0}
+  .sl-lede{max-width:48ch;margin:22px auto 0}
+  .sl-hero-plate{width:min(100%,clamp(480px,calc((100svh - 540px) * 4.25),860px))}
+  .sl-hero-actions{justify-content:center;margin-top:clamp(28px,5vh,56px)}
 }
 
 /* ----------------------------------------------------------------- steps */
