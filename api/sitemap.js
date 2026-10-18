@@ -4,7 +4,7 @@
 // carries its first photograph, for image search. Without the database it
 // lists the pages alone.
 const SITE = 'https://babaluxurycar.com';
-const PAGES = ['/', '/collection/', '/sell/', '/concierge/', '/consultation/', '/about/', '/privacy/', '/terms/'];
+const PAGES = ['/', '/collection/', '/sell/', '/concierge/', '/consultation/', '/about/', '/privacy/', '/terms/', '/booking-policy/', '/delivery-policy/', '/test-drive-policy/', '/rc-transfer-policy/'];
 
 const xml = text => String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
 const day = value => { const date = new Date(value); return Number.isNaN(date.getTime()) ? '' : date.toISOString().slice(0, 10); };

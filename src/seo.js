@@ -61,6 +61,26 @@ export const pages = {
     description: 'The terms for using babaluxurycar.com, and for enquiries, valuations, purchases, sales and concierge services with Baba Luxury Cars, New Delhi.',
     crumb: 'Terms and conditions',
   },
+  '/booking-policy/': {
+    title: 'Booking and Cancellation Policy | Baba Luxury Cars',
+    description: 'How an advance reserves a car with Baba Luxury Cars, the 45 days to take delivery, and the 50% refund of the advance if you cancel after 45 days.',
+    crumb: 'Booking policy',
+  },
+  '/delivery-policy/': {
+    title: 'Car Delivery Across India: Policy | Baba Luxury Cars',
+    description: 'Baba Luxury Cars delivers across India. How delivery works, what it costs on top of the price of the car, and collecting from our New Delhi showroom.',
+    crumb: 'Delivery policy',
+  },
+  '/test-drive-policy/': {
+    title: 'Test Drive Policy | Baba Luxury Cars',
+    description: 'Taking a test drive with Baba Luxury Cars, New Delhi: what to bring, and who pays for the repair if the car is damaged while you are driving it.',
+    crumb: 'Test drive policy',
+  },
+  '/rc-transfer-policy/': {
+    title: 'RC Transfer and Papers Policy | Baba Luxury Cars',
+    description: 'Baba Luxury Cars transfers the RC of every car it sells through the RTO. What we need from you, the charges, and registering the car in another state.',
+    crumb: 'RC transfer policy',
+  },
   '/404.html': {
     title: 'Page not found | Baba Luxury Cars',
     description: 'This page has moved or no longer exists. Explore the Baba Luxury Cars collection, or talk to us.',

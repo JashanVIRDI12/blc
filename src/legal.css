@@ -1,4 +1,6 @@
-/* The privacy policy and the terms (/privacy/, /terms/, legal-page.js), set
+/* The privacy policy, the terms and the policies (/privacy/, /terms/,
+   /booking-policy/, /delivery-policy/, /test-drive-policy/,
+   /rc-transfer-policy/, legal-page.js), set
    for reading on ivory paper: the title as on the other pages, then the
    contents in the margin (held in view on wide screens, the section being
    read marked in gold) beside the text at a reading measure. */
@@ -44,6 +46,15 @@
 .lg-table td{padding:14px 16px;font-size:14.5px;line-height:1.6;vertical-align:top;border-bottom:1px solid var(--hair)}
 .lg-table tr:last-child td{border-bottom:0}
 .lg-table code{font:500 13px/1 ui-monospace,SFMono-Regular,Menlo,monospace;color:var(--ink)}
+/* A policy at a glance: its figures set large, each with what it means. */
+.lg-glance{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1px;max-width:720px;margin:34px 0 0;background:var(--hair);border:1px solid var(--hair);border-radius:14px;overflow:hidden}
+.lg-glance div{display:grid;gap:10px;align-content:start;padding:22px 24px 24px;background:#fff}
+.lg-glance dt{font:300 clamp(44px,4.6vw,64px)/1 var(--font-display);letter-spacing:-.035em;color:var(--ink)}
+.lg-glance small{margin-left:.12em;font-size:.42em;font-style:italic;letter-spacing:0;color:var(--gold-ink)}
+.lg-glance dd{margin:0;font-size:14.5px;line-height:1.6;color:var(--muted)}
+@media(max-width:560px){.lg-glance{grid-template-columns:1fr}}
+/* A worked example, set apart from the text it explains. */
+.lg-text .lg-example{margin-top:18px;padding:16px 20px;background:#fff;border:1px solid var(--hair);border-left:2px solid var(--gold-ink);border-radius:0 12px 12px 0}
 .lg-actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:22px}
 /* How to reach us, each line with its icon. */
 .lg-reach{display:grid;gap:12px;margin-top:20px;padding:22px 24px;background:#fff;border:1px solid var(--hair);border-radius:14px}
