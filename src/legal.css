@@ -61,6 +61,8 @@
 .lg-reach p{display:flex;align-items:flex-start;gap:12px;margin:0!important}
 .lg-reach .icon{width:18px;height:18px;margin-top:4px;color:var(--gold-ink)}
 .lg-reach a{text-decoration:none}
+/* A phone number never breaks across two lines. */
+.lg-text a[href^="tel:"]{white-space:nowrap}
 
 @media(min-width:1001px){
   .lg-body{grid-template-columns:230px minmax(0,1fr);gap:clamp(56px,7vw,128px)}

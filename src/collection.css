@@ -130,13 +130,22 @@ html{scroll-behavior:smooth}
 .shortlist-toggle[aria-pressed=true] svg{fill:currentColor}
 .c-browse .empty-state .collection-actions{justify-content:center}
 @media(max-width:760px){
-  .browse-tools{grid-template-columns:minmax(0,1fr) auto auto}
-  .browse-search{grid-column:1/-1;border-bottom-color:var(--hair)}
+  /* Phones: the bar stays in view, so it keeps to two rows: the tabs, then the
+     search with Filters and Sort beside it as round buttons (the sort shows
+     its icon; the order chosen opens in the phone's own list). */
+  .body-tabs button{padding:13px 12px 12px}
+  .browse-tools{grid-template-columns:minmax(0,1fr) auto auto;gap:8px;padding:6px 0}
+  .browse-search{border-bottom-color:var(--hair)}
+  .browse-search input{padding:10px 0}
+  .browse-tools .tool-button{position:relative;justify-content:center;width:44px;padding:0}
+  .tool-label{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  .browse-tools .tool-count{position:absolute;top:-5px;right:-5px}
   .tool-select{min-width:0}
-  .tool-select select{width:100%;max-width:160px}
+  .tool-select select{width:44px;padding:0;color:transparent;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M7 5v14M4 16l3 3 3-3M17 19V5M14 8l3-3 3 3' fill='none' stroke='%2314130f' stroke-width='1.3' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center/18px no-repeat}
   .view-toggle{display:none}
-  .browse-tools .tool-button{justify-self:start}
   .shortlist-toggle{margin-left:0}
+  /* The marques are easier to tap: each gets room around its badge. */
+  .marque{box-sizing:content-box;padding:8px}
 }
 
 /* The grid keeps three across with four cars here; a list is one per row. */

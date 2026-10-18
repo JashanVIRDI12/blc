@@ -520,8 +520,11 @@ p{text-wrap:pretty}
   /* Where we are and how to call, across; the pages and where we post, side by side. */
   .footer-columns{gap:44px 20px}
   .footer-columns>:nth-child(-n+2){grid-column:1/-1}
-  .footer-pages{gap:11px}
-  .footer-pages a{font-size:20px}
+  .footer-pages{gap:0}
+  .footer-pages a{padding:6px 0 7px;font-size:20px}
+  .footer-line a{padding:6px 0 7px}
+  .footer-legal{gap:2px 22px}
+  .footer-legal a,.footer-legal button{padding:9px 0}
   .footer-follow{gap:10px}
   .footer-follow>i{width:42px;height:42px}
   .footer-follow b{font-size:17px}

@@ -29,7 +29,7 @@
 @media(max-width:760px){
   .fleet-copy{display:grid;justify-items:start;gap:18px;padding-top:18px}
   .fleet-note{font-size:13.5px}
-  .fleet-actions{justify-content:flex-start;gap:12px 22px}
+  .fleet-actions{justify-content:flex-start;gap:12px 22px;padding-right:72px}
   .fleet-button{min-height:48px;padding:0 22px}
   .fleet-fallback{bottom:clamp(250px,40vh,330px)}
   .fleet-fallback img{width:30%;margin:0 -6%}

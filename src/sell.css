@@ -123,7 +123,7 @@
 .sl-pane-links{display:flex;flex-wrap:wrap;gap:8px 28px;margin-top:22px}
 .sl-pane .ink-link{color:var(--ink);background-image:linear-gradient(var(--gold-ink),var(--gold-ink))}
 .sl-pane:before{content:'';position:absolute;left:0;right:0;top:0;height:1px;background:var(--coachline);opacity:.7}
-@media(max-width:760px){.sl-panes{flex-direction:column;min-height:0}.sl-pane{padding:88px 22px 64px}.sl-pane h3{font-size:clamp(54px,17cqw,120px)}}
+@media(max-width:760px){.sl-panes{flex-direction:column;min-height:0}.sl-pane{flex:none;padding:88px 22px 64px}.sl-pane h3{font-size:clamp(54px,17cqw,120px)}}
 
 /* ------------------------------------------------------------ appraisal */
 .sl-appraisal{--ivory:#211d18;--steel:#6a6259;--steel-dim:#8a8176;--graphite:rgba(40,32,22,.2);--gold:#986932;

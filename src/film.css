@@ -104,8 +104,8 @@
   .moment-checks{gap:6px;margin-top:12px}
   .moment-checks li{padding:6px 9px 7px;font-size:11.5px}
   .film-link{font-size:12px;gap:30px;margin-top:14px;padding-bottom:9px}
-  .tether b{padding:7px 9px 8px;font-size:10px}
-  .cinema-footer{bottom:32px}
+  .tether b{padding:7px 9px 8px;font-size:11px}
+  .cinema-footer{right:calc(var(--gutter) + 66px);bottom:32px}
   .cinema .turn-hint{bottom:calc(212px + env(safe-area-inset-bottom));font-size:10px}
   .film-chapters{gap:0}
   .film-chapters button:not([aria-current]){display:none}
