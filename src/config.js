@@ -25,6 +25,7 @@ export const dealerLines = [
 // WhatsApp lines), the admin's list replaces this one.
 export const whatsappLines = [
   { label: 'Buy a car', number: '+91 97737 37310', message: 'Hello Baba Luxury Cars, I’m looking for a car.' },
+  { label: 'Buy a car', number: '+91 92665 44494', message: 'Hello Baba Luxury Cars, I’m looking for a car.' },
   { label: 'Sell your car', number: '+91 85958 44904', message: 'Hello Baba Luxury Cars, I’d like to sell my car.' },
   { label: 'Customer support', number: '+91 85108 30242', message: 'Hello Baba Luxury Cars, I need some help.' },
 ];
@@ -48,6 +49,19 @@ export const social = [
   { name: 'Instagram', icon: 'instagram', handle: '@babaluxurycar', url: 'https://www.instagram.com/babaluxurycar/' },
   { name: 'YouTube', icon: 'youtube', handle: '@babaluxurycar', url: 'https://www.youtube.com/@babaluxurycar' },
 ];
+
+// The founders, as search engines are told of them (the About page names
+// them too). Vinod Ahuja is always named first.
+export const founders = ['Vinod Ahuja', 'Pawan Ahuja'];
+
+// For search engines, what only the dealership can give; each is left out
+// while it is empty. `google` and `bing`: the verification codes from Google
+// Search Console and Bing Webmaster Tools (the content="…" of the meta tag
+// each offers; not needed if the domain is verified by DNS). `geo`: the
+// showroom's pin from Google Maps, { lat: 28.6…, lng: 77.0… }. `founded`:
+// the year the business began, e.g. '2007'. `profiles`: other pages about the
+// business, such as its Google Business Profile or a CarDekho listing.
+export const searchEngines = { google: '', bing: '', geo: null, founded: '', profiles: [] };
 
 // The dealership's own figures, on the home page's "Across India" section
 // (src/across-india.js). `value` rolls up as the section comes into view;

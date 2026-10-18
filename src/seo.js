@@ -5,9 +5,10 @@
 // they are in the HTML that crawlers read, before any script runs. A car's
 // own page (/car/?id=…) sets its tags when the car is known (setMeta and
 // jsonLd below, from vehicle-page.js).
-import { dealer, dealerLines, social } from './config.js';
+import { dealer, dealerLines, founders, searchEngines, social } from './config.js';
 
-export const SITE = 'https://babaluxurycar.com';
+// The address the site is served at: babaluxurycar.com redirects here.
+export const SITE = 'https://www.babaluxurycar.com';
 export const NAME = 'Baba Luxury Cars';
 export const OG_IMAGE = `${SITE}/brand/og-image.jpg`;
 const OG_ALT = 'Baba Luxury Car: pre-owned luxury cars, New Delhi';
@@ -102,10 +103,15 @@ export const dealerSchema = () => ({
   logo: `${SITE}/brand/baba-luxury-car.png`,
   image: OG_IMAGE,
   description: pages['/about/'].description,
+  slogan: 'Built on trust. Driven by quality.',
+  founder: founders.map(name => ({ '@type': 'Person', name })),
+  foundingDate: searchEngines.founded || undefined,
   telephone: digits(dealer.phone),
+  email: dealer.email || undefined,
   priceRange: '₹₹₹₹',
   currenciesAccepted: 'INR',
   address: { '@type': 'PostalAddress', streetAddress: 'B-2, Emaya Mall, Paschim Vihar', addressLocality: 'New Delhi', addressRegion: 'Delhi', postalCode: '110063', addressCountry: 'IN' },
+  geo: searchEngines.geo ? { '@type': 'GeoCoordinates', latitude: searchEngines.geo.lat, longitude: searchEngines.geo.lng } : undefined,
   hasMap: 'https://www.google.com/maps/search/?api=1&query=Baba%20Luxury%20Car%2C%20B-2%2C%20Emaya%20Mall%2C%20Paschim%20Vihar%2C%20New%20Delhi%20110063',
   openingHoursSpecification: [{ '@type': 'OpeningHoursSpecification', dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'], opens: '11:00', closes: '20:00' }],
   areaServed: { '@type': 'Country', name: 'India' },
@@ -113,7 +119,7 @@ export const dealerSchema = () => ({
     { '@type': 'ContactPoint', telephone: digits(dealer.phone), contactType: 'sales', areaServed: 'IN', description: 'Sales and WhatsApp' },
     ...dealerLines.map(line => ({ '@type': 'ContactPoint', telephone: digits(line.phone), contactType: /support/i.test(line.label) ? 'customer support' : 'sales', areaServed: 'IN', description: line.label })),
   ],
-  sameAs: social.map(link => link.url),
+  sameAs: [...social.map(link => link.url), ...searchEngines.profiles],
 });
 
 const websiteSchema = () => ({ '@context': 'https://schema.org', '@type': 'WebSite', '@id': `${SITE}/#website`, name: NAME, url: `${SITE}/`, inLanguage: 'en-IN', publisher: { '@id': `${SITE}/#dealer` } });
@@ -134,6 +140,12 @@ export function headTags(path, page, html = '') {
     `<title>${esc(page.title)}</title>`,
     `<meta name="description" content="${esc(page.description)}" />`,
     `<meta name="robots" content="${page.robots || 'index, follow, max-image-preview:large, max-snippet:-1'}" />`,
+    searchEngines.google ? `<meta name="google-site-verification" content="${esc(searchEngines.google)}" />` : '',
+    searchEngines.bing ? `<meta name="msvalidate.01" content="${esc(searchEngines.bing)}" />` : '',
+    // The icon for search results and older browsers (each page also links
+    // the SVG one, which newer browsers prefer), and the app manifest.
+    `<link rel="icon" href="/favicon.ico" sizes="48x48" />`,
+    `<link rel="manifest" href="/site.webmanifest" />`,
     page.canonical === false ? '' : `<link rel="canonical" href="${url}" />`,
     `<meta property="og:type" content="website" />`,
     `<meta property="og:site_name" content="${NAME}" />`,

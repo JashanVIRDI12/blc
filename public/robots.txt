@@ -1,8 +1,9 @@
-# Baba Luxury Cars, babaluxurycar.com
+# Baba Luxury Cars, www.babaluxurycar.com
 User-agent: *
 Allow: /
 Disallow: /admin/
+Disallow: /api/
 Disallow: /*?preview
 Disallow: /*&preview
 
-Sitemap: https://babaluxurycar.com/sitemap.xml
+Sitemap: https://www.babaluxurycar.com/sitemap.xml

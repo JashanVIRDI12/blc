@@ -3,7 +3,7 @@
 // so a car added in the admin is listed without a new deploy. Each car
 // carries its first photograph, for image search. Without the database it
 // lists the pages alone.
-const SITE = 'https://babaluxurycar.com';
+const SITE = 'https://www.babaluxurycar.com';
 const PAGES = ['/', '/collection/', '/sell/', '/concierge/', '/consultation/', '/about/', '/privacy/', '/terms/', '/booking-policy/', '/delivery-policy/', '/test-drive-policy/', '/rc-transfer-policy/'];
 
 const xml = text => String(text).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
