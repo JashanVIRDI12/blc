@@ -93,11 +93,26 @@ function splitPieces(root, { node: name, box, material: { inherit, ...look } }) 
   return node.material[1];
 }
 
+// A texture larger than `max` pixels a side is sent to the GPU as a smaller
+// copy. The model file is untouched: only this scene's copy shrinks (half the
+// size is a quarter of the memory).
+function capTexture(texture, max) {
+  const image = texture.image, width = image?.width, height = image?.height;
+  if (!width || !height || Math.max(width, height) <= max) return;
+  const scale = max / Math.max(width, height);
+  const canvas = document.createElement('canvas');
+  canvas.width = Math.max(1, Math.round(width * scale)); canvas.height = Math.max(1, Math.round(height * scale));
+  canvas.getContext('2d').drawImage(image, 0, 0, canvas.width, canvas.height);
+  image.close?.();
+  texture.image = canvas; texture.needsUpdate = true;
+}
+
 // Loads one car (a spec from models.js) and dresses it in its real-world
 // materials and the paint it's for sale in. `invalidate` asks the studio for
 // a redraw. `pace`, for a car loaded while something else is on screen, is
-// awaited before each heavy step (idle.js).
-export async function loadCar(spec, paintSpec, { invalidate, onProgress, pace }) {
+// awaited before each heavy step (idle.js). `maxTexture`, for a scene that
+// shows the car small on a phone, caps its textures' size (capTexture).
+export async function loadCar(spec, paintSpec, { invalidate, onProgress, pace, maxTexture }) {
   // The file is fetched once per page (model-cache.js); each scene parses its
   // own copy of the car, since each dresses and lights it its own way.
   const bytes = await fetchModel(spec.url, { onProgress });
@@ -159,6 +174,11 @@ export async function loadCar(spec, paintSpec, { invalidate, onProgress, pace })
       for (const texture of [m.map, m.emissiveMap, m.normalMap, m.roughnessMap]) if (texture) texture.anisotropy = 8;
     });
   });
+  if (maxTexture) {
+    const textures = new Set();
+    root.traverse(node => { if (node.isMesh) [node.material].flat().forEach(m => Object.values(m).forEach(value => { if (value?.isTexture) textures.add(value); })); });
+    textures.forEach(texture => capTexture(texture, maxTexture));
+  }
 
   const box = new THREE.Box3().setFromObject(wheels[0]);
   const wheelRadius = spec.partMap?.wheelRadius ?? (box.max.y - box.min.y) / 2;

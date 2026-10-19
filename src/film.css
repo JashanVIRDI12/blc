@@ -79,6 +79,10 @@
 .static-experience .cinema{min-height:720px}
 .static-experience .cinema canvas,.static-experience .film-chapters{display:none}
 .static-experience .static-poster{display:block}
+/* The film's context lost once it has begun (iPhone Safari, short of memory,
+   main.js): its still stands in under the words, which go on as before. */
+.film-lost .cinema canvas,.film-lost .cinema .tether,.film-lost .cinema .turn-hint{visibility:hidden}
+.film-lost .static-poster{display:block}
 .static-experience .cinema .moment--hero{visibility:visible}
 .static-experience .moment-body{opacity:1!important;transform:none!important}
 .static-experience .moment-kicker,.static-experience .film-title{opacity:1!important;transform:none!important}

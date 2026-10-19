@@ -154,6 +154,12 @@ export function createLightsOn(section, { reduced = false } = {}) {
   const renderer = new THREE.WebGLRenderer({ canvas, context, antialias: false, depth: false, stencil: false, alpha: true });
   const anisotropy = Math.min(innerWidth <= 760 ? 8 : 16, renderer.capabilities.getMaxAnisotropy());
   const output = createStudioOutput(renderer, { mobile: innerWidth <= 760 });
+  // Phones share their GPU memory with the page's other stages, and iPhone
+  // Safari takes a context away when they run short: there the glass is
+  // refracted at half resolution and the cars' textures sent at 512 pixels a
+  // side, which is all a car this size on a phone shows.
+  const phone = innerWidth <= 760;
+  if (phone) renderer.transmissionResolutionScale = .5;
   renderer.outputColorSpace = THREE.SRGBColorSpace;
   renderer.toneMapping = THREE.NeutralToneMapping;
   renderer.toneMappingExposure = LIGHT.exposure;
@@ -508,7 +514,7 @@ export function createLightsOn(section, { reduced = false } = {}) {
       const item = showcase.find(entry => entry.id === id);
       // Each car wears Baba's dealer plates, as the film's GLS does.
       const spec = { ...models[id], partMap: vehicleParts[id] };
-      const [car, shadowTexture] = await Promise.all([loadCar(spec, paint ?? item.paint, { invalidate, pace: turn }), loader.loadAsync(spec.shadow)]);
+      const [car, shadowTexture] = await Promise.all([loadCar(spec, paint ?? item.paint, { invalidate, pace: turn, maxTexture: phone ? 512 : 0 }), loader.loadAsync(spec.shadow)]);
       textures.push(shadowTexture);
       if (disposed) return;
       await turn();

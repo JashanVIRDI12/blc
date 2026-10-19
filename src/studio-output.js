@@ -23,7 +23,9 @@ import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 export function createStudioOutput(renderer, { mobile }) {
   const gl = renderer.getContext();
   const available = gl.getInternalformatParameter(gl.RENDERBUFFER, gl.RGBA16F, gl.SAMPLES);
-  const samples = [...available].filter(value => value <= 4).sort((a, b) => b - a)[0] || 0;
+  // Two samples on a phone, whose dense screen needs fewer, and whose memory
+  // the page's other stages share; four elsewhere.
+  const samples = [...available].filter(value => value <= (mobile ? 2 : 4)).sort((a, b) => b - a)[0] || 0;
   const sceneTarget = new THREE.WebGLRenderTarget(1, 1, {
     type: THREE.HalfFloatType, samples, resolveDepthBuffer: false,
   });

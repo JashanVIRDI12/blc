@@ -110,31 +110,63 @@ function initPractical() {
 // collection drive before About; the models load in the background without
 // holding the loader. About, further down, loads once the collection drive
 // is ready: the drive the visitor reaches next has the network and the GPU
-// to itself.
+// to itself. On a phone About is made only as it comes near, so the phone's
+// GPU memory goes to the film and the collection drive first.
+const phone=innerWidth<=760;
+let createLightsOn,createAboutDrive;
+const buildFleet=()=>{try{fleetDrive=createLightsOn(document.querySelector('#fleet'));}catch(error){console.error('Collection drive unavailable; keeping the still.',error);}};
+const buildAbout=()=>{try{aboutDrive=createAboutDrive(document.querySelector('#about'),{after:fleetDrive?.loaded});}catch(error){console.error('About drive unavailable; using the static introduction.',error);}};
 async function startFleet() {
   try {
-    const { createLightsOn }=await import('./lights-on.js');
-    if(!cancelled)fleetDrive=createLightsOn(document.querySelector('#fleet'));
+    ({ createLightsOn }=await import('./lights-on.js'));
+    if(!cancelled){buildFleet();revive(document.querySelector('#fleet'),'.fleet-stage > canvas:not(.fleet-dust)',()=>{fleetDrive?.dispose();buildFleet();});}
   } catch(error) { console.error('Collection drive unavailable; keeping the still.',error); }
 }
 async function startAbout() {
   try {
-    const { createAboutDrive }=await import('./about-drive.js');
-    if(!cancelled)aboutDrive=createAboutDrive(document.querySelector('#about'),{after:fleetDrive?.loaded});
+    ({ createAboutDrive }=await import('./about-drive.js'));
+    if(cancelled)return;
+    const section=document.querySelector('#about');
+    revive(section,'#about-drive',()=>{aboutDrive?.dispose();buildAbout();});
+    if(!phone){buildAbout();return;}
+    const near=new IntersectionObserver(([entry])=>{if(!entry.isIntersecting||cancelled)return;near.disconnect();buildAbout();ScrollTrigger.refresh();},{rootMargin:'150% 0px'});
+    near.observe(section);
   } catch(error) { console.error('About drive unavailable; using the static introduction.',error); }
 }
+// iPhone Safari takes a stage's WebGL context away when the phone runs short
+// of memory, or when the visitor has left the tab a while; the stage falls
+// back to its stills. The next time its section comes near, out of sight, it
+// is built again on a fresh canvas, in one step, so the page keeps its length
+// and the visitor their place.
+function revive(section,selector,rebuild){
+  let lost=false;
+  const watch=()=>section.querySelector(selector)?.addEventListener('webglcontextlost',()=>{lost=true;},{once:true});
+  watch();
+  new IntersectionObserver(([entry])=>{
+    if(!entry.isIntersecting||!lost||cancelled)return;
+    lost=false;
+    const canvas=section.querySelector(selector);canvas.replaceWith(canvas.cloneNode(false));
+    rebuild();watch();ScrollTrigger.refresh();
+  },{rootMargin:'100% 0px'}).observe(section);
+}
+// The film failing to start leaves the whole page in its stills. Its context
+// lost once it has begun (iPhone Safari, short of memory) leaves only the
+// film's own picture in its place: the stages below keep theirs.
+let filmReady=false;
+const filmFailed=()=>{if(!filmReady){staticExperience();return;}document.body.classList.add('film-lost');};
 async function start() {
   if(reduced.matches){staticExperience();initPractical();return;}
   if(matchMedia('(min-width: 761px) and (pointer: fine)').matches) smoother=ScrollSmoother.create({wrapper:'#smooth-wrapper',content:'#smooth-content',smooth:.8,effects:false,smoothTouch:0});
   try {
     const { createCinema }=await import('./cinema.js');
     if(cancelled){initPractical();return;}
-    cinema=createCinema({onProgress:value=>{document.querySelector('#load-bar').style.transform=`scaleX(${value})`;document.querySelector('#load-percent').textContent=`${Math.round(value*100)}%`;gsap.to(shownLoad,{value:value*100,duration:.7,ease:'power2.out',overwrite:true,onUpdate:()=>{loadCount.textContent=Math.round(shownLoad.value);}});},onFailure:staticExperience});
+    cinema=createCinema({onProgress:value=>{document.querySelector('#load-bar').style.transform=`scaleX(${value})`;document.querySelector('#load-percent').textContent=`${Math.round(value*100)}%`;gsap.to(shownLoad,{value:value*100,duration:.7,ease:'power2.out',overwrite:true,onUpdate:()=>{loadCount.textContent=Math.round(shownLoad.value);}});},onFailure:filmFailed});
     // The collection drive's cars download behind the film's at a lower
     // priority (model-cache.js), so they are in hand by the time the film
     // ends instead of starting then.
     prefetchModels(lightsVehicles.map(({id})=>models[id].url));
     await cinema.ready;
+    filmReady=true;
     if(!cancelled){await startFleet();await startAbout();finishLoading();}
   } catch(error) { console.error('Showroom unavailable; using static collection.',error);staticExperience(); }
   initPractical();

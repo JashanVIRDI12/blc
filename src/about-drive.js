@@ -41,6 +41,12 @@ export function createAboutDrive(section, { after } = {}) {
   renderer.toneMapping = THREE.ACESFilmicToneMapping;
   renderer.toneMappingExposure = .86;
   renderer.setClearColor('#ffffff', 1);
+  // Phones share their GPU memory with the page's other stages, and iPhone
+  // Safari takes a context away when they run short: there the glass is
+  // refracted at half resolution and the cars' textures sent at 512 pixels a
+  // side, which is all a car this size on a phone shows.
+  const phone = innerWidth <= 760;
+  if (phone) renderer.transmissionResolutionScale = .5;
   if (!THREE.UniformsLib.LTC_FLOAT_1) RectAreaLightUniformsLib.init();
   section.classList.add('is-drive');
 
@@ -199,7 +205,7 @@ export function createAboutDrive(section, { after } = {}) {
     for (const id of ids) {
       const item = showcase.find(entry => entry.id === id);
       const spec = { ...models[id], partMap: vehicleParts[id] };
-      const [car, shadowTexture] = await Promise.all([loadCar(spec, item.paint, { invalidate, pace: lull }), loader.loadAsync(spec.shadow)]);
+      const [car, shadowTexture] = await Promise.all([loadCar(spec, item.paint, { invalidate, pace: lull, maxTexture: phone ? 512 : 0 }), loader.loadAsync(spec.shadow)]);
       textures.push(shadowTexture);
       // Sharp at grazing angles, so the shadow never shimmers as the view moves.
       shadowTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
