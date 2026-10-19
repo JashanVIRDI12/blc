@@ -6,15 +6,17 @@ import { createConsultation } from './consultation.js';
 import { setupForms } from './forms.js';
 import { setupMenu, previewBanner } from './chrome.js';
 import { loadSite } from './data.js';
-import { lightsVehicles } from './config.js';
+import { lightsVehicles, filmVehicles } from './config.js';
 import { models } from './models.js';
-import { prefetchModels } from './model-cache.js';
+import { fetchModel, prefetchModels } from './model-cache.js';
+import { steadyPins } from './steady-scroll.js';
 import { setupFx } from './fx/index.js';
 import { setupWhatsApp } from './whatsapp.js';
 import { setupConsent } from './consent.js';
 import { setupTracking } from './track.js';
 import { lull } from './idle.js';
 gsap.registerPlugin(ScrollTrigger, ScrollSmoother);
+steadyPins();
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)');
 const loader = document.querySelector('#loader');
@@ -129,7 +131,7 @@ async function startAbout() {
     const section=document.querySelector('#about');
     revive(section,'#about-drive',()=>{aboutDrive?.dispose();buildAbout();});
     if(!phone){buildAbout();return;}
-    const near=new IntersectionObserver(([entry])=>{if(!entry.isIntersecting||cancelled)return;near.disconnect();buildAbout();ScrollTrigger.refresh();},{rootMargin:'150% 0px'});
+    const near=new IntersectionObserver(([entry])=>{if(!entry.isIntersecting||cancelled)return;near.disconnect();buildAbout();ScrollTrigger.refresh();},{rootMargin:'300% 0px'});
     near.observe(section);
   } catch(error) { console.error('About drive unavailable; using the static introduction.',error); }
 }
@@ -161,10 +163,12 @@ async function start() {
     const { createCinema }=await import('./cinema.js');
     if(cancelled){initPractical();return;}
     cinema=createCinema({onProgress:value=>{document.querySelector('#load-bar').style.transform=`scaleX(${value})`;document.querySelector('#load-percent').textContent=`${Math.round(value*100)}%`;gsap.to(shownLoad,{value:value*100,duration:.7,ease:'power2.out',overwrite:true,onUpdate:()=>{loadCount.textContent=Math.round(shownLoad.value);}});},onFailure:filmFailed});
-    // The collection drive's cars download behind the film's at a lower
+    // The film's own car first, with the whole connection to itself: the
+    // loader waits on it. The collection drive's cars follow at a lower
     // priority (model-cache.js), so they are in hand by the time the film
-    // ends instead of starting then.
-    prefetchModels(lightsVehicles.map(({id})=>models[id].url));
+    // ends instead of starting then, without ever slowing the film's.
+    const filmCar=models[filmVehicles.first].url;
+    fetchModel(filmCar,{priority:'high'}).catch(()=>{}).then(()=>prefetchModels(lightsVehicles.map(({id})=>models[id].url).filter(url=>url!==filmCar)));
     await cinema.ready;
     filmReady=true;
     if(!cancelled){await startFleet();await startAbout();finishLoading();}

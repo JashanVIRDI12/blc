@@ -135,9 +135,18 @@
   .fleet-line{font-size:25px}
   .fleet--stage .fleet-note{font-size:13.5px;margin-top:8px}
   .fleet--stage .fleet-actions{justify-content:flex-start;gap:12px 22px}
-  .fleet--stage.is-static{--stage-shift:clamp(0px,(100svh - 640px) / 3,90px)}
   .fleet--stage .fleet-fallback{padding:0}
   .fleet--stage .fleet-fallback img:nth-child(1),.fleet--stage .fleet-fallback img:nth-child(5){display:none}
   .fleet--stage .fleet-fallback img:nth-child(2),.fleet--stage .fleet-fallback img:nth-child(4){width:46%;margin:0 -11%}
-  .fleet--stage .fleet-fallback img:nth-child(3){width:56%;margin:9% -11% 0}
+  /* A deeper V: the Maybach larger and in front, below the two behind. */
+  .fleet--stage .fleet-fallback img:nth-child(3){width:60%;margin:16% -11% 0}
+  /* Stills on a phone need no stage the height of the screen: the title, the
+     cars (over the foot of its letters, as the drive parks them) and the
+     words follow one another, with no band of white between them. */
+  .fleet--stage.is-static{--stage-shift:0px;height:auto;min-height:0;max-height:none;padding:calc(var(--header-height) + 18px) 0 clamp(18px,3.4vh,40px)}
+  .fleet--stage.is-static .fleet-stage{position:relative;inset:auto}
+  .fleet--stage.is-static .fleet-word{position:relative;top:auto}
+  .fleet--stage.is-static .fleet-fallback{position:relative;inset:auto;margin-top:calc(var(--word-size) * -.26)}
+  .fleet--stage.is-static .fleet-stage canvas{display:none}
+  .fleet--stage.is-static .fleet-copy{position:relative;left:auto;right:auto;bottom:auto;margin:28px var(--gutter) 0}
 }

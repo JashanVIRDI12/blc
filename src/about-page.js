@@ -25,11 +25,13 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { ScrollSmoother } from 'gsap/ScrollSmoother';
 import { SplitText } from 'gsap/SplitText';
 import { setupPage } from './chrome.js';
+import { steadyPins } from './steady-scroll.js';
 import { loadSite } from './data.js';
 import { ABOUT_DELIVERIES, dealer, dealerLines, deliveryPhotos, figures } from './config.js';
 import { escapeHTML, safeImage, thumbImage } from './util.js';
 import { icons, directionLinks } from './icons.js';
 gsap.registerPlugin(ScrollTrigger, ScrollSmoother, SplitText);
+steadyPins();
 
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 const finePointer = matchMedia('(hover: hover) and (pointer: fine)').matches;

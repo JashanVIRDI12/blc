@@ -52,6 +52,12 @@ export function createFleetDrive(section, { reduced = false, onProgress } = {}) 
   renderer.toneMapping = THREE.NeutralToneMapping;
   renderer.toneMappingExposure = LIGHT.exposure;
   renderer.setClearColor('#000000', 0);
+  // Phones: glass refracted at half resolution and the cars' textures sent at
+  // 512 pixels a side (all a car this size on a phone shows), no dust to paint
+  // every frame, and no parallax on the scroll, which iPhone Safari draws a
+  // frame behind its own scrolling, so the layers seemed to shake.
+  const phone = innerWidth <= 760, touch = matchMedia('(pointer: coarse)').matches;
+  if (phone) renderer.transmissionResolutionScale = .5;
   if (!THREE.UniformsLib.LTC_FLOAT_1) RectAreaLightUniformsLib.init();
   section.classList.add('is-drive');
 
@@ -94,7 +100,7 @@ export function createFleetDrive(section, { reduced = false, onProgress } = {}) 
   const camera = new THREE.PerspectiveCamera(24, 1, 2, 160);
   const roadDust = createRoadDust();
   scene.add(roadDust.points);
-  const dust = reduced ? null : createDust(stage, { scene: canvas });
+  const dust = reduced || phone ? null : createDust(stage, { scene: canvas });
 
   const ids = fleetVehicles.map(entry => entry.id);
   const paths = Object.fromEntries(Object.entries(fleetCamera).map(([name, view]) => [name, createCameraPath(view.frames)]));
@@ -244,18 +250,23 @@ export function createFleetDrive(section, { reduced = false, onProgress } = {}) 
   watcher.observe(section);
   // As the page scrolls on, the layers part by depth: the title lags
   // furthest and pales, the cars a little.
-  if (!reduced) {
+  if (!reduced && !touch) {
     const behind = [stage.querySelector('.fleet-dust--back'), canvas].filter(Boolean);
     parallax = gsap.timeline({ scrollTrigger: { trigger: section, start: 'top top', end: 'bottom top', scrub: true, invalidateOnRefresh: true } })
       .to(word, { y: () => section.offsetHeight * .22, autoAlpha: .25, ease: 'none' }, 0)
       .to(behind, { y: () => section.offsetHeight * .08, ease: 'none' }, 0)
-      .to(stage.querySelector('.fleet-dust--front'), { y: () => section.offsetHeight * .02, ease: 'none' }, 0);
+      .to([stage.querySelector('.fleet-dust--front')].filter(Boolean), { y: () => section.offsetHeight * .02, ease: 'none' }, 0);
   }
   function arrive() {
     const inView = section.getBoundingClientRect().bottom > header.offsetHeight && section.getBoundingClientRect().top < innerHeight;
     if (reduced || !inView) { playhead.progress = fleetAnchor; render(); return; }
-    // From where the first car shows through the white, at the drive's own pace.
-    const from = Math.min(fleetCamera[view].emerge ?? 0, fleetAnchor);
+    // From where the first car shows through the white, at the drive's own
+    // pace. On a portrait screen the cars come from much nearer: from far off
+    // they were a small row under the title above a band of empty white for a
+    // second or two, longer on a busy phone; now they are near from the start
+    // and park within two seconds.
+    const portrait = view === 'stage-portrait';
+    const from = Math.min(Math.max(fleetCamera[view].emerge ?? 0, portrait ? .4 : 0), fleetAnchor);
     arrival = { start: performance.now() + 30, from, duration: ARRIVAL * 1000 * (1 - from / fleetAnchor) };
     playhead.progress = from; render();
   }
@@ -303,7 +314,7 @@ export function createFleetDrive(section, { reduced = false, onProgress } = {}) 
       const item = showcase.find(entry => entry.id === id);
       // Every car wears Baba's dealer plates, as the film's GLS does.
       const spec = { ...models[id], partMap: vehicleParts[id] };
-      const [car, shadowTexture] = await Promise.all([loadCar(spec, paint ?? item.paint, { invalidate, onProgress: share => progress(id, share) }), loader.loadAsync(spec.shadow)]);
+      const [car, shadowTexture] = await Promise.all([loadCar(spec, paint ?? item.paint, { invalidate, onProgress: share => progress(id, share), maxTexture: phone ? 512 : 0 }), loader.loadAsync(spec.shadow)]);
       progress(id, 1);
       textures.push(shadowTexture);
       shadowTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());

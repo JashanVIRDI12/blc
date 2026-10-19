@@ -22,9 +22,9 @@ gsap.registerPlugin(ScrollTrigger);
 const SHOW_DELIVERED = false;
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
 // The drive's five cars start downloading now, while three.js and the drive
-// itself are still on their way, rather than after them (model-cache.js). At
-// a low priority, so the scripts that draw the page come first.
-if (!reduced && 'WebGL2RenderingContext' in window) prefetchModels(fleetVehicles.map(({ id }) => models[id].url));
+// itself are still on their way, rather than after them (model-cache.js). They
+// are the head of the page, so they come before the photographs further down.
+if (!reduced && 'WebGL2RenderingContext' in window) prefetchModels(fleetVehicles.map(({ id }) => models[id].url), 'high');
 const { renderContact } = setupPage('collection');
 const finePointer = matchMedia('(hover: hover) and (pointer: fine)').matches;
 const $ = selector => document.querySelector(selector);

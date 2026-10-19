@@ -205,7 +205,7 @@ export function createAboutDrive(section, { after } = {}) {
     for (const id of ids) {
       const item = showcase.find(entry => entry.id === id);
       const spec = { ...models[id], partMap: vehicleParts[id] };
-      const [car, shadowTexture] = await Promise.all([loadCar(spec, item.paint, { invalidate, pace: lull, maxTexture: phone ? 512 : 0 }), loader.loadAsync(spec.shadow)]);
+      const [car, shadowTexture] = await Promise.all([loadCar(spec, item.paint, { invalidate, pace: () => lull(phone ? 100 : 400), maxTexture: phone ? 512 : 0 }), loader.loadAsync(spec.shadow)]);
       textures.push(shadowTexture);
       // Sharp at grazing angles, so the shadow never shimmers as the view moves.
       shadowTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());

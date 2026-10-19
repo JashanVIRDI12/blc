@@ -192,7 +192,8 @@ export function createLightsOn(section, { reduced = false } = {}) {
   camera.layers.enable(DECALS);
   // A few motes in the beams, not a starfield. They start once the page is
   // still: the stage scrolls into view under the film's last frames.
-  const dust = reduced ? null : createDust(stage, { scene: canvas, amount: .28, when: () => lull(Infinity) });
+  // No dust on a phone: two more screens of canvas to paint every frame.
+  const dust = reduced || innerWidth <= 760 ? null : createDust(stage, { scene: canvas, amount: .28, when: () => lull(Infinity) });
   const flood = stage.querySelector('.fleet-flood');
 
   // Soft sprites drawn once: a round pool, a headlamp's flare, its beam.
@@ -499,10 +500,12 @@ export function createLightsOn(section, { reduced = false } = {}) {
   // never waits on them. A heavy step waits for the page to be still: less
   // long the nearer the stage comes, and not at all once it is in view, where
   // the visitor is waiting on the cars.
+  // On a phone, whose visitor is scrolling almost all the time, a step waits
+  // a quarter as long: there the cars would otherwise come late.
   const patience = base => {
     if (active) return 0;
     const trigger = timeline.scrollTrigger, away = (trigger.start - trigger.scroll()) / innerHeight;
-    return base * Math.min(1, Math.max(0, away / 2.5));
+    return base * Math.min(1, Math.max(0, away / 2.5)) * (phone ? .25 : 1);
   };
   const turn = (base = 200) => active ? breath() : lull(patience(base));
   async function load() {
@@ -602,7 +605,9 @@ export function createLightsOn(section, { reduced = false } = {}) {
     if (disposed) return;
     await Promise.all(programs);
     if (disposed) return;
-    await rehearse(output.quality.quick);
+    // Without a quick target (phones) the full frame is the one the scroll
+    // draws, so it is rehearsed as quick frames are: not only when all is still.
+    await rehearse(true);
   }
   // A large texture is a step of its own, taken when the page is still;
   // small ones go a few to a frame.

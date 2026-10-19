@@ -6,7 +6,8 @@
 // a small give on contact and a ring of pressure spreading through the
 // paper. Then a light runs across the foil, the centre mark draws itself and
 // the words rise. Under a fine pointer a seal tilts towards it and the foil
-// catches the light where the pointer is. Reduced motion shows them set.
+// catches the light where the pointer is. On phones and tablets they simply
+// fade in, set. Reduced motion shows them set.
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { SplitText } from 'gsap/SplitText';
@@ -54,6 +55,19 @@ export function createHallmarks(band, { reduced = false, finePointer = false } =
 
   const media = gsap.matchMedia();
   media.add({ wide: '(min-width: 900px)', narrow: '(max-width: 899px)' }, ({ conditions }) => {
+    // Phones and tablets: each seal and its words simply come into view where
+    // they stand, already pressed and lit, in one light fade. No fall from
+    // the air, no running light, no lines drawing: nothing a phone repaints
+    // frame by frame, and nothing that moves up and down as the page scrolls.
+    if (conditions.narrow) {
+      items.forEach((_, k) => { light[k].at = 0; shine(k); });
+      const parts = items.map(item => [...item.querySelectorAll('.c-seal-die, .c-promise-copy')]);
+      gsap.set(parts.flat(), { autoAlpha: 0 });
+      const reveal = gsap.timeline({ paused: true }).fromTo(band, { '--rule': 0 }, { '--rule': 1, duration: 1.2, ease: 'power2.inOut' }, 0);
+      parts.forEach((part, k) => reveal.to(part, { autoAlpha: 1, duration: .8, ease: 'power1.out' }, .15 + k * .1));
+      const trigger = ScrollTrigger.create({ trigger: band, start: 'top 88%', once: true, onEnter: () => reveal.play() });
+      return () => { trigger.kill(); reveal.kill(); gsap.set(parts.flat(), { clearProps: 'opacity,visibility' }); };
+    }
     const titles = items.map(item => SplitText.create(item.querySelector('.c-promise-title'), { type: 'words', mask: 'words' }).words);
     const dies = items.map(item => item.querySelector('.c-seal-die'));
     gsap.set(dies, { autoAlpha: 0, scale: 1.9, rotationX: 38, rotationZ: -16, y: -46, transformPerspective: 600 });

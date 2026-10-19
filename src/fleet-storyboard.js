@@ -17,10 +17,11 @@ const START_Z = -38; // where every car sets off, line abreast, deep in the whit
 // Where each car stops, left to right as seen. Wide screens take a tight V
 // with the centre car leading and the flanking cars half a stride back, so
 // the group reads as one large picture; tall ones a narrow arrowhead, deep
-// enough that each car still has its own place on screen.
+// and open enough that each car has its own place on screen, with white
+// between them.
 const FORMATIONS = {
   stage: [[-4.85, -5.5], [-2.4, -1.7], [0, 1.6], [2.4, -1.7], [4.85, -5.5]],
-  'stage-portrait': [[-2.35, -9.6], [-1.22, -4], [0, 1.6], [1.22, -4], [2.35, -9.6]],
+  'stage-portrait': [[-3.4, -12.8], [-1.6, -5.2], [0, 1.6], [1.6, -5.2], [3.4, -12.8]],
 };
 export const fleetViews = Object.keys(FORMATIONS);
 export const fleetMarks = view => Object.fromEntries(fleetVehicles.map(({ id }, i) => [id, [FORMATIONS[view][i][0], 0, FORMATIONS[view][i][1]]]));
