@@ -126,9 +126,9 @@ try {
   assert.deepEqual(pose(reversed.vehicles),pose(parked.vehicles),'Reverse scrolling must restore wheel and body poses');
   reversed.vehicles.forEach((v,i)=>v.lights.rearGlows.forEach((g,k)=>assert(Math.abs(g-parked.vehicles[i].lights.rearGlows[k])<.005,'Reverse scrolling must restore the lamps')));
   assert.equal(reversed.vehicles.length,1,'The film inspects one car');assert.deepEqual(reversed.vehicles[0].scale,[1,1,1]);
-  // Skipping the film lands on the collection drive: five cars parked, the
-  // words set, each car named and linked.
-  await evaluate('document.querySelector("#skip-film").click()');await delay(1800);
+  // Past the film, the collection drive: five cars parked, the words set.
+  // ("Skip to collection" now opens the collection page.)
+  await evaluate('window.__fleet.scrollTo()');await delay(1800);
   await waitFor('window.__fleet?.snapshot().ready');await delay(600);
   const fleet=await evaluate('({snap:window.__fleet.snapshot(),cinemaBottom:document.querySelector(".cinema").getBoundingClientRect().bottom,fleetTop:document.querySelector("#fleet").getBoundingClientRect().top,header:document.querySelector(".site-header").getBoundingClientRect().bottom,light:document.querySelector(".site-header").classList.contains("is-light"),labels:document.querySelectorAll(".fleet-label").length})');
   assert(fleet.cinemaBottom<=fleet.fleetTop+1&&fleet.cinemaBottom<=fleet.header+1,'Pinned car scene must finish before the collection drive');

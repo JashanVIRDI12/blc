@@ -56,7 +56,6 @@ document.addEventListener('click',event=>{
   if(!element)return;
   event.preventDefault();goTo(element);
 });
-document.querySelector('#skip-film').addEventListener('click',()=>goTo('#fleet'));
 document.addEventListener('layout:change',()=>ScrollTrigger.refresh());
 const loadCount=document.querySelector('#load-count'),shownLoad={value:0};
 function finishLoading() {
