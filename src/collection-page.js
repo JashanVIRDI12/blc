@@ -32,6 +32,17 @@ const $$ = selector => [...document.querySelectorAll(selector)];
 const plural = (n, word) => `${n} ${word}${n === 1 ? '' : 's'}`;
 const bodyPlural = body => /s$/i.test(body) ? body : `${body}s`;
 const goBrowse = () => $('#browse').scrollIntoView({ behavior: reduced ? 'instant' : 'smooth', block: 'start' });
+// After a collection is chosen: down to its cars, the line naming the choice
+// and its count just under the bar that stays at the top (header and browse
+// bar), then the cars; unless they are already well in view (as on a wide
+// screen, where they sit right below the cards).
+const showCars = () => {
+  const grid = $('[data-grid]');
+  if (grid.getBoundingClientRect().top < innerHeight * .55) return;
+  const top = ($('.browse-status') || grid).getBoundingClientRect().top;
+  const above = ($('.site-header')?.offsetHeight || 0) + ($('[data-browse-bar]')?.offsetHeight || 0);
+  window.scrollTo({ top: Math.max(0, top + scrollY - above), behavior: reduced ? 'instant' : 'smooth' });
+};
 
 introCopy();
 startDrive();
@@ -269,6 +280,7 @@ async function init() {
       state.collection = choice.dataset.collection;
       state.saved = false;
       apply();
+      requestAnimationFrame(showCars);
     });
   }
 

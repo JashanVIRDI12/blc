@@ -1,4 +1,4 @@
-import { dealer, dealerLines, social } from './config.js';
+import { dealer, dealerLines, salesFirst, social } from './config.js';
 import { icons, directionLinks } from './icons.js';
 import { safeURL } from './util.js';
 import { live, supabase } from './data.js';
@@ -53,10 +53,12 @@ export function setupForms() {
       visit.innerHTML = `<address class="footer-address">${lines.map(esc).join(',<br>')}</address>${dealer.hours ? `<p class="footer-hours">${esc(dealer.hours)}</p>` : ''}<p class="footer-directions">${directionLinks('footer-route')}</p>`;
     }
     const talk = document.querySelector('[data-footer-lines]'), chat = dealer.whatsapp.replace(/\D/g, '');
+    // Sales: the numbers in salesFirst, then the admin's, one under another.
+    const sales = [...new Set([...salesFirst, dealer.phone].filter(Boolean))];
     if (talk) talk.innerHTML = [
-      dealer.phone && [chat ? 'Sales and WhatsApp' : 'Sales', dealer.phone],
+      sales.length && [chat ? 'Sales and WhatsApp' : 'Sales', ...sales],
       ...dealerLines.map(line => [line.label, line.phone]),
-    ].filter(Boolean).map(([label, number]) => `<p class="footer-line"><small>${esc(label)}</small><a href="${tel(number)}">${esc(number)}</a></p>`).join('')
+    ].filter(Boolean).map(([label, ...numbers]) => `<p class="footer-line"><small>${esc(label)}</small>${numbers.map(number => `<a href="${tel(number)}">${esc(number)}</a>`).join('')}</p>`).join('')
       + (dealer.email ? `<p class="footer-line"><small>Email</small><a class="footer-email" href="mailto:${esc(dealer.email)}">${esc(dealer.email)}</a></p>` : '')
       + (chat ? `<a class="footer-chat" href="https://wa.me/${chat}" target="_blank" rel="noopener" data-wa-open>${icons.whatsapp}Message us on WhatsApp</a>` : '');
     const follow = document.querySelector('[data-social]');
