@@ -19,22 +19,20 @@ html{scroll-behavior:smooth}
 
 /* -------------------------------------- the promises, from Baba's own words
    Four promises, each under its hallmark (hallmarks.js): a gold-foil seal,
-   the promise, a note. Open columns under a hairline that draws itself in;
-   the seals press into the paper as the band comes into view. */
-.c-promises{--rule:1;position:relative;overflow-x:clip;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:44px 22px;margin:0;padding:clamp(48px,6vw,84px) var(--gutter) clamp(52px,6vw,88px);list-style:none;background:var(--paper)}
-.c-promises:before{content:'';position:absolute;left:var(--gutter);right:var(--gutter);top:0;height:1px;background:var(--hair-2);transform:scaleX(var(--rule));transform-origin:left}
+   the promise, a note. Open columns under a hairline. Set still. */
+.c-promises{position:relative;overflow-x:clip;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:44px 22px;margin:0;padding:clamp(48px,6vw,84px) var(--gutter) clamp(52px,6vw,88px);list-style:none;background:var(--paper)}
+.c-promises:before{content:'';position:absolute;left:var(--gutter);right:var(--gutter);top:0;height:1px;background:var(--hair-2)}
 .c-promise{display:grid;justify-items:center;align-content:start;gap:24px;min-width:0;text-align:center}
-/* The seal: the die itself, and the ring of pressure it leaves in the paper. */
-.c-seal{position:relative;display:block;width:clamp(92px,8.6vw,132px);aspect-ratio:1;perspective:600px}
-.c-seal-die{position:absolute;inset:0;display:block;transform-style:preserve-3d;will-change:transform;
+/* The seal. */
+.c-seal{position:relative;display:block;width:clamp(92px,8.6vw,132px);aspect-ratio:1}
+.c-seal-die{position:absolute;inset:0;display:block;
   filter:drop-shadow(0 1px 0 rgba(255,255,255,.9)) drop-shadow(0 6px 10px rgba(110,70,25,.16))}
 .c-seal svg{display:block;width:100%;height:100%;overflow:visible}
 .c-seal text{font-family:var(--font-display);letter-spacing:.02em}
-.c-seal-ring{position:absolute;inset:-6%;border-radius:50%;box-shadow:inset 0 0 0 1px rgba(147,102,46,.32),0 0 24px rgba(147,102,46,.16);opacity:0;pointer-events:none}
+.c-seal-ring{display:none}
 .c-promise-copy{display:grid;justify-items:center;gap:10px;min-width:0}
-.c-promise-title{padding-bottom:3px;font:400 clamp(19px,1.6vw,24px)/1.25 var(--font-display);letter-spacing:-.01em;color:var(--ink);background:linear-gradient(90deg,var(--gold-ink),#c49a5c) 50% 100%/0 1px no-repeat;transition:background-size .8s var(--ease);text-wrap:balance}
+.c-promise-title{padding-bottom:3px;font:400 clamp(19px,1.6vw,24px)/1.25 var(--font-display);letter-spacing:-.01em;color:var(--ink);text-wrap:balance}
 .c-promise-note{max-width:30ch;font:400 13.5px/1.62 var(--font-text);color:var(--muted)}
-@media(hover:hover) and (pointer:fine){.c-promise:hover .c-promise-title{background-size:100% 1px}}
 @media(min-width:900px){.c-promises{grid-template-columns:repeat(4,minmax(0,1fr));gap:0 clamp(20px,2.4vw,44px)}}
 @media(max-width:520px){.c-promises{gap:40px 14px}.c-promise{gap:18px}.c-promise-title{font-size:18px}.c-promise-note{font-size:12.5px}}
 

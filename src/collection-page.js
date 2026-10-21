@@ -450,7 +450,7 @@ function introCopy() {
 }
 // The promises, each under its hallmark (hallmarks.js).
 function promises() {
-  createHallmarks(document.querySelector('.c-promises'), { reduced, finePointer });
+  createHallmarks(document.querySelector('.c-promises'));
 }
 // Every mark becomes a mask over polished chrome: the vector marks, cropped
 // to their drawing by sizeMarques, are set as masks like the others.
