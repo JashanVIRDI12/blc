@@ -12,9 +12,9 @@ export const dealer = {
   enquiryEndpoint: '',
 };
 
-// The footer's sales numbers, set above the sales and WhatsApp line from
-// the admin (`dealer.phone`), in this order.
-export const salesFirst = ['+91 92665 44494'];
+// The footer's other sales numbers, set below the sales and WhatsApp line
+// from the admin (`dealer.phone`), in this order.
+export const salesMore = ['+91 92665 44494'];
 
 // The dealership's other lines, as published on babaluxurycar.com (the sales
 // and WhatsApp line is `dealer.phone`, set in the admin). On the About page.

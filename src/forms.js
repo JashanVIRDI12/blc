@@ -1,4 +1,4 @@
-import { dealer, dealerLines, salesFirst, social } from './config.js';
+import { dealer, dealerLines, salesMore, social } from './config.js';
 import { icons, directionLinks } from './icons.js';
 import { safeURL } from './util.js';
 import { live, supabase } from './data.js';
@@ -53,8 +53,8 @@ export function setupForms() {
       visit.innerHTML = `<address class="footer-address">${lines.map(esc).join(',<br>')}</address>${dealer.hours ? `<p class="footer-hours">${esc(dealer.hours)}</p>` : ''}<p class="footer-directions">${directionLinks('footer-route')}</p>`;
     }
     const talk = document.querySelector('[data-footer-lines]'), chat = dealer.whatsapp.replace(/\D/g, '');
-    // Sales: the numbers in salesFirst, then the admin's, one under another.
-    const sales = [...new Set([...salesFirst, dealer.phone].filter(Boolean))];
+    // Sales: the admin's number, then those in salesMore, one under another.
+    const sales = [...new Set([dealer.phone, ...salesMore].filter(Boolean))];
     if (talk) talk.innerHTML = [
       sales.length && [chat ? 'Sales and WhatsApp' : 'Sales', ...sales],
       ...dealerLines.map(line => [line.label, line.phone]),
