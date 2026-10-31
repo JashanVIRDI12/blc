@@ -1,4 +1,4 @@
-// About Baba Luxury Cars (/about/). Eight movements, each with one idea:
+// About Baba Luxury Car (/about/). Eight movements, each with one idea:
 //
 //   The unveiling   a Maybach under an ivory silk cover, drawn away by the
 //                   scroll (unveil.js, cloth.js)
@@ -235,7 +235,7 @@ const runSection = $('#handovers'), run = $('[data-run]', runSection), track = $
 function buildRun(photos) {
   if (!photos.length) { runSection.hidden = true; return; }
   const two = n => String(n).padStart(2, '0');
-  track.innerHTML = photos.map((photo, i) => `<figure class="ab-shot" role="listitem"><img src="${escapeHTML(photo.card || thumbImage(photo.photo))}" alt="${escapeHTML(photo.caption || `A Baba Luxury Cars handover${photo.city ? `, delivered to ${photo.city}` : ''}`)}" decoding="async" draggable="false" /><figcaption><i>${two(i + 1)}</i><b>${escapeHTML(photo.city || 'A new owner')}</b></figcaption></figure>`).join('');
+  track.innerHTML = photos.map((photo, i) => `<figure class="ab-shot" role="listitem"><img src="${escapeHTML(photo.card || thumbImage(photo.photo))}" alt="${escapeHTML(photo.caption || `A Baba Luxury Car handover${photo.city ? `, delivered to ${photo.city}` : ''}`)}" decoding="async" draggable="false" /><figcaption><i>${two(i + 1)}</i><b>${escapeHTML(photo.city || 'A new owner')}</b></figcaption></figure>`).join('');
   $('[data-run-total]', runSection).textContent = two(photos.length);
   if (reduced || !large) return;
   runSection.classList.add('is-drawn');

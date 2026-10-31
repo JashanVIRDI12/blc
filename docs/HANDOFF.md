@@ -1,4 +1,4 @@
-# Baba Luxury Cars — homepage handoff
+# Baba Luxury Car — homepage handoff
 
 ## Included
 

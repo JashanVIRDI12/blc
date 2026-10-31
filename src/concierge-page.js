@@ -35,8 +35,8 @@ let settings = { ...defaultSettings.concierge };
 function contact() {
   const digits = String(settings.whatsapp || '').replace(/\D/g, '');
   const full = digits.length === 10 ? `91${digits}` : digits;
-  $$('[data-concierge-whatsapp]').forEach(link => { link.hidden = !digits; link.href = `https://wa.me/${full}?text=${encodeURIComponent('Hello Baba Luxury Cars concierge, I’d like you to find me a car.')}`; });
-  $$('[data-mods-whatsapp]').forEach(link => { link.hidden = !digits; link.href = `https://wa.me/${full}?text=${encodeURIComponent('Hello Baba Luxury Cars concierge, I’m buying a car from you and I’d like some work done to it: ')}`; });
+  $$('[data-concierge-whatsapp]').forEach(link => { link.hidden = !digits; link.href = `https://wa.me/${full}?text=${encodeURIComponent('Hello Baba Luxury Car concierge, I’d like you to find me a car.')}`; });
+  $$('[data-mods-whatsapp]').forEach(link => { link.hidden = !digits; link.href = `https://wa.me/${full}?text=${encodeURIComponent('Hello Baba Luxury Car concierge, I’m buying a car from you and I’d like some work done to it: ')}`; });
   $('[data-concierge-number]').textContent = settings.whatsapp || '';
   const call = $('[data-concierge-call]');
   call.hidden = !digits;
@@ -184,7 +184,7 @@ function sync(animate = false) {
   const digits = String(settings.whatsapp || '').replace(/\D/g, '');
   const whatsapp = $('[data-card-whatsapp]');
   whatsapp.hidden = !digits;
-  const text = ['Hello Baba Luxury Cars concierge, I’d like you to find me a car.', facts().map(([, label, value]) => `${label}: ${value}`).join('\n')].filter(Boolean).join('\n\n');
+  const text = ['Hello Baba Luxury Car concierge, I’d like you to find me a car.', facts().map(([, label, value]) => `${label}: ${value}`).join('\n')].filter(Boolean).join('\n\n');
   whatsapp.href = `https://wa.me/${digits.length === 10 ? `91${digits}` : digits}?text=${encodeURIComponent(text)}`;
 }
 

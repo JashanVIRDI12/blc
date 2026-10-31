@@ -30,8 +30,6 @@ import { RoomEnvironment } from 'three/addons/environments/RoomEnvironment.js';
 import { RectAreaLightUniformsLib } from 'three/addons/lights/RectAreaLightUniformsLib.js';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
 import { loadCar } from './car.js';
 import { models } from './models.js';
 import { vehicleParts } from './vehicle-parts.js';
@@ -39,7 +37,7 @@ import { showcase } from './config.js';
 import { createRenderDensity } from './render-density.js';
 import { bakeHeight, createCloth } from './cloth.js';
 import { studioFloor, cove } from './studio-stage.js';
-import { SHARPEN } from './sharpen.js';
+import { FinishPass } from './sharpen.js';
 import { compileAhead } from './compile.js';
 gsap.registerPlugin(ScrollTrigger);
 
@@ -238,15 +236,15 @@ export function createUnveil(section, { onProgress } = {}) {
   scene.add(floor);
 
   const camera = new THREE.PerspectiveCamera(27, 1, .5, 80);
-  // The frame: rendered linear into a 4× multisampled half-float target,
-  // tone-mapped and encoded (OutputPass), then sharpened.
-  let composer = null, sharpen = null;
+  // The frame: rendered linear into a 2× multisampled half-float target
+  // (at the density it is drawn at, two samples smooth every edge; four
+  // cost a Retina laptop more than the scene), then tone-mapped, encoded
+  // and sharpened in one last pass (FinishPass).
+  let composer = null;
   if (!phone) {
-    composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 }));
+    composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 2 }));
     composer.addPass(new RenderPass(scene, camera));
-    composer.addPass(new OutputPass());
-    sharpen = new ShaderPass(SHARPEN);
-    composer.addPass(sharpen);
+    composer.addPass(new FinishPass(renderer));
   }
   const render = () => composer ? composer.render() : renderer.render(scene, camera);
   const shots = {
@@ -270,7 +268,6 @@ export function createUnveil(section, { onProgress } = {}) {
     if (composer) {
       composer.setPixelRatio(ratio);
       composer.setSize(size.w, size.h);
-      sharpen.uniforms.uTexel.value.set(1 / (size.w * ratio), 1 / (size.h * ratio));
     }
     camera.aspect = size.w / size.h;
     // The reflection at half the frame's pixels: it is blurred anyway.
@@ -413,7 +410,8 @@ export function createUnveil(section, { onProgress } = {}) {
       if (along >= .999 && !coverInView()) { state.cloth = false; coverGroup.visible = false; changed = true; moving = false; }
     } else if (state.pull < .999) { state.cloth = true; coverGroup.visible = true; quiet = 0; changed = true; moving = true; }
     if (changed) render();
-    if (moving && state.active && !document.hidden) raf = requestAnimationFrame(draw);
+    // One frame asked for at a time (a resize this frame may have asked).
+    if (moving && state.active && !document.hidden && !raf) raf = requestAnimationFrame(draw);
   }
   function wake() {
     if (raf || !state.active || !state.ready || state.disposed || document.hidden) return;

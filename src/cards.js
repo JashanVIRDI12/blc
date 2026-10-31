@@ -5,11 +5,15 @@ import { escapeHTML, safeImage, thumbImage, stored } from './util.js';
 import { badge, carTitle, carURL, cover, formatPrice, formatDriven, formatOwners, plateLabel } from './data.js';
 import { LISTING_DEFAULTS } from './listing-rules.js';
 import { track } from './track.js';
+import { photosFirst } from './model-cache.js';
 
 // The two manufacturer figures that best say what kind of car a preview is.
 const KEY_SPECS = ['Power', '0–100 km/h', 'Wading depth', 'Approach angle', 'Seats'];
 export const keySpecs = car => KEY_SPECS.map(key => car.specs.find(([name]) => name === key)).filter(Boolean).slice(0, 2);
 export const camera = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8h3l2-2.5h6L17 8h3v11H4z"/><circle cx="12" cy="13" r="3.5"/></svg>';
+// The cabin photograph a card turns to shows only under a pointer, so a
+// phone (no hover) is not sent it: half the photo data of every card.
+export const canHover = matchMedia('(hover: hover)').matches;
 const heart = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20s-7.5-4.6-7.5-10.2A4.3 4.3 0 0 1 12 7.2a4.3 4.3 0 0 1 7.5 2.6C19.5 15.4 12 20 12 20z"/></svg>';
 
 // A visitor's shortlist, kept in this browser only.
@@ -83,7 +87,7 @@ export function carCard(car, settings, { index = 0, saving = false } = {}) {
   // A fancy or VIP number is named on the photo; a sold car is stamped.
   const plate = car.status === 'sold' ? '' : plateLabel(car, listing);
   // Under the pointer the card turns to the cabin (the car's hover photo).
-  const inside = !car.preview && car.status !== 'sold' && car.hoverPhoto && car.hoverPhoto !== car.photos[0] ? car.hoverPhoto : '';
+  const inside = canHover && !car.preview && car.status !== 'sold' && car.hoverPhoto && car.hoverPhoto !== car.photos[0] ? car.hoverPhoto : '';
   article.innerHTML = `<a class="vehicle-link" href="${carURL(car)}">
     <span class="vehicle-visual" data-photo="${car.preview ? 'cutout' : 'full'}"${inside ? ' data-inside' : ''}><img src="${escapeHTML(thumbImage(cover(car)) || '/vehicle-placeholder.svg')}" data-full="${escapeHTML(safeImage(cover(car)) || '')}" alt="" loading="lazy" decoding="async" width="900" height="600" />${inside ? `<img class="inside-photo" src="${escapeHTML(thumbImage(inside))}" data-full="${escapeHTML(safeImage(inside))}" alt="" loading="lazy" decoding="async" width="900" height="600" /><span class="inside-label" aria-hidden="true">Inside</span>` : ''}<span class="glare" aria-hidden="true"></span>${tag ? `<span class="car-badge" data-tone="${tag.tone}">${escapeHTML(tag.label)}</span>` : ''}${car.photos.length > 1 ? `<span class="photo-count">${camera}${car.photos.length}<span class="sr-only"> photographs</span></span>` : ''}${plate ? `<span class="plate-chip" data-tone="${car.plateTag}"><i aria-hidden="true"></i>${escapeHTML(plate)}</span>` : ''}${car.status === 'sold' ? '<span class="sold-stamp" aria-hidden="true">Sold</span>' : ''}</span>
     <span class="vehicle-card-heading"><span class="vehicle-title"><span class="make">${escapeHTML(car.make)}</span><span class="vehicle-name">${escapeHTML(car.model)}${car.variant ? ` <small>${escapeHTML(car.variant)}</small>` : ''}</span></span>${price ? `<span class="vehicle-price-block">${priceHTML(price, car.price === null)}</span>` : ''}${car.note && car.status !== 'sold' ? `<span class="vehicle-note">${escapeHTML(car.note)}</span>` : ''}</span>
@@ -94,6 +98,7 @@ export function carCard(car, settings, { index = 0, saving = false } = {}) {
   if (saving) article.append(shortlistButton(car));
   attachImageFallback(article);
   article.querySelectorAll('img:not(.inside-photo)').forEach(framePhoto);
+  photosFirst(article.querySelectorAll('img'));
   return article;
 }
 

@@ -24,7 +24,7 @@
 .v-stage:focus-visible{outline-offset:4px}
 .v-slide{flex:0 0 100%;margin:0;scroll-snap-align:start;cursor:zoom-in}
 .v-stage.is-static .v-slide{cursor:default}
-.v-page.is-sold .v-slide img{filter:grayscale(.85)}
+.v-page.is-sold .v-slide{filter:grayscale(.85)}
 .v-arrow{position:absolute;top:50%;z-index:3;display:grid;place-items:center;width:48px;height:48px;margin-top:-24px;border-radius:50%;color:var(--ink);background:rgba(255,255,255,.9);border:1px solid var(--hair);box-shadow:0 10px 30px -14px rgba(0,0,0,.3);transition:color .3s,background-color .3s}
 .v-arrow svg{width:20px;fill:none;stroke:currentColor;stroke-width:1.5}
 .v-arrow--prev{left:14px}
@@ -209,6 +209,8 @@
    (phones and narrow windows), it stays whole and square. */
 @media(min-width:1101px){.v-slide[data-photo=full]{max-height:calc(100svh - var(--header-height) - 150px)}}
 .v-slide[data-photo=full] img{object-fit:cover;object-position:50% 74%}
+/* The photo's small copy (set inline) shows until the full-size file is in. */
+.v-slide[data-photo=full]{background-position:50% 74%;background-size:cover;background-repeat:no-repeat}
 .v-thumbs button[data-photo=full]{aspect-ratio:1/1;width:78px}
 
 /* Baba Concierge: the panel's way in, then the section, on ivory: a menu of

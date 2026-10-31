@@ -2,7 +2,7 @@
 // Insights, Deliveries, Home page, Collections and Settings. Every change saves to
 // Supabase (or, before it is connected, to a preview in this browser).
 import { createStore } from './store.js';
-import { $, $$, esc, toast, busy, icon, confirmDialog } from './ui.js';
+import { $, $$, esc, toast, busy, icon, confirmDialog, compressImage } from './ui.js';
 import { installPickers } from './pickers.js';
 import { renderCars, renderEditor, siteURL } from './cars.js';
 import { renderOverview } from './overview.js';
@@ -13,6 +13,13 @@ import { renderHome } from './home.js';
 import { renderCollections } from './collections.js';
 import { renderSettings } from './settings.js';
 import { FOR_SALE } from '../data.js';
+
+// Anywhere in the portal, a photo whose small copy isn't there (yet: see
+// addMissingThumbs) shows the photo itself.
+document.addEventListener('error', event => {
+  const img = event.target;
+  if (img instanceof HTMLImageElement && /\/car-photos\/.+\.t\.(webp|jpg)$/.test(img.src)) img.src = img.src.replace(/\.t\.(webp|jpg)$/, '.$1');
+}, true);
 
 const root = $('#app');
 const app = { store: null, user: null, cars: [], collections: [], settings: null, private: {}, enquiries: [], deliveries: [], guard: null, discard: null, refresh: () => {} };
@@ -98,6 +105,11 @@ async function enter(session) {
   shell();
   if (!location.hash || location.hash.length < 2 || /access_token/.test(location.hash)) history.replaceState(null, '', '#overview');
   route();
+  // Car photos uploaded as JPEG (from Safari) before they were given small
+  // copies get them now, in the background, so phones load their cards fast.
+  app.store.addMissingThumbs?.(app.cars.flatMap(car => car.photos), blob => compressImage(blob, { max: 720, quality: .74 }))
+    .then(made => { if (made) toast(`Made quick-loading copies of ${made} ${made === 1 ? 'photo' : 'photos'} for phones`); })
+    .catch(error => console.warn(error));
   // New enquiries arrive while the portal is open: check every minute.
   setInterval(async () => {
     if (document.hidden) return;
@@ -161,7 +173,7 @@ function shell() {
     $('[data-count]').textContent = app.cars.filter(car => FOR_SALE.includes(car.status)).length || '';
     const fresh = app.enquiries.filter(row => row.status === 'new').length;
     $('[data-new]').textContent = fresh || '';
-    document.title = `${fresh ? `(${fresh}) ` : ''}Admin — Baba Luxury Cars`;
+    document.title = `${fresh ? `(${fresh}) ` : ''}Admin — Baba Luxury Car`;
   };
   app.refresh();
 }

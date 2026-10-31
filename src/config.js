@@ -3,7 +3,7 @@
 // From babaluxurycar.com (Sales line). Settings in the admin portal override.
 export const dealer = {
   name: 'BABA',
-  descriptor: 'Luxury Cars',
+  descriptor: 'Luxury Car',
   email: '',
   phone: '+91 97737 37310',
   whatsapp: '+91 97737 37310',
@@ -28,10 +28,10 @@ export const dealerLines = [
 // the first message the chat opens with. Saved in the admin (Settings,
 // WhatsApp lines), the admin's list replaces this one.
 export const whatsappLines = [
-  { label: 'Buy a car', number: '+91 97737 37310', message: 'Hello Baba Luxury Cars, I’m looking for a car.' },
-  { label: 'Buy a car', number: '+91 92665 44494', message: 'Hello Baba Luxury Cars, I’m looking for a car.' },
-  { label: 'Sell your car', number: '+91 85958 44904', message: 'Hello Baba Luxury Cars, I’d like to sell my car.' },
-  { label: 'Customer support', number: '+91 85108 30242', message: 'Hello Baba Luxury Cars, I need some help.' },
+  { label: 'Buy a car', number: '+91 97737 37310', message: 'Hello Baba Luxury Car, I’m looking for a car.' },
+  { label: 'Buy a car', number: '+91 92665 44494', message: 'Hello Baba Luxury Car, I’m looking for a car.' },
+  { label: 'Sell your car', number: '+91 85958 44904', message: 'Hello Baba Luxury Car, I’d like to sell my car.' },
+  { label: 'Customer support', number: '+91 85108 30242', message: 'Hello Baba Luxury Car, I need some help.' },
 ];
 
 // Directions to the showroom, opened straight into route planning from

@@ -9,7 +9,7 @@ import { dealer, dealerLines, founders, searchEngines, social } from './config.j
 
 // The address the site is served at: babaluxurycar.com redirects here.
 export const SITE = 'https://www.babaluxurycar.com';
-export const NAME = 'Baba Luxury Cars';
+export const NAME = 'Baba Luxury Car';
 export const OG_IMAGE = `${SITE}/brand/og-image.jpg`;
 const OG_ALT = 'Baba Luxury Car: pre-owned luxury cars, New Delhi';
 
@@ -18,73 +18,73 @@ const OG_ALT = 'Baba Luxury Car: pre-owned luxury cars, New Delhi';
 // from the page, dealer: the dealership's own description on the page }.
 export const pages = {
   '/': {
-    title: 'Used Luxury Cars in Delhi | Baba Luxury Cars',
+    title: 'Used Luxury Cars in Delhi | Baba Luxury Car',
     description: 'Hand-picked, inspected used luxury cars in New Delhi: Mercedes-Benz, BMW, Land Rover and more. Visit our Paschim Vihar showroom, or buy from anywhere in India.',
     dealer: true, website: true,
   },
   '/collection/': {
-    title: 'Used Luxury Cars for Sale in Delhi | Baba Luxury Cars',
+    title: 'Used Luxury Cars for Sale in Delhi | Baba Luxury Car',
     description: 'Browse our collection of second-hand luxury SUVs and saloons in New Delhi, each inspected, photographed and priced. Filter by body, budget and make.',
     crumb: 'Collection',
   },
   '/car/': {
-    title: 'Used Luxury Car for Sale in Delhi | Baba Luxury Cars',
-    description: 'A car from the Baba Luxury Cars collection: photographs, specification and history, and a viewing whenever you are ready.',
+    title: 'Used Luxury Car for Sale in Delhi | Baba Luxury Car',
+    description: 'A car from the Baba Luxury Car collection: photographs, specification and history, and a viewing whenever you are ready.',
     canonical: false,
   },
   '/concierge/': {
-    title: 'Luxury Car Sourcing Across India | Baba Luxury Cars Concierge',
+    title: 'Luxury Car Sourcing Across India | Baba Luxury Car Concierge',
     description: 'Tell us the car: a Rolls-Royce, a Bentley, a Range Rover in one exact specification. We source it across India, check every document and hand it over ready.',
     crumb: 'Concierge',
   },
   '/about/': {
-    title: 'About Baba Luxury Cars | Luxury Car Dealer in New Delhi',
-    description: 'For over 18 years, Baba Luxury Cars has bought and sold pre-owned luxury cars from Paschim Vihar, New Delhi: carefully selected, professionally evaluated, honestly presented.',
+    title: 'About Baba Luxury Car | Luxury Car Dealer in New Delhi',
+    description: 'For over 18 years, Baba Luxury Car has bought and sold pre-owned luxury cars from Paschim Vihar, New Delhi: carefully selected, professionally evaluated, honestly presented.',
     crumb: 'About', dealer: true,
   },
   '/sell/': {
-    title: 'Sell or Exchange Your Luxury Car in Delhi | Baba Luxury Cars',
-    description: 'Sell or exchange your luxury car with Baba Luxury Cars. Share its details for a personal appraisal by our team; we buy across India and handle the RC transfer with you.',
+    title: 'Sell or Exchange Your Luxury Car in Delhi | Baba Luxury Car',
+    description: 'Sell or exchange your luxury car with Baba Luxury Car. Share its details for a personal appraisal by our team; we buy across India and handle the RC transfer with you.',
     crumb: 'Sell your car', faq: true,
   },
   '/consultation/': {
-    title: 'Book a 1:1 Car Consultation | Baba Luxury Cars',
-    description: 'Book a private one-to-one call by phone or WhatsApp with Baba Luxury Cars, and find the luxury car that fits you, from our collection or found for you across India.',
+    title: 'Book a 1:1 Car Consultation | Baba Luxury Car',
+    description: 'Book a private one-to-one call by phone or WhatsApp with Baba Luxury Car, and find the luxury car that fits you, from our collection or found for you across India.',
     crumb: '1:1 Consultation',
   },
   '/privacy/': {
-    title: 'Privacy Policy | Baba Luxury Cars',
-    description: 'How Baba Luxury Cars collects, uses and protects your personal data when you browse our site, enquire about a car or ask us to value yours, under India’s DPDP Act, 2023.',
+    title: 'Privacy Policy | Baba Luxury Car',
+    description: 'How Baba Luxury Car collects, uses and protects your personal data when you browse our site, enquire about a car or ask us to value yours, under India’s DPDP Act, 2023.',
     crumb: 'Privacy policy',
   },
   '/terms/': {
-    title: 'Terms and Conditions | Baba Luxury Cars',
-    description: 'The terms for using babaluxurycar.com, and for enquiries, valuations, purchases, sales and concierge services with Baba Luxury Cars, New Delhi.',
+    title: 'Terms and Conditions | Baba Luxury Car',
+    description: 'The terms for using babaluxurycar.com, and for enquiries, valuations, purchases, sales and concierge services with Baba Luxury Car, New Delhi.',
     crumb: 'Terms and conditions',
   },
   '/booking-policy/': {
-    title: 'Booking and Cancellation Policy | Baba Luxury Cars',
-    description: 'How an advance reserves a car with Baba Luxury Cars, the 45 days to take delivery, and the 50% refund of the advance if you cancel after 45 days.',
+    title: 'Booking and Cancellation Policy | Baba Luxury Car',
+    description: 'How an advance reserves a car with Baba Luxury Car, the 45 days to take delivery, and the 50% refund of the advance if you cancel after 45 days.',
     crumb: 'Booking policy',
   },
   '/delivery-policy/': {
-    title: 'Car Delivery Across India: Policy | Baba Luxury Cars',
-    description: 'Baba Luxury Cars delivers across India. How delivery works, what it costs on top of the price of the car, and collecting from our New Delhi showroom.',
+    title: 'Car Delivery Across India: Policy | Baba Luxury Car',
+    description: 'Baba Luxury Car delivers across India. How delivery works, what it costs on top of the price of the car, and collecting from our New Delhi showroom.',
     crumb: 'Delivery policy',
   },
   '/test-drive-policy/': {
-    title: 'Test Drive Policy | Baba Luxury Cars',
-    description: 'Taking a test drive with Baba Luxury Cars, New Delhi: what to bring, and who pays for the repair if the car is damaged while you are driving it.',
+    title: 'Test Drive Policy | Baba Luxury Car',
+    description: 'Taking a test drive with Baba Luxury Car, New Delhi: what to bring, and who pays for the repair if the car is damaged while you are driving it.',
     crumb: 'Test drive policy',
   },
   '/rc-transfer-policy/': {
-    title: 'RC Transfer and Papers Policy | Baba Luxury Cars',
-    description: 'Baba Luxury Cars transfers the RC of every car it sells through the RTO. What we need from you, the charges, and registering the car in another state.',
+    title: 'RC Transfer and Papers Policy | Baba Luxury Car',
+    description: 'Baba Luxury Car transfers the RC of every car it sells through the RTO. What we need from you, the charges, and registering the car in another state.',
     crumb: 'RC transfer policy',
   },
   '/404.html': {
-    title: 'Page not found | Baba Luxury Cars',
-    description: 'This page has moved or no longer exists. Explore the Baba Luxury Cars collection, or talk to us.',
+    title: 'Page not found | Baba Luxury Car',
+    description: 'This page has moved or no longer exists. Explore the Baba Luxury Car collection, or talk to us.',
     canonical: false, robots: 'noindex, follow',
   },
 };

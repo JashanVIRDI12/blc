@@ -19,7 +19,7 @@ Change covers in **Admin → Collections → Edit**, or **Automatic collection c
 
 ```text
 Use case: precise-object-edit
-Asset type: square editorial collection cover for Baba Luxury Cars website; also needs to crop gracefully to a wide banner.
+Asset type: square editorial collection cover for Baba Luxury Car website; also needs to crop gracefully to a wide banner.
 Input image: edit target and exact vehicle identity reference.
 Primary request: create a polished photographic collection cover using the dark blue Mercedes-Benz S 500 Maybach saloon from the supplied photo. Change the background to An understated modern luxury hotel forecourt in New Delhi, pale sandstone architecture, a shaded portico and subtle landscaped greenery, warm late-afternoon sunlight.
 Composition/framing: square photograph, entire vehicle visible in front three-quarter view, centered horizontally in the lower-middle of the composition, balanced breathing room around bumper and all wheels; the vehicle occupies about 70% of the width. Keep it fully within the middle 60% of the image height so a wide banner crop retains it. Natural grounded contact shadow, correct reflections and perspective.
@@ -31,7 +31,7 @@ Constraints: preserve the exact model, generation, body shape, paint colour, whe
 
 ```text
 Use case: precise-object-edit
-Asset type: square editorial collection cover for Baba Luxury Cars website; also needs to crop gracefully to a wide banner.
+Asset type: square editorial collection cover for Baba Luxury Car website; also needs to crop gracefully to a wide banner.
 Input image: edit target and exact vehicle identity reference.
 Primary request: create a polished photographic collection cover using the dark blue BMW X7 SUV from the supplied photo. Change the background to A calm scenic Himalayan foothill overlook on a broad smooth paved road, soft green hills and distant hazy mountains, clear gentle morning light.
 Composition/framing: square photograph, entire vehicle visible in front three-quarter view, centered horizontally in the lower-middle of the composition, balanced breathing room around bumper and all wheels; the vehicle occupies about 70% of the width. Keep it fully within the middle 60% of the image height so a wide banner crop retains it. Natural grounded contact shadow, correct reflections and perspective.
@@ -43,7 +43,7 @@ Constraints: preserve the exact model, generation, body shape, paint colour, whe
 
 ```text
 Use case: precise-object-edit
-Asset type: square editorial collection cover for Baba Luxury Cars website; also needs to crop gracefully to a wide banner.
+Asset type: square editorial collection cover for Baba Luxury Car website; also needs to crop gracefully to a wide banner.
 Input image: edit target and exact vehicle identity reference.
 Primary request: create a polished photographic collection cover using the white BMW 220d Gran Coupé from the supplied photo. Change the background to A quiet sweeping paved mountain road with a low stone verge and sculptural rocky hills, refined golden late-afternoon daylight, no other traffic.
 Composition/framing: square photograph, entire vehicle visible in front three-quarter view, centered horizontally in the lower-middle of the composition, balanced breathing room around bumper and all wheels; the vehicle occupies about 70% of the width. Keep it fully within the middle 60% of the image height so a wide banner crop retains it. Natural grounded contact shadow, correct reflections and perspective.
@@ -55,7 +55,7 @@ Constraints: preserve the exact model, generation, body shape, paint colour, whe
 
 ```text
 Use case: precise-object-edit
-Asset type: square editorial collection cover for Baba Luxury Cars website; also needs to crop gracefully to a wide banner.
+Asset type: square editorial collection cover for Baba Luxury Car website; also needs to crop gracefully to a wide banner.
 Input image: edit target and exact vehicle identity reference.
 Primary request: create a polished photographic collection cover using the charcoal grey four-door Jeep Wrangler Rubicon from the supplied photo. Change the background to A broad dry gravel trail in the Himalayan foothills, restrained pine trees and rugged distant mountains, clear cool morning light.
 Composition/framing: square photograph, entire vehicle visible in front three-quarter view, centered horizontally in the lower-middle of the composition, balanced breathing room around bumper and all wheels; the vehicle occupies about 70% of the width. Keep it fully within the middle 60% of the image height so a wide banner crop retains it. Natural grounded contact shadow, correct reflections and perspective.

@@ -13,6 +13,18 @@ import { trackCar } from './track.js';
 const { renderContact, openEnquiry } = setupPage('collection');
 const $ = selector => document.querySelector(selector);
 const reduced = matchMedia('(prefers-reduced-motion: reduce)').matches;
+// An image held back in data-src is given it.
+const fill = img => { if (img?.dataset.src) { img.src = img.dataset.src; delete img.dataset.src; } };
+// `action(target)` once each target comes within `margin` of its scrolling
+// row's visible part (a percentage margin is a share of the row's width).
+function whenNear(root, targets, margin, action) {
+  const observer = new IntersectionObserver(entries => entries.forEach(entry => {
+    if (!entry.isIntersecting) return;
+    observer.unobserve(entry.target);
+    action(entry.target);
+  }), { root, rootMargin: margin });
+  targets.forEach(target => observer.observe(target));
+}
 
 init().catch(error => { console.error(error); missing(); });
 
@@ -66,7 +78,7 @@ async function init() {
   const page = $('#car');
   const listing = settings.listing;
   const sold = car.status === 'sold';
-  const description = car.preview ? `The ${title}, a showcase model at Baba Luxury Cars. Enquire about current availability.` : sold ? `The ${title}, now with its new owner. Baba Luxury Cars can find you one like it.` : [title, car.year, drivenText(car.kilometres, listing), car.fuel, priceLabel(car)].filter(present).join(' · ');
+  const description = car.preview ? `The ${title}, a showcase model at Baba Luxury Car. Enquire about current availability.` : sold ? `The ${title}, now with its new owner. Baba Luxury Car can find you one like it.` : [title, car.year, drivenText(car.kilometres, listing), car.fuel, priceLabel(car)].filter(present).join(' · ');
   describe(car, title, description, sold);
   if (!car.preview) trackCar(car.id);
 
@@ -81,9 +93,21 @@ async function init() {
   const photos = car.photos.length ? car.photos : ['/vehicle-placeholder.svg'];
   const stage = $('[data-stage]');
   const kind = car.preview ? 'cutout' : 'full';
-  stage.innerHTML = photos.map((src, i) => `<figure class="v-slide vehicle-visual" data-photo="${kind}" aria-roledescription="slide" aria-label="${i + 1} of ${photos.length}"><img src="${escapeHTML(safeImage(src) || '/vehicle-placeholder.svg')}" alt="${i ? '' : escapeHTML(title)}" ${i ? 'loading="lazy"' : 'fetchpriority="high"'} decoding="async" /></figure>`).join('');
+  // The photograph asked for comes first. A slide shows its small copy (for
+  // the first, usually cached by the card that led here) until the full-size
+  // file is in; the other slides and the strip of thumbnails wait for the
+  // first photograph, then load as they come near, so on a phone they don't
+  // split its connection with it.
+  stage.innerHTML = photos.map((src, i) => `<figure class="v-slide vehicle-visual" data-photo="${kind}" aria-roledescription="slide" aria-label="${i + 1} of ${photos.length}"><img ${i ? 'data-src' : 'src'}="${escapeHTML(safeImage(src) || '/vehicle-placeholder.svg')}" alt="${i ? '' : escapeHTML(title)}"${i ? '' : ' fetchpriority="high"'} decoding="async" /></figure>`).join('');
   attachImageFallback(stage);
   stage.querySelectorAll('img').forEach(framePhoto);
+  const slides = [...stage.children];
+  const showSlide = slide => {
+    const i = slides.indexOf(slide), small = thumbImage(photos[i]);
+    if (kind === 'full' && small && small !== safeImage(photos[i])) slide.style.backgroundImage = `url("${small}")`;
+    fill(slide.querySelector('img'));
+  };
+  showSlide(slides[0]);
   const tag = badge(car, settings);
   if (tag) { const element = $('[data-badge]'); element.dataset.tone = tag.tone; element.textContent = tag.label; element.hidden = false; }
   const counter = $('[data-counter]'), progress = $('[data-progress]');
@@ -100,7 +124,7 @@ async function init() {
     thumbs.querySelectorAll('button').forEach((button, i) => { button.setAttribute('aria-current', String(i === current)); if (i === current) button.scrollIntoView({ block: 'nearest', inline: 'nearest', behavior: reduced ? 'instant' : 'smooth' }); });
   };
   if (photos.length > 1) {
-    thumbs.innerHTML = photos.map((src, i) => `<button type="button" data-photo="${kind}" aria-label="Photograph ${i + 1}"><img src="${escapeHTML(thumbImage(src) || '/vehicle-placeholder.svg')}" data-full="${escapeHTML(safeImage(src) || '')}" alt="" loading="lazy" /></button>`).join('');
+    thumbs.innerHTML = photos.map((src, i) => `<button type="button" data-photo="${kind}" aria-label="Photograph ${i + 1}"><img data-src="${escapeHTML(thumbImage(src) || '/vehicle-placeholder.svg')}" data-full="${escapeHTML(safeImage(src) || '')}" alt="" decoding="async" /></button>`).join('');
     attachImageFallback(thumbs);
     thumbs.querySelectorAll('img').forEach(framePhoto);
     thumbs.addEventListener('click', event => { const button = event.target.closest('button'); if (button) show([...thumbs.children].indexOf(button)); });
@@ -112,6 +136,20 @@ async function init() {
     let settle;
     stage.addEventListener('scroll', () => { clearTimeout(settle); settle = setTimeout(() => { const index = Math.round(stage.scrollLeft / stage.clientWidth); if (index !== current) { current = index; sync(); } }, 90); }, { passive: true });
     sync();
+    // Once the first photograph is in (or the visitor moves on first), the
+    // next slide and the thumbnails in view, then the rest as they near.
+    const first = slides[0].querySelector('img');
+    let started = false;
+    const start = () => {
+      if (started) return;
+      started = true;
+      whenNear(stage, slides.slice(1), '0px 50%', showSlide);
+      whenNear(thumbs, [...thumbs.querySelectorAll('img')], '0px 50%', fill);
+    };
+    if (first.complete && first.naturalWidth) start();
+    else { first.addEventListener('load', start, { once: true }); first.addEventListener('error', start, { once: true }); }
+    stage.addEventListener('scroll', start, { once: true, passive: true });
+    thumbs.addEventListener('pointerdown', start, { once: true, passive: true });
   }
   // The lightbox: each photograph at full size.
   const lightbox = $('#photo-dialog');
@@ -181,12 +219,12 @@ async function init() {
   enquire.firstChild.textContent = next[0];
   enquire.addEventListener('click', () => openEnquiry(next[1]));
   const digits = dealer.whatsapp.replace(/\D/g, '');
-  if (digits) { const link = $('[data-whatsapp]'); link.href = `https://wa.me/${digits}?text=${encodeURIComponent(`Hello Baba Luxury Cars, I’m interested in the ${title}: ${location.href}`)}`; link.hidden = false; }
+  if (digits) { const link = $('[data-whatsapp]'); link.href = `https://wa.me/${digits}?text=${encodeURIComponent(`Hello Baba Luxury Car, I’m interested in the ${title}: ${location.href}`)}`; link.hidden = false; }
   if (dealer.phone) { const link = $('[data-call]'); link.href = `tel:${dealer.phone.replace(/[^+\d]/g, '')}`; $('[data-call-number]').textContent = dealer.phone; link.hidden = false; }
   $('[data-save]').replaceWith(shortlistButton(car, 'shortlist-button v-tool v-save'));
   const share = $('[data-share]');
   share.addEventListener('click', async () => {
-    const data = { title, text: `The ${title} at Baba Luxury Cars`, url: location.href };
+    const data = { title, text: `The ${title} at Baba Luxury Car`, url: location.href };
     const say = text => { share.setAttribute('aria-label', text); share.dataset.said = text; setTimeout(() => { share.setAttribute('aria-label', 'Share this car'); delete share.dataset.said; }, 2600); };
     try {
       if (navigator.share) { await navigator.share(data); return; }
@@ -259,7 +297,7 @@ async function init() {
       fuelType: car.fuel || undefined, vehicleTransmission: car.transmission || undefined,
       mileageFromOdometer: numeric(car.kilometres) && !sold ? { '@type': 'QuantitativeValue', value: car.kilometres, unitCode: 'KMT' } : undefined,
       image: car.photos.map(src => safeURL(src)).filter(Boolean),
-      offers: { '@type': 'Offer', priceCurrency: 'INR', price: numeric(car.price) && !sold ? car.price : undefined, availability: availability ? `https://schema.org/${availability}` : undefined, itemCondition: 'https://schema.org/UsedCondition', seller: { '@type': 'AutoDealer', name: 'Baba Luxury Cars' } },
+      offers: { '@type': 'Offer', priceCurrency: 'INR', price: numeric(car.price) && !sold ? car.price : undefined, availability: availability ? `https://schema.org/${availability}` : undefined, itemCondition: 'https://schema.org/UsedCondition', seller: { '@type': 'AutoDealer', name: 'Baba Luxury Car' } },
     };
     const script = document.createElement('script');
     script.type = 'application/ld+json';
@@ -321,7 +359,7 @@ function concierge(car, title, settings) {
   $('[data-concierge-menu]').innerHTML = groups.map((group, g) => `<fieldset class="v-menu-group"><legend><span>${String(g + 1).padStart(2, '0')}</span>${escapeHTML(group.title)}</legend><div class="v-menu-items">${group.items.map(item => `<button type="button" class="v-chip" aria-pressed="false" data-item="${escapeHTML(item)}"><span>${escapeHTML(item)}</span><i aria-hidden="true"><svg class="v-chip-add" viewBox="0 0 24 24"><path d="M12 6v12M6 12h12"/></svg><svg class="v-chip-on" viewBox="0 0 24 24"><path d="m6 12.5 4 4 8-9"/></svg></i></button>`).join('')}</div></fieldset>`).join('');
 
   const message = () => [
-    `Hello Baba Luxury Cars concierge, I’m looking at the ${title}${car.preview ? '' : ` (${location.href})`}.`,
+    `Hello Baba Luxury Car concierge, I’m looking at the ${title}${car.preview ? '' : ` (${location.href})`}.`,
     chosen.length ? `I’d like:\n${chosen.map(item => `• ${item}`).join('\n')}` : 'I’d like to talk about changes to it.',
     note.value.trim() ? `Also: ${note.value.trim()}` : '',
   ].filter(Boolean).join('\n\n');

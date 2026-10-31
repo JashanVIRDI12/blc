@@ -3,7 +3,7 @@
 // promise at its centre (an inspection loupe, the papers, the rupee, a route
 // across the country). They are set still, as printed: nothing moves.
 
-const RIM = 'Baba Luxury Cars · New Delhi · Baba Luxury Cars · New Delhi · ';
+const RIM = 'Baba Luxury Car · New Delhi · Baba Luxury Car · New Delhi · ';
 // Each mark in the seal's 120-unit square, inside the inner ring (r 35).
 const GLYPHS = {
   loupe: '<circle class="draw" pathLength="1" cx="56" cy="56" r="10.5"/><path class="draw" pathLength="1" d="M63.6 63.6 73 73" stroke-width="2.6"/><path class="draw" pathLength="1" d="M50.5 53.5a6.5 6.5 0 0 1 4-4"/>',

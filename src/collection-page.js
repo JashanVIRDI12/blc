@@ -13,7 +13,7 @@ import { createHallmarks } from './hallmarks.js';
 import { marqueArt, sizeMarques } from './marque-art.js';
 import { fleetVehicles } from './config.js';
 import { models } from './models.js';
-import { prefetchModels } from './model-cache.js';
+import { prefetchModels, photosFirst } from './model-cache.js';
 import { collectionCover, coverImage, bindCoverFallbacks } from './collection-covers.js';
 
 gsap.registerPlugin(ScrollTrigger);
@@ -273,6 +273,7 @@ async function init() {
     shelf.innerHTML = card('', 'Every car', 'The whole collection', pool, allCover ? coverImage(allCover, photographed(pool)[0]?.photos[0]) : pick(pool, 4), !allCover)
       + groups.map((group, i) => card(group.slug, group.title, group.subtitle, group.cars, leads[i])).join('');
     bindCoverFallbacks(shelf);
+    photosFirst(shelf.querySelectorAll('img'));
     shelf.hidden = false;
     shelf.addEventListener('click', event => {
       const choice = event.target.closest('[data-collection]');

@@ -7,11 +7,15 @@ import { showcase, defaultCollections } from '../config.js';
 import { stored } from '../util.js';
 
 export const PREVIEW_KEY = 'baba:admin-preview';
+// The JPEG photos already checked for a small copy (addMissingThumbs).
+const THUMBS_CHECKED = 'baba:admin-thumbs-checked';
 const BUCKET = 'car-photos';
 // camelCase fields the portal changes one at a time, as their columns.
 const COLUMNS = { featuredRank: 'featured_rank', sortOrder: 'sort_order', plateTag: 'plate_tag', plateNumber: 'plate_number', insuranceUntil: 'insurance_until', hoverPhoto: 'hover_photo' };
-// A photo's small copy, beside it (name.t.webp), for cards and thumbnails.
-const thumbPath = path => path.replace(/\.webp$/, '.t.webp');
+// A photo's small copy, beside it (name.t.webp, or name.t.jpg for the JPEGs
+// Safari uploads, as it cannot encode WebP), for cards and thumbnails.
+const thumbPath = path => path.replace(/\.(webp|jpg)$/, '.t.$1');
+const hasThumb = path => /(?<!\.t)\.(webp|jpg)$/.test(path);
 const toPatch = patch => Object.fromEntries(Object.entries(patch).map(([key, value]) => [COLUMNS[key] || key, value]));
 const mergeSettings = saved => Object.fromEntries(Object.entries(defaultSettings).map(([key, value]) => [key, { ...value, ...(saved[key] || {}) }]));
 
@@ -48,8 +52,34 @@ async function supabaseStore() {
     async uploadPhoto(blob, carId, thumb = null, folder = 'cars') {
       const path = `${folder}/${carId}/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${blob.type === 'image/jpeg' ? 'jpg' : 'webp'}`;
       check(await client.storage.from(BUCKET).upload(path, blob, { contentType: blob.type, cacheControl: '31536000', upsert: false }));
-      if (thumb && blob.type === 'image/webp') await client.storage.from(BUCKET).upload(thumbPath(path), thumb, { contentType: thumb.type, cacheControl: '31536000', upsert: false }).catch(() => {});
+      if (thumb && hasThumb(path)) await client.storage.from(BUCKET).upload(thumbPath(path), thumb, { contentType: thumb.type, cacheControl: '31536000', upsert: false }).catch(() => {});
       return client.storage.from(BUCKET).getPublicUrl(path).data.publicUrl;
+    },
+    // JPEGs uploaded before they were given small copies get them now, so
+    // cards stop sending phones the full photo. Each is checked once per
+    // browser; only missing copies are made, nothing is replaced. Returns how
+    // many were made.
+    async addMissingThumbs(urls, makeThumb) {
+      const done = new Set(stored.get(THUMBS_CHECKED, []));
+      const todo = [...new Set(urls)].filter(url => /\.jpg$/.test(pathOf(url)) && hasThumb(pathOf(url)) && !done.has(pathOf(url)));
+      let made = 0;
+      for (const url of todo) {
+        const path = pathOf(url), small = thumbPath(path);
+        try {
+          const found = await fetch(client.storage.from(BUCKET).getPublicUrl(small).data.publicUrl, { method: 'HEAD', cache: 'no-store' });
+          if (!found.ok) {
+            const original = await fetch(url, { cache: 'no-store' });
+            if (!original.ok) continue;
+            const thumb = await makeThumb(await original.blob());
+            const { error } = await client.storage.from(BUCKET).upload(small, thumb, { contentType: thumb.type, cacheControl: '31536000', upsert: false });
+            if (error && !/exists/i.test(error.message)) throw new Error(error.message);
+            if (!error) made++;
+          }
+          done.add(path);
+          stored.set(THUMBS_CHECKED, [...done]);
+        } catch (error) { console.warn(`No small copy for ${path}`, error); }
+      }
+      return made;
     },
     async removePhotos(urls) {
       if (!urls.length) return;
@@ -57,7 +87,7 @@ async function supabaseStore() {
       // its original car is edited or deleted.
       const [collections, settings] = await Promise.all([this.listCollections(), this.getSettings()]);
       const shared = new Set([...collections.map(group => group.cover), ...Object.values(settings.collection.covers || {})]);
-      const paths = urls.filter(url => !shared.has(url)).map(pathOf).filter(Boolean).flatMap(path => /\.webp$/.test(path) ? [path, thumbPath(path)] : [path]);
+      const paths = urls.filter(url => !shared.has(url)).map(pathOf).filter(Boolean).flatMap(path => hasThumb(path) ? [path, thumbPath(path)] : [path]);
       if (paths.length) check(await client.storage.from(BUCKET).remove(paths));
     },
     // What only the dealership sees: the full registration, the stock it

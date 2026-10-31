@@ -49,7 +49,7 @@ export function createAcrossIndia(section, { deliveries = [], settings = {}, red
     ...deliveries.filter(delivery => safeImage(delivery.photo)),
     ...builtIn.map(({ city, card, full, caption }) => ({ city, caption, photo: full, card })),
   ];
-  const alt = photo => photo.caption || `A Baba Luxury Cars handover${photo.city ? `, delivered to ${photo.city}` : ''}`;
+  const alt = photo => photo.caption || `A Baba Luxury Car handover${photo.city ? `, delivered to ${photo.city}` : ''}`;
   const card = (photo, index, copy) => `<div class="india-card" role="listitem"${copy ? ' aria-hidden="true"' : ''}>
       <a class="india-card-frame" href="${escapeHTML(safeImage(photo.photo))}" data-photo="${index}" target="_blank" rel="noopener"${copy ? ' tabindex="-1"' : ''} aria-label="${escapeHTML(`View the photograph: ${alt(photo)}`)}">
         <span class="india-card-shift"><img src="${escapeHTML(photo.card || thumbImage(photo.photo))}" alt="" loading="lazy" decoding="async" draggable="false" /></span>

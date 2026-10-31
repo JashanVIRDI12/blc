@@ -1,6 +1,6 @@
-# Baba Luxury Cars — refined creative and implementation brief
+# Baba Luxury Car — refined creative and implementation brief
 
-Create a client-ready homepage for **Baba Luxury Cars**, a premium pre-owned vehicle dealership. Baba is the brand. The BMW X7, Mercedes-Benz GLS 580 and Land Rover Defender 110 are examples of its collection, not separate manufacturer campaigns. Build on the existing site, supplied vehicle models, and supplied studio. Keep the result restrained, credible, responsive, and practical to use.
+Create a client-ready homepage for **Baba Luxury Car**, a premium pre-owned vehicle dealership. Baba is the brand. The BMW X7, Mercedes-Benz GLS 580 and Land Rover Defender 110 are examples of its collection, not separate manufacturer campaigns. Build on the existing site, supplied vehicle models, and supplied studio. Keep the result restrained, credible, responsive, and practical to use.
 
 ## Art direction
 

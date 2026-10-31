@@ -253,7 +253,7 @@ function links() {
   }));
   const contact = () => {
     const digits = String(dealer.whatsapp || '').replace(/\D/g, ''), full = digits.length === 10 ? `91${digits}` : digits;
-    const href = `https://wa.me/${full}?text=${encodeURIComponent('Hello Baba Luxury Cars, I’d like a one-to-one call to find the right car for me.')}`;
+    const href = `https://wa.me/${full}?text=${encodeURIComponent('Hello Baba Luxury Car, I’d like a one-to-one call to find the right car for me.')}`;
     $$('[data-cp-whatsapp]').forEach(link => { link.hidden = !digits; link.href = href; });
     const way = $('[data-way-whatsapp]');
     way.hidden = !digits;

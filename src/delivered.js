@@ -42,7 +42,7 @@ export function createDelivered(section, { sold, deliveries, reduced = false }) 
         <span class="ds-meta"><small>${escapeHTML(car.make)}</small><b>${escapeHTML(car.model)}</b><span>${escapeHTML([car.year, car.fuel].filter(Boolean).join(' · '))}</span><em><i aria-hidden="true"></i>Handed over${when ? ` · ${escapeHTML(when)}` : ''}</em></span></a></li>`;
     }
     const delivery = item.delivery;
-    return `<li class="ds-card ds-card--delivery" data-i="${i}"><figure class="ds-link"${copy}><span class="ds-photo"><img src="${escapeHTML(thumbImage(delivery.photo))}" data-full="${escapeHTML(safeImage(delivery.photo))}" alt="${escapeHTML(delivery.caption || `A Baba Luxury Cars handover${delivery.city ? ` in ${delivery.city}` : ''}`)}" loading="lazy" decoding="async" draggable="false" /></span>
+    return `<li class="ds-card ds-card--delivery" data-i="${i}"><figure class="ds-link"${copy}><span class="ds-photo"><img src="${escapeHTML(thumbImage(delivery.photo))}" data-full="${escapeHTML(safeImage(delivery.photo))}" alt="${escapeHTML(delivery.caption || `A Baba Luxury Car handover${delivery.city ? ` in ${delivery.city}` : ''}`)}" loading="lazy" decoding="async" draggable="false" /></span>
       <figcaption class="ds-meta"><small>Delivered to</small><b>${escapeHTML(delivery.city || 'A new owner')}</b>${delivery.caption ? `<span>${escapeHTML(delivery.caption)}</span>` : ''}<em><i aria-hidden="true"></i>The keys, handed over</em></figcaption></figure></li>`;
   }).join('');
   ring.querySelectorAll('img[data-full]').forEach(img => img.addEventListener('error', () => { if (img.getAttribute('src') !== img.dataset.full) img.src = img.dataset.full; }, { once: true }));

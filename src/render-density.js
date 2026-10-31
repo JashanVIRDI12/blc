@@ -10,22 +10,28 @@
 //   are short enough that a device which cannot keep up adapts within a
 //   second or two of scrolling, not after twenty seconds of judder; a fast
 //   one never steps at all.
+// - a stage may let a slow device go below the screen's own density, as far
+//   as `lowest` (the About page's display: on a Retina laptop in Safari it
+//   could not keep up at 2x).
 const BUDGET = 2880 * 1840;
 const WARM_UP = 40, WINDOW = 50, SLOW_MS = 26, STEP = .25;
 
-export function createRenderDensity({ mobile }) {
+export function createRenderDensity({ mobile, lowest = null }) {
   let stepped = 0, frames = 0, samples = 0, total = 0, last = 0;
   const native = () => Math.min(devicePixelRatio || 1, 2);
   const target = (width, height) => mobile ? native() : Math.max(native(), Math.min(2, Math.sqrt(BUDGET / Math.max(1, width * height))));
-  const floor = (width, height) => Math.min(target(width, height), Math.max(native(), 1.5));
+  const floor = (width, height) => Math.min(target(width, height), lowest ?? Math.max(native(), 1.5));
   return {
     // The density for a width x height (CSS pixels) canvas.
     ratio: (width, height) => Math.max(floor(width, height), target(width, height) - stepped),
     // Count a drawn frame. True once per window of continuous frames that
-    // averaged too slow.
-    slow(now) {
+    // averaged too slow. A frame drawn on its own (not straight after the
+    // last, as a running animation's are) only marks the time: the gap
+    // before it is a pause, not a frame.
+    slow(now, continuous = true) {
       const gap = last ? now - last : 0;
       last = now;
+      if (!continuous) return false;
       if (++frames <= WARM_UP || !gap || gap >= 110) return false;
       samples++; total += gap;
       if (samples < WINDOW) return false;

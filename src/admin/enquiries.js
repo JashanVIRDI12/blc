@@ -31,7 +31,7 @@ export function renderEnquiries(view, app) {
     inbox.innerHTML = list.map(row => {
       const linked = car(row);
       const digits = String(row.phone || '').replace(/\D/g, '');
-      const whatsapp = digits ? `https://wa.me/${digits.length === 10 ? `91${digits}` : digits}?text=${encodeURIComponent(`Hello ${(row.name || '').split(' ')[0]}, this is Baba Luxury Cars, about your ${row.kind === 'valuation' ? 'valuation request' : row.kind === 'concierge' ? 'concierge request' : 'enquiry'}${linked ? ` for the ${carTitle(linked)}` : ''}.`)}` : '';
+      const whatsapp = digits ? `https://wa.me/${digits.length === 10 ? `91${digits}` : digits}?text=${encodeURIComponent(`Hello ${(row.name || '').split(' ')[0]}, this is Baba Luxury Car, about your ${row.kind === 'valuation' ? 'valuation request' : row.kind === 'concierge' ? 'concierge request' : 'enquiry'}${linked ? ` for the ${carTitle(linked)}` : ''}.`)}` : '';
       const details = Object.entries(row.details || {}).filter(([, value]) => String(value).trim()).map(([key, value]) => `<span><b>${esc(DETAIL[key] || key)}</b>${esc(key === 'exchange' ? 'Yes' : value)}</span>`).join('');
       return `<article class="a-enquiry" data-id="${esc(row.id)}" data-state="${row.status}">
         <header><span class="a-avatar">${esc((row.name || '?').trim().charAt(0).toUpperCase())}</span><div><b>${esc(row.name || 'No name')}</b><small><i class="a-kind a-kind--${(KINDS[row.kind] || KINDS.enquiry)[1]}">${(KINDS[row.kind] || KINDS.enquiry)[0]}</i> ${esc(timeAgo(row.created_at))} · ${esc(new Date(row.created_at).toLocaleString('en-IN', { day: 'numeric', month: 'short', hour: 'numeric', minute: '2-digit' }))}</small></div><span class="a-state" data-tone="${row.status}">${LABELS[row.status]}</span></header>

@@ -1,4 +1,4 @@
-# Baba Luxury Cars, www.babaluxurycar.com
+# Baba Luxury Car, www.babaluxurycar.com
 User-agent: *
 Allow: /
 Disallow: /admin/

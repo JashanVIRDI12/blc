@@ -33,9 +33,7 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
-import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
-import { ShaderPass } from 'three/addons/postprocessing/ShaderPass.js';
-import { SHARPEN } from './sharpen.js';
+import { FinishPass } from './sharpen.js';
 import { glassFinish } from './glass.js';
 import { createRenderDensity } from './render-density.js';
 import { compileAhead } from './compile.js';
@@ -503,22 +501,51 @@ function drawMap(ctx, map, { u, side, t, clock, portrait, name, fadeIn, tracked 
   ctx.restore();
 }
 
-function drawScreen(ctx, destinations, t, portrait, clock = 0) {
-  const { width: w, height: h } = ctx.canvas;
-  ctx.clearRect(0, 0, w, h);
-  ctx.fillStyle = '#040405'; ctx.fillRect(0, 0, w, h);
+// The screen is drawn in two layers. The map moves all the while and is
+// redrawn some thirty times a second; the panel round it (the status bar,
+// the destination, the line beneath) holds still between arrivals and is
+// redrawn only when its words change. Each redraw has to be copied to the
+// GPU, and in Safari that copy is slow, in proportion to the pixels copied:
+// the whole screen, thirty times a second, took half of every second there.
+// screenMoment: the layout, and what the screen shows at this moment.
+function screenMoment(destinations, t, clock, w, h, portrait) {
   const u = portrait ? w : h; // the layout's unit
+  const bar = u * .145, side = portrait ? w * .09 : h * .3, top = Math.round(bar);
+  const map = portrait ? { x: 0, y: top, w, h: Math.round(h * .46) } : { x: 0, y: top, w: Math.round(w * .6), h: h - top };
   const fadeIn = a => clamp01((t - a) / .18);
-  const tracked = px => { if ('letterSpacing' in ctx) ctx.letterSpacing = `${Math.round(px)}px`; };
-  const bar = u * .145, side = portrait ? w * .09 : h * .3;
-  const map = portrait ? { x: 0, y: bar, w, h: h * .46 } : { x: 0, y: bar, w: w * .6, h: h - bar };
   // The destination being shown, and the one it follows.
   const reached = destinations.filter(d => d.at);
   const slot = Math.floor(clock / SLOT), phase = clock - slot * SLOT;
   const at = reached.length ? slot % reached.length : 0, place = reached[at], before = reached[(at - 1 + reached.length) % reached.length];
   const k = !slot ? smooth(fadeIn(.22)) : smooth(clamp01(phase / TURN_IN)); // how far it has arrived
+  const time = IST.format(new Date()).toUpperCase();
+  // What the panel shows while nothing on it moves; none while it does.
+  const key = t < 1 || k < 1 ? null : `${at}/${reached.length}/${time}`;
+  return { w, h, u, bar, side, map, fadeIn, reached, slot, at, place, before, k, time, key };
+}
+const letterSpacing = ctx => px => { if ('letterSpacing' in ctx) ctx.letterSpacing = `${Math.round(px)}px`; };
 
-  drawMap(ctx, map, { u, side, t, clock, portrait, name: place?.name, fadeIn, tracked });
+// The map layer: a canvas the size of the map, drawn in the screen's
+// coordinates. The status bar's hairline runs along its top edge.
+function drawMapLayer(ctx, screen, t, clock, portrait) {
+  const { map, u, side, bar, w, fadeIn, place } = screen;
+  ctx.save();
+  ctx.translate(-map.x, -map.y);
+  ctx.clearRect(map.x, map.y, map.w, map.h);
+  ctx.fillStyle = '#040405'; ctx.fillRect(map.x, map.y, map.w, map.h);
+  drawMap(ctx, map, { u, side, t, clock, portrait, name: place?.name, fadeIn, tracked: letterSpacing(ctx) });
+  ctx.globalAlpha = fadeIn(0);
+  ctx.fillStyle = 'rgba(239,233,222,.1)'; ctx.fillRect(0, bar, w, Math.max(1, u * .002));
+  ctx.globalAlpha = 1;
+  ctx.restore();
+}
+
+// The panel layer: the whole screen but the map.
+function drawPanel(ctx, screen, portrait) {
+  const { w, h, u, bar, side, map, fadeIn, reached, slot, at, place, before, k, time } = screen;
+  const tracked = letterSpacing(ctx);
+  ctx.clearRect(0, 0, w, h);
+  ctx.fillStyle = '#040405'; ctx.fillRect(0, 0, w, h);
 
   // ----------------------------------------------------- the status bar
   ctx.globalAlpha = fadeIn(0);
@@ -531,7 +558,7 @@ function drawScreen(ctx, destinations, t, portrait, clock = 0) {
   ctx.textAlign = 'right';
   ctx.font = `500 ${Math.round(u * .05)}px Manrope`; ctx.fillStyle = '#f4efe6';
   tracked(u * .003);
-  const time = IST.format(new Date()).toUpperCase(), timeWidth = ctx.measureText(time).width;
+  const timeWidth = ctx.measureText(time).width;
   ctx.fillText(time, w - side, bar * .5 + u * .002);
   ctx.font = `600 ${Math.round(u * .036)}px Manrope`; ctx.fillStyle = 'rgba(167,156,141,.9)';
   tracked(u * .011);
@@ -714,20 +741,22 @@ export function createFascia(section, { readings: figures, destinations = [] }) 
   key.position.set(-3, 4, 5); scene.add(key);
 
   const camera = new THREE.PerspectiveCamera(24, 1, .1, 60);
-  let composer = null, sharpen = null, bloom = null;
+  // The frame: rendered linear into a 2x multisampled half-float target
+  // (at the density the screen is drawn at, two samples already smooth
+  // every edge; four cost a Retina laptop more than all the rest of the
+  // frame), the bloom taken from it, then one last pass adds the bloom,
+  // tone-maps and sharpens (FinishPass).
+  let composer = null, bloom = null;
   if (!phone) {
-    composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 4 }));
+    composer = new EffectComposer(renderer, new THREE.WebGLRenderTarget(1, 1, { type: THREE.HalfFloatType, samples: 2 }));
     composer.addPass(new RenderPass(scene, camera));
     bloom = new UnrealBloomPass(new THREE.Vector2(256, 256), .32, .3, 1.02);
     composer.addPass(bloom);
-    composer.addPass(new OutputPass());
-    sharpen = new ShaderPass(SHARPEN);
-    sharpen.uniforms.uSharpness.value = .45;
-    composer.addPass(sharpen);
+    composer.addPass(new FinishPass(renderer, { bloom, sharpness: .45 }));
   }
-  const render = () => composer ? composer.render() : renderer.render(scene, camera);
+  const render = () => { if (import.meta.env.DEV) window.__fasciaRenders = (window.__fasciaRenders || 0) + 1; composer ? composer.render() : renderer.render(scene, camera); };
 
-  const density = createRenderDensity({ mobile: phone });
+  const density = createRenderDensity({ mobile: phone, lowest: 1.5 });
   const state = { progress: 0, turn: 0, depth: 0, vTurn: 0, vDepth: 0, face: 0, ready: false, active: false, disposed: false, light: 0, lean: [0, 0], leanTarget: [0, 0] };
   let size = { w: 1, h: 1 }, display = null, portrait = STACKED.matches, raf = 0, last = performance.now(), dirty = true;
   let logo = null, places = [];
@@ -936,11 +965,19 @@ export function createFascia(section, { readings: figures, destinations = [] }) 
     const inset = .05, sw = W - inset * 2, sh = H - inset * 2;
     const screenCanvas = portrait ? sheet(1600 * sw / sh, 1600) : sheet(2048, 2048 * sh / sw);
     const screenMap = own(texture(screenCanvas));
+    // The screen is opaque, so its pixels are the same premultiplied or not;
+    // taken as they are, Safari copies them without converting each one.
+    screenMap.premultiplyAlpha = true;
+    // The map layer, copied into its place in the screen's texture (which
+    // is flipped: its rows count from the bottom).
+    const mapRect = screenMoment([], 0, 0, screenCanvas.width, screenCanvas.height, portrait).map;
+    const mapCanvas = sheet(mapRect.w, mapRect.h);
+    const mapAt = new THREE.Vector2(mapRect.x, screenCanvas.height - mapRect.y - mapRect.h);
     const screenMaterial = own(new THREE.MeshPhysicalMaterial({ color: '#010101', roughness: .4, metalness: 0, clearcoat: .7, clearcoatRoughness: .02, envMapIntensity: .6, emissive: new THREE.Color('#ffffff'), emissiveMap: screenMap, emissiveIntensity: 0 }));
     const screen = new THREE.Mesh(own(new THREE.PlaneGeometry(sw, sh)), screenMaterial);
     screen.position.z = .001;
     screenFace.add(screen);
-    const screenState = { canvas: screenCanvas, map: screenMap, material: screenMaterial, t: 0, glow: 0, clock: 0 };
+    const screenState = { canvas: screenCanvas, map: screenMap, material: screenMaterial, t: 0, glow: 0, clock: 0, layer: mapCanvas, source: new THREE.Texture(mapCanvas), at: mapAt, key: null };
 
     scene.add(root);
     buildDash(W, H);
@@ -948,7 +985,7 @@ export function createFascia(section, { readings: figures, destinations = [] }) 
       root, drum, W, H, portrait, inradius, dials, screen: screenState,
       dispose() { local.forEach(thing => thing.dispose?.()); },
     };
-    paintScreen();
+    paintScreen(true);
     pose();
   }
 
@@ -1022,34 +1059,55 @@ export function createFascia(section, { readings: figures, destinations = [] }) 
 
   // ----------------------------------------------------------- the screen
   // While it faces out the screen runs, as a car's does: the streets pass
-  // under the route and the destinations take their turn. It is painted
-  // some thirty times a second, and not at all once it has turned away, the
-  // section has left the screen or the tab is hidden.
-  function paintScreen() {
-    const s = display.screen;
+  // under the route and the destinations take their turn. The map is
+  // painted some thirty times a second and copied alone into the screen's
+  // texture; the panel round it only when its words change. Nothing is
+  // painted once the screen has turned away, the section has left the
+  // screen or the tab is hidden.
+  function paintScreen(whole = false) {
+    const s = display.screen, { width: w, height: h } = s.canvas;
     s.material.emissiveIntensity = s.glow * 1.05;
-    drawScreen(s.canvas.getContext('2d'), places, s.t, display.portrait, s.clock);
-    s.map.needsUpdate = true;
+    const now = screenMoment(places, s.t, s.clock, w, h, display.portrait);
+    drawMapLayer(s.layer.getContext('2d'), now, s.t, s.clock, display.portrait);
+    if (whole || now.key === null || now.key !== s.key) {
+      // The words have changed: the panel, the map set into it, all of it
+      // uploaded at once.
+      const ctx = s.canvas.getContext('2d');
+      drawPanel(ctx, now, display.portrait);
+      ctx.drawImage(s.layer, now.map.x, now.map.y);
+      s.key = now.key;
+      s.map.needsUpdate = true;
+      renderer.initTexture(s.map); // now, so its cost is counted with the paint's
+    } else renderer.copyTextureToTexture(s.source, s.map, null, s.at);
   }
-  let screenAt = 0, painted = 0;
+  // The screen's clock runs only while it is painted; its arrival (t, 0 to
+  // 1: the words fade in, the route draws) runs on that clock.
+  const arriving = gsap.parseEase('power1.inOut');
+  let screenAt = 0, painted = 0, paintCost = 0, scrolled = 0;
   function screenTick() {
     if (!screenOn || !display || !state.active || document.hidden) { screenAt = 0; return; }
     const now = performance.now();
     if (now - screenAt < 32) return;
-    display.screen.clock += screenAt ? Math.min(.1, (now - screenAt) / 1000) : 0;
+    // Where painting the screen is slow (Safari copies a canvas to the GPU
+    // slowly), it holds still while the page scrolls, its clock waiting,
+    // and the scroll keeps its frames. It runs on as the scroll settles.
+    if (paintCost > 5 && now - scrolled < 160) { screenAt = 0; return; }
+    const s = display.screen;
+    s.clock += screenAt ? Math.min(.1, (now - screenAt) / 1000) : 0;
+    s.t = arriving(clamp01((s.clock - .1) / 2.8));
     screenAt = now;
     paintScreen();
-    if (import.meta.env.DEV) painted = Math.max(painted * .96, performance.now() - now);
+    const spent = performance.now() - now;
+    paintCost = paintCost ? paintCost * .8 + spent * .2 : spent;
+    if (import.meta.env.DEV) { painted = Math.max(painted * .96, spent); (window.__paints ||= []).push([Math.round(s.clock * 100) / 100, +spent.toFixed(1), s.key === null ? 'whole' : 'map']); }
     changed();
   }
   function screenUp() {
     screenOn = true;
     screenRun?.kill();
     const s = display.screen;
-    s.clock = 0; screenAt = 0;
-    screenRun = track(gsap.timeline({ onUpdate: changed })
-      .to(s, { glow: 1, duration: .5, ease: 'power2.out' }, 0)
-      .fromTo(s, { t: 0 }, { t: 1, duration: 2.8, ease: 'power1.inOut' }, .1));
+    s.clock = 0; s.t = 0; screenAt = 0;
+    screenRun = track(gsap.to(s, { glow: 1, duration: .5, ease: 'power2.out', onUpdate: () => { s.material.emissiveIntensity = s.glow * 1.05; changed(); } }));
     gsap.ticker.add(screenTick);
     wake();
   }
@@ -1058,7 +1116,7 @@ export function createFascia(section, { readings: figures, destinations = [] }) 
     gsap.ticker.remove(screenTick);
     screenRun?.kill();
     const s = display.screen;
-    screenRun = track(gsap.timeline({ onUpdate: () => { s.material.emissiveIntensity = s.glow * 1.05; changed(); }, onComplete: () => { s.t = 0; s.clock = 0; paintScreen(); changed(); } })
+    screenRun = track(gsap.timeline({ onUpdate: () => { s.material.emissiveIntensity = s.glow * 1.05; changed(); }, onComplete: () => { s.t = 0; s.clock = 0; paintScreen(true); changed(); } })
       .to(s, { glow: 0, duration: .45, ease: 'power2.in' }, 0));
     wake();
   }
@@ -1127,8 +1185,6 @@ export function createFascia(section, { readings: figures, destinations = [] }) 
     if (composer) {
       composer.setPixelRatio(ratio);
       composer.setSize(size.w, size.h);
-      bloom.resolution.set(size.w * ratio / 2, size.h * ratio / 2);
-      sharpen.uniforms.uTexel.value.set(1 / (size.w * ratio), 1 / (size.h * ratio));
     }
     if (display && display.portrait !== STACKED.matches) buildDisplay();
     frameDisplay();
@@ -1150,12 +1206,16 @@ export function createFascia(section, { readings: figures, destinations = [] }) 
     camera.updateProjectionMatrix();
     pose();
   }
+  let chained = false; // this frame was asked for by the last, as a running animation's are
   function draw(now) {
+    if (import.meta.env.DEV) { const d = window.__draws ||= { frames: new Map() }; d.frames.set(Math.round(now), (d.frames.get(Math.round(now)) || 0) + 1); }
     raf = 0;
+    const continuous = chained;
+    chained = false;
     if (state.disposed || !state.ready) return;
     const dt = Math.min(.05, Math.max(0, (now - last) / 1000));
     last = now;
-    if (density.slow(now) && density.step(size.w, size.h)) layout();
+    if (density.slow(now, continuous) && density.step(size.w, size.h)) layout();
     let moving = spring(dt);
     const lx = state.leanTarget[0] - state.lean[0], ly = state.leanTarget[1] - state.lean[1];
     if (Math.abs(lx) + Math.abs(ly) > 1e-4) { state.lean[0] += lx * Math.min(1, dt * 4); state.lean[1] += ly * Math.min(1, dt * 4); moving = true; }
@@ -1163,7 +1223,10 @@ export function createFascia(section, { readings: figures, destinations = [] }) 
     arrivals();
     if (moving || dirty) render();
     dirty = false;
-    if (moving && state.active && !document.hidden) raf = requestAnimationFrame(draw);
+    // One frame asked for at a time: something this frame woke (a face
+    // arriving, the density stepping) may have asked already, and a second
+    // request would start a second chain of frames, each drawing the scene.
+    if (moving && state.active && !document.hidden) { if (!raf) raf = requestAnimationFrame(draw); chained = true; }
   }
   function wake() {
     if (raf || !state.active || !state.ready || state.disposed || document.hidden) return;
@@ -1204,7 +1267,7 @@ export function createFascia(section, { readings: figures, destinations = [] }) 
       // New Delhi itself, and its neighbours, are home: named, not plotted.
       return { name, region: at ? regionOf(placeKey(name)) : null, at: route && route.d > 80 ? route : null };
     });
-    if (repaint && display) { paintScreen(); dirty = true; wake(); }
+    if (repaint && display) { paintScreen(true); dirty = true; wake(); }
   }
 
   // -------------------------------------------------------------- scroll
@@ -1227,6 +1290,7 @@ export function createFascia(section, { readings: figures, destinations = [] }) 
   const visibility = ScrollTrigger.create({
     trigger: section, start: 'top bottom', end: () => pinned.end + innerHeight, refreshPriority: 1.5,
     onToggle: self => { state.active = self.isActive; wake(); },
+    onUpdate: () => { scrolled = performance.now(); },
   });
   const arrival = ScrollTrigger.create({ trigger: section, start: 'top 55%', once: true, refreshPriority: 1.5, onEnter: lightUp });
   setFace(0);
@@ -1245,6 +1309,57 @@ export function createFascia(section, { readings: figures, destinations = [] }) 
   const loaded = load().catch(error => { console.error('The figures display is unavailable; keeping the figures as type.', error); section.classList.add('is-static'); pinned.kill(true); });
   if (import.meta.env.DEV) window.__fascia = {
     state,
+    bench: (n = 20, plain = false, opts = {}) => {
+      const gl = renderer.getContext(), go = plain ? () => renderer.render(scene, camera) : render;
+      const passes = { bloom, finish: composer.passes.at(-1) }, keep = { samples: composer.renderTarget1.samples, ratio: renderer.getPixelRatio() };
+      const setSamples = k => { composer.renderTarget1.samples = composer.renderTarget2.samples = k; composer.renderTarget1.dispose(); composer.renderTarget2.dispose(); };
+      const setRatio = r => { renderer.setPixelRatio(r); renderer.setSize(size.w, size.h, false); composer.setPixelRatio(r); composer.setSize(size.w, size.h); };
+      if (opts.ratio) setRatio(opts.ratio);
+      if (opts.bloomScale) bloom.setSize(size.w * renderer.getPixelRatio() * opts.bloomScale, size.h * renderer.getPixelRatio() * opts.bloomScale);
+      if (opts.samples !== undefined) setSamples(opts.samples);
+      (opts.off || []).forEach(name => { passes[name].enabled = false; });
+      const px = new Uint8Array(4), sync = () => { gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); };
+      go(); sync();
+      const t = performance.now();
+      for (let i = 0; i < n; i++) { go(); sync(); }
+      const ms = +((performance.now() - t) / n).toFixed(2);
+      Object.values(passes).forEach(p => { p.enabled = true; });
+      if (opts.samples !== undefined) setSamples(keep.samples);
+      if (opts.ratio || opts.bloomScale) layout();
+      return ms;
+    },
+    tune: (opts = {}) => {
+      const r = opts.ratio || density.ratio(size.w, size.h);
+      renderer.setPixelRatio(r); renderer.setSize(size.w, size.h, false); composer.setPixelRatio(r); composer.setSize(size.w, size.h);
+      composer.renderTarget1.samples = composer.renderTarget2.samples = opts.samples ?? 2; composer.renderTarget1.dispose(); composer.renderTarget2.dispose();
+      render();
+      return { ratio: renderer.getPixelRatio(), samples: composer.renderTarget1.samples };
+    },
+    screenCost: (n = 20, whole = false) => {
+      const sc = display.screen, gl = renderer.getContext(), px = new Uint8Array(4);
+      const sync = () => { gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); };
+      sync();
+      const t0 = performance.now();
+      for (let i = 0; i < n; i++) { sc.clock += 1 / 30; paintScreen(whole); sync(); }
+      return +((performance.now() - t0) / n).toFixed(2);
+    },
+    uploadCost: (n = 20, opts = {}) => {
+      const sc = display.screen, gl = renderer.getContext(), px = new Uint8Array(4);
+      const sync = () => { gl.bindFramebuffer(gl.FRAMEBUFFER, null); gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, px); };
+      const tex = new THREE.CanvasTexture(sc.canvas); tex.colorSpace = THREE.SRGBColorSpace;
+      Object.assign(tex, opts);
+      const ctx = sc.canvas.getContext('2d');
+      renderer.initTexture(tex); sync();
+      let total = 0;
+      for (let i = 0; i < n; i++) {
+        ctx.fillStyle = i % 2 ? '#040405' : '#050506'; ctx.fillRect(0, 0, 4, 4); // dirty the canvas, as a paint would
+        const t = performance.now();
+        tex.needsUpdate = true; renderer.initTexture(tex); sync();
+        total += performance.now() - t;
+      }
+      tex.dispose();
+      return +(total / n).toFixed(2);
+    },
     snapshot: () => ({ paint: +painted.toFixed(1), run: dialsRun ? +dialsRun.progress().toFixed(3) : null, progress: +state.progress.toFixed(4), turn: +state.turn.toFixed(4), depth: +state.depth.toFixed(4), face: state.face, ready: state.ready, sleeping: !raf, dials: display?.dials.map(d => [+d.value.toFixed(2), +d.lit.toFixed(2), d.shown]), screen: display ? [+display.screen.t.toFixed(2), +display.screen.glow.toFixed(2)] : null, light: +state.light.toFixed(2), places: places.map(p => p.name) }),
   };
 

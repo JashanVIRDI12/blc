@@ -1,4 +1,4 @@
--- Baba Luxury Cars: the stock, collections and site settings behind the
+-- Baba Luxury Car: the stock, collections and site settings behind the
 -- website and its admin portal (/admin/).
 --
 -- Run this whole file once in Supabase: Dashboard → SQL Editor → New query →

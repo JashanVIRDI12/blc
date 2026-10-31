@@ -7,9 +7,10 @@
 // catalogue whose pages turn with the scroll; featured-stage.js chooses
 // between them and turns the pages.
 import { loadSite, recommended, FOR_SALE, defaultSettings, badge, carURL, cover, formatDriven, formatOwners, plateLabel } from './data.js';
-import { camera, keySpecs, priceLabel, framePhoto, attachImageFallback } from './cards.js';
+import { camera, keySpecs, priceLabel, framePhoto, attachImageFallback, canHover } from './cards.js';
 import { escapeHTML, safeImage, thumbImage } from './util.js';
 import { createFeaturedMotion } from './featured-stage.js';
+import { photosFirst } from './model-cache.js';
 
 const lines = (element, text) => element.replaceChildren(...String(text).split('\n').flatMap((line, i) => i ? [document.createElement('br'), line] : [line]));
 
@@ -27,6 +28,7 @@ export async function setupFeatured() {
   const grid = $('[data-featured-grid]');
   grid.innerHTML = picks.map((car, k) => cardHTML(car, settings, k)).join('');
   grid.removeAttribute('aria-busy');
+  photosFirst(grid.querySelectorAll('img'));
   $('[data-featured-book]').innerHTML = bookHTML(picks, settings, { title: settings.home.title, intro });
   $('.ft-rows').innerHTML = picks.map((car, k) => rowHTML(car, k)).join('');
   attachImageFallback(section);
@@ -80,7 +82,8 @@ function chips(car, settings) {
 const insideOf = car => !car.preview && car.hoverPhoto && car.hoverPhoto !== car.photos[0] ? car.hoverPhoto : '';
 
 function cardHTML(car, settings, k) {
-  const inside = insideOf(car);
+  // Phones never see it (no hover), so they aren't sent it.
+  const inside = canHover ? insideOf(car) : '';
   return `<article class="ft-card" data-k="${k}">
     <span class="ft-card-photo" data-photo="${car.preview ? 'cutout' : 'full'}"${inside ? ' data-inside' : ''}><img src="${escapeHTML(thumbImage(cover(car)) || '/vehicle-placeholder.svg')}" data-full="${escapeHTML(safeImage(cover(car)) || '')}" alt="" loading="lazy" decoding="async" width="900" height="900" />${inside ? `<img class="inside-photo" src="${escapeHTML(thumbImage(inside))}" data-full="${escapeHTML(safeImage(inside))}" alt="" loading="lazy" decoding="async" width="900" height="900" /><span class="inside-label" aria-hidden="true">Inside</span>` : ''}<span class="glare" aria-hidden="true"></span>${chips(car, settings)}</span>
     <p class="ft-card-top"><span class="ft-make">${escapeHTML(car.make)}</span>${priceHTML(car)}</p>

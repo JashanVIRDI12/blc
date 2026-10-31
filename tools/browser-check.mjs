@@ -52,7 +52,7 @@ async function checkAbout(mobile) {
   if(!mobile)assert(cars.left>state.copy.right,'Cars are framed to the right of the copy');
   else assert(cars.top>=state.copy.bottom-2,'Mobile frames the cars below the copy');
   assert.equal(state.width,mobile?390:1440,'No horizontal overflow');
-  assert(await evaluate('document.title.includes("BABA Luxury Cars")'));
+  assert(await evaluate('document.title.includes("Baba Luxury Car")'));
   await shot(`${prefix}-baba-about`);
   // Both cars arrive, and both drive away out of frame; reversing restores the parked pose.
   await aboutScroll(.26);await shot(`${prefix}-about-arrival`);

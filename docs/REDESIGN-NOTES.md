@@ -1,4 +1,4 @@
-# Baba Luxury Cars — design direction
+# Baba Luxury Car — design direction
 
 These notes record earlier design iterations, including the retired Maybach. The current collection is GLS 580, X7 and Defender 110; see README.md for the current experience.
 
@@ -6,7 +6,7 @@ These notes record earlier design iterations, including the retired Maybach. The
 
 1. A shorter showroom film of the Maybach alone: exterior details, bonnet, interior through the open door, door closure, forward departure to the front threshold. There are no full orbits, return loops, engine controls or engine audio.
 2. Featured collection, with clear preview labels, search, make filtering and vehicle enquiries.
-3. About Baba Luxury Cars on a pinned white stage: the GLS 580 and X7 drive in and stop while the brand story rises in, then drive away. The story sits at left on desktop and above the cars on phones.
+3. About Baba Luxury Car on a pinned white stage: the GLS 580 and X7 drive in and stop while the brand story rises in, then drive away. The story sits at left on desktop and above the cars on phones.
 4. The Baba standard: three concise disclosures about condition, documentation and the next step.
 5. Sell or exchange, retaining the functional valuation enquiry.
 6. A compact footer with contact action, navigation and privacy information.

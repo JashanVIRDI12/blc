@@ -65,7 +65,7 @@ export function setupForms() {
     if (follow) follow.innerHTML = social.map(({ name, icon, url, handle }) => `<a class="footer-follow" href="${url}" target="_blank" rel="noopener"><i>${icons[icon]}</i><span><b>${name}</b><small>${esc(handle || '')}</small></span></a>`).join('');
     if (dealer.enquiryEndpoint || live) document.querySelectorAll('[data-lead-form]').forEach(form => { form.querySelector('[data-submit-label]').textContent = { valuation: 'Request a valuation', consultation: 'Book my call' }[form.dataset.leadForm] || 'Send enquiry'; });
     const whatsapp = dealer.whatsapp.replace(/\D/g, '');
-    document.querySelectorAll('[data-consult-whatsapp]').forEach(link => { link.hidden = !whatsapp; link.href = `https://wa.me/${whatsapp}?text=${encodeURIComponent('Hello Baba Luxury Cars, I’d like a one-to-one call to find the right car for me.')}`; });
+    document.querySelectorAll('[data-consult-whatsapp]').forEach(link => { link.hidden = !whatsapp; link.href = `https://wa.me/${whatsapp}?text=${encodeURIComponent('Hello Baba Luxury Car, I’d like a one-to-one call to find the right car for me.')}`; });
   }
   renderContact();
 

@@ -7,10 +7,12 @@ export const safeURL = value => {
 // stores in place of uploads.
 export const safeImage = value => /^data:image\/(webp|jpeg|png);base64,[a-z0-9+/=]+$/i.test(value ?? '') ? value : safeURL(value);
 // Photos in the car-photos bucket have a small copy beside them
-// (name.t.webp) for cards and thumbnails; anything else is used as it is.
+// (name.t.webp, or name.t.jpg for the JPEGs Safari uploads) for cards and
+// thumbnails; anything else is used as it is. Where a small copy is missing,
+// the image falls back to the full photo (attachImageFallback in cards.js).
 export const thumbImage = value => {
   const url = safeImage(value);
-  return /\/storage\/v1\/object\/public\/car-photos\/.+(?<!\.t)\.webp$/.test(url || '') ? url.replace(/\.webp$/, '.t.webp') : url;
+  return /\/storage\/v1\/object\/public\/car-photos\/.+(?<!\.t)\.(webp|jpg)$/.test(url || '') ? url.replace(/\.(webp|jpg)$/, '.t.$1') : url;
 };
 export const present = value => value !== null && value !== undefined && value !== '';
 export const numeric = value => typeof value === 'number' && Number.isFinite(value) && value >= 0;

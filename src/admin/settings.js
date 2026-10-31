@@ -126,7 +126,7 @@ export function renderSettings(view, app) {
   const waRow = (line = {}) => `<div class="a-wa-row">
       <label class="a-field">For<input name="label" maxlength="40" placeholder="Buy a car" value="${esc(line.label || '')}" /></label>
       <label class="a-field">WhatsApp number<input name="number" type="tel" maxlength="22" placeholder="+91 98765 43210" value="${esc(line.number || '')}" /></label>
-      <label class="a-field a-wa-message">First message <small>Optional. Typed into the chat for the visitor to send.</small><input name="message" maxlength="200" placeholder="Hello Baba Luxury Cars, …" value="${esc(line.message || '')}" /></label>
+      <label class="a-field a-wa-message">First message <small>Optional. Typed into the chat for the visitor to send.</small><input name="message" maxlength="200" placeholder="Hello Baba Luxury Car, …" value="${esc(line.message || '')}" /></label>
       <div class="a-wa-tools"><button type="button" class="a-icon-button" data-wa-move="-1" aria-label="Move up">${icon.up}</button><button type="button" class="a-icon-button" data-wa-move="1" aria-label="Move down">${icon.down}</button><button type="button" class="a-icon-button" data-wa-remove aria-label="Remove this line">${icon.trash}</button></div>
     </div>`;
   const waDraw = lines => {

@@ -1,5 +1,5 @@
 /*! Portions © 2026 David Haz, React Bits (reactbits.dev). MIT + Commons Clause License Condition v1.0: see NOTICE.md. */
-// The keys: a Baba Luxury Cars key fob on a woven lanyard, hanging from the
+// The keys: a Baba Luxury Car key fob on a woven lanyard, hanging from the
 // footer's gold coachline beside "Let's find your car." It swings in when
 // the footer arrives, sways a little in the air, can be caught and thrown,
 // and a tap turns it over. A tap is also a press of its lock button: the
@@ -556,7 +556,7 @@ function paintFaces(logo, side) {
       ctx.fillStyle = ink; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
       ctx.font = `600 ${Math.round(W * .036)}px Manrope, system-ui, sans-serif`;
       ctx.letterSpacing = `${Math.round(W * .012)}px`;
-      ctx.fillText('BABA LUXURY CARS', W / 2, H * .55);
+      ctx.fillText('BABA LUXURY CAR', W / 2, H * .55);
       ctx.letterSpacing = '0px';
       ctx.font = `italic 300 ${Math.round(W * .062)}px Newsreader, Georgia, serif`;
       ctx.fillText('The art of choosing well.', W / 2, H * .65);
@@ -567,7 +567,7 @@ function paintFaces(logo, side) {
   return { color, height, finish };
 }
 
-// The strap: black grosgrain with BABA LUXURY CARS woven along it in gold,
+// The strap: black grosgrain with BABA LUXURY CAR woven along it in gold,
 // a stitched edge each side.
 function paintStrap() {
   const across = 192, along = across * 7;
@@ -582,7 +582,7 @@ function paintStrap() {
   ctx.fillStyle = gold; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
   ctx.font = `700 ${across * .3}px Manrope, system-ui, sans-serif`;
   ctx.letterSpacing = `${across * .07}px`;
-  ctx.fillText('BABA  LUXURY  CARS', along * .5, across * .53);
+  ctx.fillText('BABA  LUXURY  CAR', along * .5, across * .53);
   ctx.letterSpacing = '0px';
   ctx.beginPath(); ctx.arc(along * .06, across / 2, across * .05, 0, Math.PI * 2); ctx.arc(along * .94, across / 2, across * .05, 0, Math.PI * 2); ctx.fill();
   // Turned to run along the strap, as the band's UVs expect.

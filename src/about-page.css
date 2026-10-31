@@ -1,4 +1,4 @@
-/* About Baba Luxury Cars (/about/): black lacquer, ivory type, gold only in
+/* About Baba Luxury Car (/about/): black lacquer, ivory type, gold only in
    the details, one coachline at the head of each movement. */
 .about-page{background:#000;--gold-text:#d5b27b;--muted:#a79c8d}
 .about-page .site-header{background:linear-gradient(180deg,rgba(0,0,0,.72),rgba(0,0,0,0))}
@@ -25,9 +25,13 @@
 .ab-hero{position:relative;z-index:2;display:flex;flex-direction:column;justify-content:center;height:100%;max-width:min(56vw,820px);padding:var(--header-height) var(--gutter) 40px}
 .ab-kicker{display:flex;align-items:center;gap:14px;margin:0;font:600 11px/1.4 var(--font-text);letter-spacing:.22em;text-transform:uppercase;color:var(--gold-text)}
 .ab-kicker i{display:block;width:34px;height:1px;background:linear-gradient(90deg,var(--gold-lo),var(--gold-hi))}
-.ab-title{margin:26px 0 30px;font:300 clamp(58px,7.6vw,132px)/.94 var(--font-display);letter-spacing:-.045em;color:#f4efe6}
+.ab-title{display:flex;flex-direction:column;margin:26px 0 30px;font:300 clamp(58px,7.6vw,132px)/.94 var(--font-display);letter-spacing:-.045em;color:#f4efe6}
 .ab-title em{font-style:italic}
-.ab-line{display:block;overflow:hidden;padding:0 .1em .1em 0;margin:0 -.1em -.1em 0}
+/* Each line rises out of its own mask. The mask reaches past the line on
+   every side, so italic swashes (the D, the q) and tall letters are not cut;
+   the negative margins keep the lines where they were. Flex keeps those
+   margins from collapsing into each other. */
+.ab-line{display:block;overflow:hidden;padding:.16em .16em .12em;margin:-.16em -.16em -.12em}
 .ab-line>span{display:inline-block;will-change:transform}
 /* Until the page's script brings the words in (about-page.js: at once, not
    when the stage behind them has loaded), they wait out of sight. */
