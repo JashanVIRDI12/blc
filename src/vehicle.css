@@ -46,7 +46,7 @@
 .v-status{display:inline-flex;align-items:center;gap:7px;padding:5px 11px 5px 9px;font-size:11.5px;font-weight:700;letter-spacing:.04em;color:var(--ink);background:#fff;border:1px solid var(--hair-2);border-radius:999px}
 .v-status i{position:relative;width:7px;height:7px;border-radius:50%;background:#2f9e5f}
 .v-status[data-tone=available] i:after{content:'';position:absolute;inset:-4px;border-radius:50%;border:1px solid #2f9e5f;animation:v-live 2.4s ease-out infinite}
-.v-status[data-tone=reserved] i{background:#c88f2c}
+.v-status[data-tone=reserved] i{background:var(--gold)}
 .v-status[data-tone=coming_soon] i{background:#5b7fd1}
 .v-status[data-tone=sold] i,.v-status[data-tone=preview] i{background:var(--muted-2)}
 @keyframes v-live{from{opacity:.9;transform:scale(.6)}to{opacity:0;transform:scale(1.6)}}

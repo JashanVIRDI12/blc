@@ -64,7 +64,7 @@
 .theme-light .car-badge{color:var(--ink);background:rgba(255,255,255,.92);border-color:var(--hair);border-radius:999px;padding:7px 12px}
 .theme-light .car-badge[data-tone=new]{color:#fff;background:#111;border-color:#111}
 .theme-light .car-badge[data-tone=coming_soon]{color:var(--gold-ink);border-color:rgba(147,102,46,.45)}
-.theme-light .car-badge[data-tone=reserved]{color:var(--ink-2);border-style:dashed;border-color:var(--hair-2)}
+.theme-light .car-badge[data-tone=reserved]{color:#1a1008;background:var(--brushed-gold);border-color:transparent}
 .theme-light .car-badge[data-tone=sold]{color:#fff;background:#111;border-color:#111}
 .theme-light .car-badge[data-tone=preview]{padding:0;color:var(--muted-2);background:none;border:0;border-radius:0}
 .theme-light .shortlist-button{color:var(--ink);background:rgba(255,255,255,.9);border-color:var(--hair)}
